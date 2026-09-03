@@ -1,3 +1,7 @@
-// 实时同步（可选）：填入 Supabase 项目的 URL 和 anon key 后，学生每次打勾都会上传，
-// 教师端自动刷新。留空则退回“发给老师”同步码模式。见 plan/README.md。
-window.PLAN_SYNC = { url: "", key: "", table: "progress" };
+// 实时同步：学生每次打勾都会上传到 Supabase，教师端每 15 秒自动刷新。
+// anon key 是前端公开密钥（只能按表的 RLS 策略读写 progress 表），不是管理员密钥。
+window.PLAN_SYNC = {
+  url: "https://pijljjeypqnbypjzfewn.supabase.co",
+  key: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8",
+  table: "progress"
+};
