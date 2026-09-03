@@ -1,6 +1,6 @@
 {
- "name": "IAL27W Physics 刷题计划",
- "short_name": "刷题计划",
+ "name": "IAL27W Physics 学习系统",
+ "short_name": "物理学习",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
