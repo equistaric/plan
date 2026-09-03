@@ -46,6 +46,8 @@
    create policy "read"   on progress for select using (true);
    create policy "insert" on progress for insert with check (true);
    create policy "update" on progress for update using (true);
+   -- 新版 Supabase 建表后不会自动给前端角色授权，少了这行会报 42501 permission denied
+   grant select, insert, update on public.progress to anon, authenticated;
    ```
 3. **Settings → API**：复制 `Project URL` 和 `anon public` key。
 4. 打开 `plan/config.js`，填进去：
