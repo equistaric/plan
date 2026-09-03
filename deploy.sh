@@ -8,5 +8,10 @@ python3 "$STATE/build_plan_site.py" "/Users/franking/Desktop/物理资源claude/
 git add -A
 if git diff --cached --quiet; then echo "没有改动，无需部署。"; exit 0; fi
 git -c user.email=teacher@equistar -c user.name=Equistar commit -q -m "${1:-更新 $(date '+%Y-%m-%d %H:%M')}"
-git push -q origin main
+# 若设置了 GH_TOKEN（例如 Claude 会话里），用一次性凭据推送；否则走本机 gh auth login 保存的凭据
+if [ -n "$GH_TOKEN" ]; then
+  git -c credential.helper='!f(){ echo "username=x-access-token"; echo "password=$GH_TOKEN"; }; f' push -q origin main
+else
+  git push -q origin main
+fi
 echo "已推送。约 1–2 分钟后生效：$(git remote get-url origin | sed -E 's#https://github.com/([^/]+)/([^/.]+).*#https://\1.github.io/\2/#')"
