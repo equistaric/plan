@@ -5,17 +5,15 @@
 - **学生端：https://equistaric.github.io/plan/**
 - **教师端：https://equistaric.github.io/plan/teacher.html**
 
-站点文件在 `CIE/刷题计划/`（独立 git 仓库 `equistaric/plan`）。改动后运行 `./deploy.sh` 即可上线，1–2 分钟生效。
-题目图片不放在这个仓库里：页面直接读取已经部署好的错题本站 `https://equistaric.github.io/physics/img/…`（同一域名），所以这个仓库始终只有几 MB。
+这个文件夹（`CIE/学习系统/`）就是整个网站：页面 + 题库（`data.json`、`expl.json`、`img/`、`ans/`）。
+改动后双击 `deploy.sh`（或终端 `./deploy.sh "说明"`）即可上线，1–3 分钟生效，网址永远不变。
 
-## 第一次使用：初始化数据库（只做一次）
+## 第一次使用：初始化数据库（已完成 2026-09-04）
 
-1. 打开 Supabase 项目 → **SQL Editor** → 把 `_private/setup.sql` 整段粘贴 → **Run**。
-   （建表、建函数、写入初始账号、导入 qinliyun 的 15 道旧错题。脚本可以重复运行，不会重置已有账号。）
-2. 初始账号和密码在 `_private/账号密码.txt`（`_private/` 已被 .gitignore 排除，不会上传）。
-3. 打开教师端，用 `teacher` 账号登录。
+`_private/setup.sql` 在 Supabase → SQL Editor 里 Run 一次即可（可重复运行，不会重置已有账号）。
+初始账号密码在 `_private/账号密码.txt`（`_private/` 已被 .gitignore 排除，不会上传）。
 
-前端只能通过这些数据库函数读写（登录、保存打勾、保存错题、教师总览……），四张表对匿名 key 完全关闭，
+前端只能通过数据库函数读写（登录、保存打勾、保存错题、教师总览……），四张表对匿名 key 完全关闭，
 所以 `config.js` 里的 anon key 公开也没关系。
 
 ## 账号与计划类型
@@ -31,7 +29,7 @@
 排期规则：9 月 4 日开始，截止 = 考试前 3 天（P2 **10/11**、P1 **11/7**），周末量 = 平日量 × 2，
 按题数估时（P1 每题 3–4 min，P2 每题 16–20 min，加 25% 对答案与错题时间）。
 估算负荷（9 月两卷并行）：标准 ≈ 平日 2 h / 周末 4 h；全套 ≈ 平日 2.9 h / 周末 5.7 h。
-想改节奏，改 `_state/build_plan_site.py` 顶部的 `START / EXAMS / BUFFER / RATE / TYPES`，重跑 `./deploy.sh`。
+想改节奏，改 `专题练习/真题原文件/Topical/_state/build_plan_site.py` 顶部的 `START / EXAMS / BUFFER / RATE / TYPES`，再跑 `deploy.sh`。
 
 ## 学生怎么用
 
@@ -44,19 +42,24 @@
 ## 老师怎么看
 
 - **刷题进度**：每个学生的 P1/P2 完成率、落后几套、错题数、最近动静；点姓名展开每卷热力图 + 该生错题 + 薄弱考纲点。
-  下面的「全班进度矩阵」一屏看到所有学生每一套题做到第几步（红框 = 该生已过期未完成）。
+  「全班进度矩阵」一屏看到所有学生每一套题做到第几步（红框 = 该生已过期未完成）。
 - **错题分析**：全班薄弱考纲点排行（人次、涉及学生、考纲要求原文）、多人错的同一道题、按学生列表；点题号看题目和答案解析。可按试卷 / 学生筛选。
 - **学生管理**：添加学生、改姓名和计划类型、重置密码、删除；还能把旧错题本的「同步码」导入给某个学生。
 - 页面每 15 秒自动刷新，右上角显示「实时同步中」。
 
-## 部署
+## 文件与构建
 
-```bash
-cd "/Users/franking/Desktop/物理资源claude/CIE/刷题计划" && ./deploy.sh "说明"
-```
+| 文件 | 来源 |
+|---|---|
+| `index.html`、`teacher.html` | `_state/build_plan_site.py` 用模板 `_state/learn_student.html`、`_state/learn_teacher.html` 生成（题库数据内嵌） |
+| `data.json`、`expl.json`、`img/`、`ans/`、`syllabus.json` | `_state/build_wrongbook.py <本文件夹>`（切片库有更新时才需要重跑） |
+| `config.js` | Supabase 的 URL 和 anon key |
+| `version.json` | 构建号；学生端每 5 分钟检查，有新版自动刷新 |
+| `_private/` | 数据库脚本与账号密码，不上传 |
 
-`deploy.sh` = 重新生成 index.html / teacher.html（模板在 `_state/learn_student.html`、`_state/learn_teacher.html`）→ 提交 → 推送。
-网址永远不变；学生端每 5 分钟检查一次新版本自动刷新。
+`deploy.sh` 会把本文件夹镜像到 `~/Sites/learn`（iCloud 之外）再用 git 推送到 `equistaric/plan` ——
+本文件夹里没有 `.git`，也请不要在这里跑 git（6000 多张题图会让 iCloud 里的 git 卡死）。
+旧的 `equistaric/physics`（错题本单独站）不再更新，旧版文件在 `CIE/_旧版归档/`。
 
 ## 添加到手机主屏幕
 
