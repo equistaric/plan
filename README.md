@@ -1,6 +1,11 @@
 # IAL27W 刷题计划 — 说明
 
-独立站点：`CIE/刷题计划/`（与错题本无关，单独部署）。学生端 `index.html`，教师端 `teacher.html`。
+独立站点：`CIE/刷题计划/`（与错题本无关，单独部署）。
+
+- **学生端：https://manguecn.github.io/ial27w-plan/**
+- **教师端：https://manguecn.github.io/ial27w-plan/teacher.html**
+
+改动后运行 `./deploy.sh`（或双击）即可上线，1–2 分钟生效。
 
 ## 计划怎么排的
 
