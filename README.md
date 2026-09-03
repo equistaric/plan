@@ -51,3 +51,30 @@
 
 > anon key 是公开的（前端本来就能看到），表里只有姓名和一串进度位，没有敏感信息。
 > 如果担心同学乱改别人的记录，可以把 update 策略去掉，改为只允许 insert，教师端取每人最新一条。
+
+## 部署（独立仓库，和错题本互不影响）
+
+```bash
+cd "/Users/franking/Desktop/物理资源claude/CIE/刷题计划"
+~/bin/gh repo create ial27w-plan --public --source=. --push
+```
+
+然后仓库 **Settings → Pages** → 分支 `main`、目录 `/ (root)` → Save。网址：
+`https://<你的账号>.github.io/ial27w-plan/`（教师端加 `teacher.html`）。整站不到 1 MB，几秒钟就推完。
+
+## 添加到手机主屏幕（像 App 一样用）
+
+- **iPhone**：Safari 打开网址 → 底部「分享」→「添加到主屏幕」。
+- **Android**：Chrome 打开 → 右上菜单 → 「添加到主屏幕」/「安装应用」。
+
+图标是校徽（哈佛红底），打开后全屏、无浏览器地址栏。以后学生点桌面图标直接打勾。
+
+## 改计划
+
+考试日期、开始日期、提前天数、每题估时都在 `build_plan_site.py` 顶部；改完重跑：
+
+```bash
+python3 "专题练习/真题原文件/Topical/_state/build_plan_site.py" "CIE/错题本" "CIE/刷题计划"
+```
+
+学生已打的勾按「试卷-章-套组」存，重排日期不会丢。
