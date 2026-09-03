@@ -53,12 +53,13 @@ button.primary{background:var(--crimson);color:#fff;border-color:var(--crimson);
 .trow{display:flex;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .trow:first-of-type{border-top:0}
 .tname{flex:1;font-size:14px}.tname small{display:block;color:var(--muted);font-size:12px}
-.grid{width:100%;border-collapse:separate;border-spacing:0}
+.grid{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed}
+.grid col.c0{width:19%}
 .grid th{font-size:12px;color:var(--muted);font-weight:600;text-align:left;padding:6px 6px;border-bottom:1px solid var(--line)}
 .grid td{padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
 .grid td.ch{white-space:nowrap;font-weight:700;color:var(--crimson);font-size:13px;width:1%}
 .grid td.ch small{display:block;font-weight:500;color:var(--muted);font-size:11px;white-space:normal}
-.cell{border:1px solid var(--line);border-radius:10px;padding:6px 7px;min-width:96px;background:var(--card);transition:.15s}
+.cell{border:1px solid var(--line);border-radius:10px;padding:6px 7px;background:var(--card);transition:.15s;width:100%;overflow:hidden}
 .cell.done{background:var(--green-l);border-color:var(--green)}
 .cell.late{border-color:var(--crimson);background:var(--hi)}
 .cell.opt{background:var(--bg)}
@@ -67,9 +68,12 @@ button.primary{background:var(--crimson);color:#fff;border-color:var(--crimson);
 .due b{color:var(--ink);font-weight:600}
 .we{background:var(--crimson);color:#fff;border-radius:5px;padding:0 5px;font-size:10px;font-weight:700}
 .wd{background:var(--line);color:var(--muted);border-radius:5px;padding:0 5px;font-size:10px}
-.pills{display:flex;gap:4px}
-.pill{flex:1;border:1.5px solid var(--line);border-radius:8px;height:30px;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:.12s;background:var(--card)}
-.pill.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:700}
+.pills{display:flex;gap:4px;width:100%}
+/* 三个勾等宽、固定：打勾只改颜色和一个伪元素，绝不改变宽度 */
+.pill{flex:1 1 0;min-width:0;overflow:hidden;white-space:nowrap;border:1.5px solid var(--line);border-radius:8px;height:30px;display:flex;align-items:center;justify-content:center;gap:2px;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:.12s;background:var(--card)}
+.pill::before{content:'';display:inline-block;width:0;transition:.12s}
+.pill.on{background:var(--green);border-color:var(--green);color:#fff}
+.pill.on::before{content:'✓';width:12px;font-weight:700}
 .pill:active{transform:scale(.94)}
 .done .pill.on{background:var(--green)}
 .n{font-size:11px;color:var(--muted)}
@@ -86,15 +90,26 @@ dialog::backdrop{background:rgba(20,10,12,.6)}
 .db{padding:14px}
 .mono{font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px}
 input[type=text]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);width:100%}
-.pill{white-space:nowrap;padding:0 3px;min-width:44px}
+/* ---- 手机：表格换成按章节堆叠的卡片，不横向滚动 ---- */
+.stack{display:none}
+.chapter{border:1px solid var(--line);border-radius:12px;background:var(--card);margin-bottom:10px;overflow:hidden}
+.chapter .chh{padding:9px 12px;font-weight:700;color:var(--crimson);border-bottom:1px solid var(--line);font-size:14px}
+.chapter .chh small{font-weight:500;color:var(--muted);margin-left:6px}
+.srow{padding:8px 12px;border-top:1px solid var(--line)}
+.srow:first-of-type{border-top:0}
+.srow.done{background:var(--green-l)}.srow.late{background:var(--hi);box-shadow:inset 3px 0 0 var(--crimson)}.srow.opt{opacity:.85}.srow.hw{opacity:.5}
+.srow .sh{display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:6px}
+.srow .sh b{color:var(--ink)}
+@media(max-width:760px){.tablewrap{display:none}.stack{display:block}}
 @media(max-width:520px){
   .hin{padding:7px 10px;gap:8px}.hin img{width:28px;height:28px}.t1{font-size:13.5px}.t2{display:none}
   #btnName{padding:5px 8px;font-size:12px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #btnSync{padding:5px 10px;font-size:13px}
   .tabs{top:46px}.tabs button{padding:7px 4px;font-size:13px}
   .grid th:nth-child(1),.grid td.ch{position:sticky;left:0;background:var(--card);z-index:2}
-  .tablewrap{overflow-x:auto;margin:0 -14px;padding:0 14px}.cell{min-width:156px}.pill{font-size:11px;height:28px}
+  .pill{font-size:11px;height:30px}
   .trow{flex-wrap:wrap}.trow .pills{width:100%}}
+@media(min-width:761px) and (max-width:1024px){.wrap{padding:12px 14px 40px}.pill{font-size:11px}}
 </style>
 </head>
 <body>
@@ -196,7 +211,7 @@ function render(){renderTabs();$('#nameLbl').textContent=name||'未署名';
   const sk=streak();
   html+=`<div class="card"><div class="badges"><span class="badge">已完成 <b>${st.done}</b> 套</span>${st.optDone?`<span class="badge">选做 <b>${st.optDone}</b> 套</span>`:''}<span class="badge">连续打卡 <b>${sk}</b> 天</span>${st.late.length?`<span class="badge">待补 <b>${st.late.length}</b> 套</span>`:''}</div></div>`;
   html+=`<div class="card"><div class="legend"><span><span class="we">周末</span> 周末量</span><span><span class="wd">平日</span> 平日量</span><span>三个勾：做题 → 对答案 → 错题清零</span></div>
-    <div class="tablewrap"><table class="grid"><tr><th>章节</th>${SETCODES.map(c=>`<th>${PLAN.setLabels[c]}${c==='EX'?'<br><small style="font-weight:400">选做</small>':c==='HW'?'<br><small style="font-weight:400">已完成</small>':''}</th>`).join('')}</tr>`;
+    <div class="tablewrap"><table class="grid"><colgroup><col class="c0"><col><col><col><col></colgroup><tr><th>章节</th>${SETCODES.map(c=>`<th>${PLAN.setLabels[c]}${c==='EX'?'<br><small style="font-weight:400">选做</small>':c==='HW'?'<br><small style="font-weight:400">已完成</small>':''}</th>`).join('')}</tr>`;
   for(const ch of P.chapters){html+=`<tr><td class="ch">第${ch}章<small>${PLAN.chapters[ch]}</small></td>`;
     for(const c of SETCODES){const s=P.sets.find(x=>x.ch===ch&&x.set===c);
       if(!s){html+='<td><span class="n">—</span></td>';continue;}
@@ -204,9 +219,16 @@ function render(){renderTabs();$('#nameLbl').textContent=name||'未署名';
       html+=`<td><div class="cell ${dn?'done':''} ${late?'late':''} ${!s.required?(c==='HW'?'hw':'opt'):''}">
         <div class="due">${s.due?`<b>${fmt(s.due)}</b><span class="${s.dow>=5?'we':'wd'}">${s.dow>=5?'周末':'平日'}</span>`:`<span class="n">${c==='HW'?'作业已交':'有余力再做'}</span>`}<span class="n">${s.n}题</span></div>${pills(s)}</div></td>`;}
     html+='</tr>';}
-  html+='</table></div></div>';
+  html+='</table></div>';
+  html+='<div class="stack">'+P.chapters.map(ch=>{
+    const rows=SETCODES.map(c=>P.sets.find(x=>x.ch===ch&&x.set===c)).filter(Boolean);
+    const nd=rows.filter(s=>s.required&&isDone(s.id)).length, nr=rows.filter(s=>s.required).length;
+    return `<div class="chapter"><div class="chh">第${ch}章 ${PLAN.chapters[ch]}<small>${nd}/${nr}</small></div>${rows.map(s=>{
+      const dn=isDone(s.id),late=s.required&&s.due&&s.due<td&&!dn;
+      return `<div class="srow ${dn?'done':''} ${late?'late':''} ${!s.required?(s.set==='HW'?'hw':'opt'):''}">
+        <div class="sh"><b>${PLAN.setLabels[s.set]}</b>${s.due?`<span>${fmt(s.due)}</span><span class="${s.dow>=5?'we':'wd'}">${s.dow>=5?'周末':'平日'}</span>`:`<span class="n">${s.set==='HW'?'作业已交':'选做'}</span>`}<span class="n">· ${s.n}题${late?' · 已过期':''}</span></div>${pills(s)}</div>`;}).join('')}</div>`;}).join('')+'</div></div>';
   $('#wrap').innerHTML=html;}
-function pills(s){const st=state[s.id]||{};return `<div class="pills">${CHECKS.map(c=>`<div class="pill ${st[c]?'on':''}" data-id="${s.id}" data-c="${c}">${st[c]?'✓ ':''}${CHECK_LABEL[c]}</div>`).join('')}</div>`;}
+function pills(s){const st=state[s.id]||{};return `<div class="pills">${CHECKS.map(c=>`<div class="pill ${st[c]?'on':''}" data-id="${s.id}" data-c="${c}">${CHECK_LABEL[c]}</div>`).join('')}</div>`;}
 
 /* ---------- interactions ---------- */
 document.addEventListener('click',e=>{
