@@ -2,8 +2,8 @@
 
 独立站点：`CIE/刷题计划/`（与错题本无关，单独部署）。
 
-- **学生端：https://manguecn.github.io/ial27w-plan/**
-- **教师端：https://manguecn.github.io/ial27w-plan/teacher.html**
+- **学生端：https://equistaric.github.io/plan/**
+- **教师端：https://equistaric.github.io/plan/teacher.html**
 
 改动后运行 `./deploy.sh`（或双击）即可上线，1–2 分钟生效。
 
@@ -61,11 +61,11 @@
 
 ```bash
 cd "/Users/franking/Desktop/物理资源claude/CIE/刷题计划"
-~/bin/gh repo create ial27w-plan --public --source=. --push
+（已部署在 equistaric/plan，日常只需运行 ./deploy.sh）
 ```
 
 然后仓库 **Settings → Pages** → 分支 `main`、目录 `/ (root)` → Save。网址：
-`https://<你的账号>.github.io/ial27w-plan/`（教师端加 `teacher.html`）。整站不到 1 MB，几秒钟就推完。
+`https://equistaric.github.io/plan/`（教师端加 `teacher.html`）。整站不到 1 MB，几秒钟就推完。
 
 ## 添加到手机主屏幕（像 App 一样用）
 
