@@ -2,45 +2,51 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>IAL27W Physics · 教师端</title>
 <link rel="icon" href="data:image/png;base64,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">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260904024040"></script>
+<script src="config.js?v=20260904101855"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
   --shadow:0 1px 2px rgba(30,20,22,.06),0 8px 24px rgba(30,20,22,.07)}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Segoe UI,sans-serif;padding-bottom:env(safe-area-inset-bottom)}
 [hidden]{display:none!important}
-header{background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow);position:sticky;top:0;z-index:30}
+header{background:var(--card);border-bottom:1px solid var(--line);box-shadow:var(--shadow);position:sticky;top:0;z-index:30;padding-top:env(safe-area-inset-top)}
 .hbar{height:3px;background:linear-gradient(90deg,var(--crimson),var(--crimson-d))}
 .hin{padding:9px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .hin img{width:32px;height:32px;object-fit:contain}
-.t1{font-weight:700;color:var(--crimson)}.t2{font-size:11px;color:var(--muted)}
+.t1{font-weight:700;color:var(--crimson);line-height:1.15}.t2{font-size:11px;color:var(--muted)}
 .grow{flex:1}
-button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:9px;cursor:pointer}
+button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:6px 12px;border-radius:9px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:disabled{opacity:.5;cursor:default}
 button.primary{background:var(--crimson);color:#fff;border-color:var(--crimson);font-weight:600}
 button.sm{font-size:12px;padding:3px 9px}
 button.danger{color:var(--crimson);border-color:var(--crimson-l)}
-input,select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink)}
+input,select{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--ink);max-width:100%}
 input:focus,select:focus{outline:2px solid var(--crimson);outline-offset:-1px}
 .wrap{max-width:1180px;margin:0 auto;padding:14px 16px 60px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
 h2{font-size:15px;margin:0 0 8px;color:var(--crimson)}
 .sub{font-size:12px;color:var(--muted)}
-.live{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:3px 10px;border-radius:99px}
+.live{display:inline-flex;gap:6px;align-items:center;font-size:12px;padding:3px 10px;border-radius:99px;white-space:nowrap}
 .live.on{background:var(--green-l);color:var(--green)}.live.off{background:var(--amber-l);color:var(--amber)}
 .tabs{display:flex;gap:6px;margin:0 0 12px;flex-wrap:wrap}
 .tabs button{border-radius:99px;padding:6px 16px;font-weight:600;color:var(--muted)}
 .tabs button[aria-pressed="true"]{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+.cls{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:0 0 10px;font-size:13px}
+.cls button{border-radius:99px;padding:4px 12px;font-size:13px}
+.cls button[aria-pressed="true"]{background:var(--sat);border-color:var(--crimson-l);color:var(--crimson);font-weight:600}
 table{width:100%;border-collapse:collapse}
 th{font-size:12px;color:var(--muted);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 th.sort{cursor:pointer}
 td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
-.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:80px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;min-width:70px}
 .bar i{display:block;height:100%;background:var(--crimson)}
 .pct{font-weight:700;color:var(--crimson);white-space:nowrap}
 .late{color:var(--crimson);font-weight:700}.ok{color:var(--green);font-weight:700}
@@ -55,8 +61,9 @@ td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .heat .c.late{outline:2px solid var(--crimson);outline-offset:-2px}
 .name{font-weight:700;cursor:pointer;color:var(--crimson)}
 .ptag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:var(--sat);color:var(--crimson);white-space:nowrap}
+.ktag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:#e8f0fb;color:#1f4e79;white-space:nowrap}
 .det{background:var(--bg)}
-.detin{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.detin{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
 .qtag{display:inline-block;margin:2px 4px 2px 0;padding:2px 8px;border:1px solid var(--line);border-radius:99px;font-size:12px;cursor:pointer;white-space:nowrap;background:var(--card)}
 .qtag:hover{border-color:var(--crimson-l);color:var(--crimson)}
 .qtag b{color:var(--crimson)}
@@ -69,50 +76,74 @@ summary{cursor:pointer;color:var(--crimson);font-size:13px}
 .stu{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
 .scard{border:1px solid var(--line);border-radius:9px;padding:10px 12px}
 .scard b{color:var(--crimson)}
-/* 全班矩阵 */
+/* 手机上的学生卡片（代替宽表格） */
+.tablewrap{display:block}.stack{display:none}
+.pcard{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--card)}
+.pcard .ph{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+.pcard .pr{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:center;font-size:13px}
+.pcard .pf{display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px;align-items:center}
+.pcard .pdet{margin-top:8px;border-top:1px solid var(--line);padding-top:4px}
+/* 全班矩阵：学生名竖排，格子保持紧凑；首列固定 */
+.mxwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:8px}
 .mx{border-collapse:separate;border-spacing:2px;font-size:11px;width:auto}
-.mx th{padding:3px 5px;border:0;font-weight:600;text-align:center;font-size:11px}
-.mx th.rh{text-align:left;white-space:nowrap}
+.mx th{padding:3px 4px;border:0;font-weight:600;text-align:center;font-size:11px;background:var(--card)}
+.mx th.rh{text-align:left;white-space:nowrap;position:sticky;left:0;z-index:2;padding-right:8px}
+.mx th.v{vertical-align:bottom;padding:4px 0}
+.mx th.v span{display:inline-block;writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;max-height:150px;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;line-height:1.1;letter-spacing:.02em}
 .mx td{padding:0;border:0}
-.mx .c{width:34px;height:22px;border-radius:5px;background:var(--line);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
-.mx .c.d1{background:#e8c3ca}.mx .c.d2{background:#c8455a}.mx .c.d3{background:var(--green)}.mx .c.late{outline:2px solid var(--crimson);outline-offset:-2px}.mx .c.opt{opacity:.4}.mx .c.na{background:transparent}
-.mx tr.due td .c:not(.d3):not(.na){box-shadow:inset 0 0 0 1px rgba(165,28,48,.35)}
-.mx .due td{background:transparent}
-.mxwrap{overflow-x:auto}
+.mx .c{width:32px;height:22px;border-radius:5px;background:var(--line);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
+.mx .c.d1{background:#e8c3ca}.mx .c.d2{background:#c8455a}.mx .c.d3{background:var(--green)}.mx .c.late{outline:2px solid var(--crimson);outline-offset:-2px}.mx .c.opt{opacity:.4}
+.mx tr:nth-child(4n+2) th.rh{border-top:1px solid var(--line)}
 .empty{text-align:center;color:var(--muted);padding:34px}
 .msg{font-size:13px;min-height:18px}.msg.bad{color:var(--crimson)}.msg.good{color:var(--green)}
-.mono{font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-all}
 textarea{width:100%;height:80px;font:12px/1.4 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:9px;padding:8px;background:var(--bg);color:var(--ink)}
 /* 登录 */
 .login{min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:20px}
 .lcard{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:28px 26px 22px;width:100%;max-width:380px;text-align:center}
 .lcard img{width:64px;height:64px;object-fit:contain}
 .lcard h1{font-size:18px;color:var(--crimson);margin:10px 0 2px}
-.lcard input{width:100%;margin:5px 0;font-size:15px;padding:10px 12px}
+.lcard input{width:100%;margin:5px 0;font-size:15px;padding:10px 12px;text-align:left}
 .lcard .err{color:var(--crimson);font-size:13px;min-height:18px;margin:2px 0 6px}
 .lcard .primary{width:100%;padding:10px;font-size:15px}
 /* 对话框 */
-dialog{border:0;border-radius:12px;padding:0;max-width:min(920px,94vw);width:920px;background:var(--card);color:var(--ink);box-shadow:0 24px 70px rgba(0,0,0,.4)}
+dialog{border:0;border-radius:12px;padding:0;max-width:min(920px,94vw);width:920px;background:var(--card);color:var(--ink);box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden}
 dialog.sm{width:440px;max-width:94vw}
 dialog::backdrop{background:rgba(20,10,12,.62)}
 .dh{display:flex;gap:10px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-dialog{overflow:hidden}
 .db{max-height:60vh;overflow:auto;background:#fff}
 .db img{width:100%;display:block}
 .dbody{padding:14px;display:grid;gap:9px}
+.dbody label{display:grid;gap:3px;font-size:13px;color:var(--muted)}
+.dbody input,.dbody select{width:100%}
 .expl{padding:12px 14px;border-top:1px solid var(--line);font-size:14px;max-height:30vh;overflow:auto}
 .okc{color:var(--green);font-weight:700}.badc{color:var(--crimson);font-weight:700}
 .tag{font-size:11px;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--crimson) 10%,transparent);color:var(--crimson)}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--ink);color:var(--card);padding:9px 18px;border-radius:99px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:80;white-space:nowrap}
 .toast.show{opacity:1}
-@media print{header,.tabs,.noprint{display:none!important}.card{box-shadow:none}}
+/* ---- 平板 ---- */
+@media(max-width:1024px){td,th{padding:6px 5px;font-size:13px}.wrap{padding:12px 12px 50px}}
+/* ---- 手机 ---- */
+@media(max-width:760px){
+  .tablewrap{display:none}.stack{display:block}
+  .wrap{padding:10px 10px 50px}
+  .hin{padding:7px 10px;gap:8px}.hin img{width:28px;height:28px}.t1{font-size:14px}.t2{display:none}#who{display:none}#btnPrint{display:none}
+  .chips{gap:6px}.chip{min-width:0;flex:1 1 30%;padding:6px 6px}.chip b{font-size:17px}.chip small{font-size:10px}
+  .tabs{gap:5px}.tabs button{flex:1;padding:6px 6px;font-size:13px;white-space:nowrap}
+  .card{padding:11px}
+  table.syl th:nth-child(4),table.syl td:nth-child(4){display:none}
+  table.syl td{padding:6px 4px}.code{font-size:12px}
+  .stu{grid-template-columns:1fr}
+  .heat{max-width:none}
+  dialog{width:auto}.db{max-height:55vh}
+  .lcard{padding:22px 18px 18px}}
+@media print{header,.tabs,.cls,.noprint{display:none!important}.card{box-shadow:none}}
 </style>
 </head>
 <body>
 <header><div class="hbar"></div>
 <div class="hin"><img src="data:image/png;base64,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" alt=""><div><div class="t1">学习系统 · 教师端</div><div class="t2">IAL27W Physics · Equistar International College</div></div>
 <div class="grow"></div><span id="liveBadge" class="live off" hidden>未连接</span>
-<span id="who" class="sub" hidden></span><button id="btnLogout" class="noprint sm" hidden>退出</button><button class="noprint sm" onclick="print()">打印</button></div></header>
+<span id="who" class="sub" hidden></span><button id="btnLogout" class="noprint sm" hidden>退出</button><button class="noprint sm" id="btnPrint" onclick="print()">打印</button></div></header>
 
 <div id="login" class="login" hidden>
   <form class="lcard" id="loginForm">
@@ -129,6 +160,7 @@ dialog{overflow:hidden}
 
 <div class="wrap" id="app" hidden>
   <div class="chips" id="chips"></div>
+  <div class="cls" id="clsBar" hidden></div>
   <div class="tabs" id="tabs">
     <button data-t="progress" aria-pressed="true">📅 刷题进度</button>
     <button data-t="wrong" aria-pressed="false">📕 错题分析</button>
@@ -146,11 +178,11 @@ dialog{overflow:hidden}
 <dialog id="dlgStu" class="sm">
   <div class="dh"><b id="sTitle">添加学生</b><span class="grow"></span><button id="sClose">关闭</button></div>
   <div class="dbody">
-    <label>用户名（拼音，登录用）<input type="text" id="sUser" placeholder="例如 zhangsan" autocapitalize="none" style="width:100%"></label>
-    <label>显示姓名<input type="text" id="sDisp" placeholder="例如 张三" style="width:100%"></label>
-    <label>刷题计划<select id="sPlan" style="width:100%"></select></label>
-    <div class="sub" id="sPlanDesc"></div>
-    <label><span id="sPassLbl">初始密码（至少 4 位）</span><input type="text" id="sPass" placeholder="" autocapitalize="none" style="width:100%"></label>
+    <label>用户名（拼音，登录用）<input type="text" id="sUser" placeholder="例如 zhangsan" autocapitalize="none"></label>
+    <label id="sDispL">显示姓名<input type="text" id="sDisp" placeholder="例如 张三"></label>
+    <label id="sKlassL">班级 / 老师<input type="text" id="sKlass" list="klassList" placeholder="例如 Frank 或 Cui"><datalist id="klassList"></datalist></label>
+    <label id="sPlanL">刷题计划<select id="sPlan"></select></label>
+    <label><span id="sPassLbl">初始密码（至少 4 位）</span><input type="text" id="sPass" autocapitalize="none"></label>
     <div style="display:flex;gap:8px;align-items:center"><button class="primary" id="sOk">保存</button><span class="msg" id="sMsg"></span></div>
   </div>
 </dialog>
@@ -911,7 +943,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260904024040';
+const BUILD='20260904101855';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -941,19 +973,24 @@ async function rpc(fn,args){
   if(!r.ok)throw new Error((j&&(j.message||j.hint))||('HTTP '+r.status));
   return j;}
 const errMsg=e=>({NOCFG:'页面缺少数据库配置',NOINIT:'数据库还没初始化：请先在 Supabase 的 SQL Editor 运行 setup.sql',NET:'网络连不上',auth:'登录已失效',forbidden:'这不是教师账号'})[e.message]||e.message;
-function mockRpc(fn,a){const S=['lichun','qinliyun','yeshurui'],T=['full','full','standard'];const now=Date.now()/1000|0;
-  if(fn==='login')return Promise.resolve({ok:true,token:'m',username:'teacher',display:'老师',role:'teacher',plan_type:'free'});
-  if(fn==='overview'){const pr=[],wr=[];S.forEach((u,i)=>{PLAN.papers.p2.sets.slice(0,4+i*3).forEach((s,k)=>pr.push({u,s:s.id,b:k%3?7:4,t:now-k*3600}));PLAN.papers.p1.sets.slice(0,2+i).forEach(s=>pr.push({u,s:s.id,b:7,t:now}));
-      DATA.items.filter(x=>x.p==='p1'&&x.ch===1+i).slice(0,6+i*4).forEach((x,k)=>wr.push({u,q:x.id,m:k%4===0,t:now-k*80000}));});
-    return Promise.resolve({ok:true,now,students:S.map((u,i)=>({u,n:u,p:T[i],c:now-99999,l:now-i*5000})),practice:pr,wrong:wr});}
+function mockRpc(fn,a){const S=[['lichun','lichun','full','Frank'],['qinliyun','qinliyun','full','Frank'],['yeshurui','yeshurui','standard','Frank'],['yeyazi','叶雅滋','free','Cui'],['chenyuewei','Chen Yuewei','free','Cui'],['zhongruitao','钟睿韬','free','Cui']];const now=Date.now()/1000|0;
+  if(fn==='login')return Promise.resolve({ok:true,token:'m',username:'teacher',display:'Frank 老师',role:'teacher',plan_type:'free',klass:'Frank'});
+  if(fn==='overview'){const pr=[],wr=[];S.forEach(([u],i)=>{PLAN.papers.p2.sets.slice(0,3+i*2).forEach((s,k)=>pr.push({u,s:s.id,b:k%3?7:4,t:now-k*3600}));PLAN.papers.p1.sets.slice(0,1+i).forEach(s=>pr.push({u,s:s.id,b:7,t:now}));
+      DATA.items.filter(x=>x.p==='p1'&&x.ch===1+(i%3)).slice(0,4+i*3).forEach((x,k)=>wr.push({u,q:x.id,m:k%4===0,t:now-k*80000}));});
+    return Promise.resolve({ok:true,now,me:'Frank',students:S.map(([u,n,p,k],i)=>({u,n,p,k,c:now-99999,l:now-i*5000})),practice:pr,wrong:wr});}
   return Promise.resolve({ok:true});}
 
 /* ---------- 状态 ---------- */
-let OV=null,S={},tab='progress',sortKey='late',mxPaper='p2',wbFilterP='',wbFilterU='',openDet=new Set();
+let OV=null,S={},tab='progress',sortKey='late',mxPaper='p2',wbFilterP='',wbFilterU='',openDet=new Set(),klass=null,klassInit=false;
 function digest(ov){S={};
-  for(const s of ov.students)S[s.u]={u:s.u,n:s.n||s.u,type:s.p,created:(s.c||0)*1000,seen:(s.l||0)*1000,bits:{},ptime:{},wrong:[],last:0};
+  for(const s of ov.students)S[s.u]={u:s.u,n:s.n||s.u,type:s.p,klass:s.k||'',created:(s.c||0)*1000,seen:(s.l||0)*1000,bits:{},ptime:{},wrong:[],last:0};
   for(const p of ov.practice){const x=S[p.u];if(!x)continue;x.bits[p.s]=p.b;x.ptime[p.s]=p.t*1000;x.last=Math.max(x.last,p.t*1000);}
-  for(const w of ov.wrong){const x=S[w.u];if(!x||!byId.has(w.q))continue;x.wrong.push({q:w.q,m:!!w.m,t:w.t*1000});x.last=Math.max(x.last,w.t*1000);}}
+  for(const w of ov.wrong){const x=S[w.u];if(!x||!byId.has(w.q))continue;x.wrong.push({q:w.q,m:!!w.m,t:w.t*1000});x.last=Math.max(x.last,w.t*1000);}
+  const cls=classes();
+  if(!klassInit){klassInit=true;const mine=ov.me||(session&&session.klass)||'';klass=cls.includes(mine)?mine:null;}
+  if(klass&&!cls.includes(klass))klass=null;}
+const classes=()=>[...new Set(Object.values(S).map(x=>x.klass).filter(Boolean))].sort();
+const vis=()=>Object.keys(S).filter(u=>!klass||S[u].klass===klass);
 const typeOf=u=>PLAN.types[S[u]&&S[u].type]?S[u].type:'free';
 const TY=u=>PLAN.types[typeOf(u)];
 function stStats(u,p){const T=TY(u),P=PLAN.papers[p],sc=(PLAN.schedules[typeOf(u)]||{})[p]||null,td=today();
@@ -961,7 +998,7 @@ function stStats(u,p){const T=TY(u),P=PLAN.papers[p],sc=(PLAN.schedules[typeOf(u
   const req=P.sets.filter(s=>T.required.includes(s.set)),nd=req.filter(s=>done(s.id)).length;
   const sched=sc?P.sets.filter(s=>sc.due[s.id]):[];const planned=sched.filter(s=>sc.due[s.id][0]<=td).length,ds=sched.filter(s=>done(s.id)).length;
   const late=sched.filter(s=>sc.due[s.id][0]<td&&!done(s.id));
-  return{req:req.length,done:nd,pct:req.length?Math.round(nd/req.length*100):0,late,planned,doneSched:ds,sc,anyDone:Object.values(S[u].bits).some(b=>b===7)};}
+  return{req:req.length,done:nd,pct:req.length?Math.round(nd/req.length*100):0,late,planned,doneSched:ds,sc};}
 const level=b=>b?((b>>2)&1)+((b>>1)&1)+(b&1):0;
 
 /* ---------- 登录 ---------- */
@@ -971,7 +1008,7 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();const u=$
   try{const j=await rpc('login',{p_user:u,p_pass:p});
     if(!j.ok){$('#loginErr').textContent=j.error||'登录失败';return;}
     if(j.role!=='teacher'){$('#loginErr').textContent='这是学生账号，请到学生端登录';return;}
-    session={token:j.token,username:j.username,display:j.display};localStorage.setItem(SKEY,JSON.stringify(session));$('#inPass').value='';boot();}
+    session={token:j.token,username:j.username,display:j.display,klass:j.klass||''};localStorage.setItem(SKEY,JSON.stringify(session));$('#inPass').value='';klassInit=false;boot();}
   catch(e){$('#loginErr').textContent=errMsg(e);}finally{$('#btnLogin').disabled=false;}});
 $('#btnLogout').onclick=async()=>{const s=session;session=null;localStorage.removeItem(SKEY);clearInterval(pollT);try{await rpc('logout',{p_token:s.token});}catch(e){}showLogin();};
 let pollT;
@@ -981,14 +1018,18 @@ function boot(){if(!session){showLogin();return;}
   pull();clearInterval(pollT);pollT=setInterval(pull,15000);}
 async function pull(){try{const j=await rpc('overview',{p_token:session.token});
     if(!j.ok){if(j.error==='auth'){session=null;localStorage.removeItem(SKEY);clearInterval(pollT);showLogin();$('#loginErr').textContent='登录已失效，请重新登录';return;}throw new Error(j.error);}
-    OV=j;digest(j);$('#liveBadge').className='live on';$('#liveBadge').textContent='● 实时同步中 · '+new Date().toLocaleTimeString('zh-CN');render();}
+    OV=j;digest(j);$('#liveBadge').className='live on';$('#liveBadge').textContent='● 实时同步中 · '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});render();}
   catch(e){$('#liveBadge').className='live off';$('#liveBadge').textContent='⚠ '+errMsg(e);if(!OV)$('#dash').innerHTML=`<div class="card"><div class="empty">${esc(errMsg(e))}</div></div>`;}}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)pull();});
 
 /* ---------- 渲染 ---------- */
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;[...$('#tabs').children].forEach(x=>x.setAttribute('aria-pressed',x===b));render();});
-function render(){if(!OV)return;renderChips();({progress:renderProgress,wrong:renderWrong,students:renderStudents})[tab]();}
-function renderChips(){const us=Object.keys(S);const td=today();
+function render(){if(!OV)return;renderCls();renderChips();({progress:renderProgress,wrong:renderWrong,students:renderStudents})[tab]();}
+function renderCls(){const cls=classes(),bar=$('#clsBar');if(cls.length<2){bar.hidden=true;return;}bar.hidden=false;
+  const cnt=k=>Object.values(S).filter(x=>!k||x.klass===k).length;
+  bar.innerHTML=`<span class="sub">班级：</span><button data-k="" aria-pressed="${klass===null}">全部 ${cnt('')}</button>`+cls.map(k=>`<button data-k="${esc(k)}" aria-pressed="${klass===k}">${esc(k)} 班 ${cnt(k)}</button>`).join('');}
+$('#clsBar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;klass=b.dataset.k||null;render();});
+function renderChips(){const us=vis();const td=today();
   const avg=p=>us.length?Math.round(us.reduce((a,u)=>a+stStats(u,p).pct,0)/us.length):0;
   const lateN=us.filter(u=>stStats(u,'p1').late.length+stStats(u,'p2').late.length>0).length;
   const wrongN=us.reduce((a,u)=>a+S[u].wrong.length,0);
@@ -996,26 +1037,36 @@ function renderChips(){const us=Object.keys(S);const td=today();
   $('#chips').innerHTML=`<div class="chip"><b>${us.length}</b><small>学生</small></div><div class="chip"><b>${avg('p2')}%</b><small>Paper 2 平均</small></div><div class="chip"><b>${avg('p1')}%</b><small>Paper 1 平均</small></div>
     <div class="chip"><b class="${lateN?'late':''}">${lateN}</b><small>落后计划</small></div><div class="chip"><b>${wrongN}</b><small>错题总数</small></div><div class="chip"><b>${active}</b><small>今天有动静</small></div>`;}
 
-function renderProgress(){const us=Object.keys(S);
-  if(!us.length){$('#dash').innerHTML='<div class="card"><div class="empty">还没有学生账号 —— 到「学生管理」添加。</div></div>';return;}
-  const rows=us.map(u=>({u,n:S[u].n,type:typeOf(u),p1:stStats(u,'p1'),p2:stStats(u,'p2'),p4:stStats(u,'p4'),last:S[u].last,seen:S[u].seen,nw:S[u].wrong.length,nm:S[u].wrong.filter(w=>w.m).length}));
-  rows.sort((a,b)=>sortKey==='name'?a.n.localeCompare(b.n,'zh'):sortKey==='p1'?b.p1.pct-a.p1.pct:sortKey==='p2'?b.p2.pct-a.p2.pct:sortKey==='wrong'?b.nw-a.nw:sortKey==='last'?b.last-a.last:(b.p1.late.length+b.p2.late.length)-(a.p1.late.length+a.p2.late.length));
-  const bar=s=>`<div style="display:flex;gap:8px;align-items:center"><div class="bar" style="flex:1"><i style="width:${s.pct}%"></i></div><span class="pct">${s.pct}%</span><span class="sub">${s.done}/${s.req}</span></div>`;
+const bar=s=>`<div style="display:flex;gap:8px;align-items:center"><div class="bar" style="flex:1"><i style="width:${s.pct}%"></i></div><span class="pct">${s.pct}%</span><span class="sub">${s.done}/${s.req}</span></div>`;
+function rowsSorted(){const rows=vis().map(u=>({u,n:S[u].n,type:typeOf(u),klass:S[u].klass,p1:stStats(u,'p1'),p2:stStats(u,'p2'),p4:stStats(u,'p4'),last:S[u].last,seen:S[u].seen,nw:S[u].wrong.length,nm:S[u].wrong.filter(w=>w.m).length}));
+  rows.sort((a,b)=>sortKey==='name'?a.n.localeCompare(b.n,'zh'):sortKey==='p1'?b.p1.pct-a.p1.pct:sortKey==='p2'?b.p2.pct-a.p2.pct:sortKey==='wrong'?b.nw-a.nw:sortKey==='last'?b.last-a.last:(b.p1.late.length+b.p2.late.length)-(a.p1.late.length+a.p2.late.length)||a.n.localeCompare(b.n,'zh'));
+  return rows;}
+function renderProgress(){const rows=rowsSorted();
+  if(!rows.length){$('#dash').innerHTML='<div class="card"><div class="empty">这个班还没有学生 —— 到「学生管理」添加。</div></div>';return;}
   const dl=p=>{const sc=PLAN.schedules.standard&&PLAN.schedules.standard[p];return sc?`（${fmt(sc.deadline)} 截止）`:'';};
-  let h=`<div class="card"><table><tr><th class="sort" data-k="name">学生</th><th>计划</th><th class="sort" data-k="p2">Paper 2 ${dl('p2')}</th><th class="sort" data-k="p1">Paper 1 ${dl('p1')}</th><th>Paper 4</th><th class="sort" data-k="late">落后</th><th class="sort" data-k="wrong">错题</th><th class="sort" data-k="last">最近动静</th></tr>`;
-  for(const r of rows){const lt=r.p1.late.length+r.p2.late.length;const T=PLAN.types[r.type];
-    h+=`<tr><td><span class="name" data-det="${r.u}">${esc(r.n)}</span><div class="sub">${esc(r.u)}</div></td><td><span class="ptag" title="${esc(T.desc)}">${T.label}</span></td><td>${bar(r.p2)}</td><td>${bar(r.p1)}</td><td class="sub">${r.p4.done}/${r.p4.req}</td>
-      <td class="${lt?'late':'ok'}">${r.p2.sc||r.p1.sc?(lt?`落后 ${lt} 套`:'✓ 按计划'):'<span class="sub">不排期</span>'}</td><td>${r.nw}${r.nm?`<span class="sub"> · 掌握 ${r.nm}</span>`:''}</td><td class="sub" title="${r.last?new Date(r.last).toLocaleString('zh-CN'):''}">${ago(r.last)}<div>登录 ${ago(r.seen)}</div></td></tr>`;
+  const lateTxt=r=>{const lt=r.p1.late.length+r.p2.late.length;return r.p2.sc||r.p1.sc?`<span class="${lt?'late':'ok'}">${lt?`落后 ${lt} 套`:'✓ 按计划'}</span>`:'<span class="sub">不排期</span>';};
+  const showK=!klass&&classes().length>1;
+  let h=`<div class="card"><div class="tablewrap"><table><tr><th class="sort" data-k="name">学生</th><th>计划</th><th class="sort" data-k="p2">Paper 2 ${dl('p2')}</th><th class="sort" data-k="p1">Paper 1 ${dl('p1')}</th><th>Paper 4</th><th class="sort" data-k="late">落后</th><th class="sort" data-k="wrong">错题</th><th class="sort" data-k="last">最近动静</th></tr>`;
+  for(const r of rows){const T=PLAN.types[r.type];
+    h+=`<tr><td><span class="name" data-det="${r.u}">${esc(r.n)}</span><div class="sub">${esc(r.u)}${showK&&r.klass?` · ${esc(r.klass)} 班`:''}</div></td><td><span class="ptag" title="${esc(T.desc)}">${T.label}</span></td><td>${bar(r.p2)}</td><td>${bar(r.p1)}</td><td class="sub">${r.p4.done}/${r.p4.req}</td>
+      <td>${lateTxt(r)}</td><td>${r.nw}${r.nm?`<span class="sub"> · 掌握 ${r.nm}</span>`:''}</td><td class="sub" title="${r.last?new Date(r.last).toLocaleString('zh-CN'):''}">${ago(r.last)}<div>登录 ${ago(r.seen)}</div></td></tr>`;
     h+=`<tr class="det" data-detrow="${r.u}" ${openDet.has(r.u)?'':'hidden'}><td colspan="8">${detail(r.u)}</td></tr>`;}
-  h+='</table></div>';
+  h+='</table></div><div class="stack">';
+  for(const r of rows){const T=PLAN.types[r.type];
+    h+=`<div class="pcard"><div class="ph"><span class="name" data-det="${r.u}">${esc(r.n)}</span><span class="sub">${esc(r.u)}</span><span class="ptag">${T.label}</span>${showK&&r.klass?`<span class="ktag">${esc(r.klass)} 班</span>`:''}<span class="grow"></span>${lateTxt(r)}</div>
+      <div class="pr"><span class="sub">Paper 2</span>${bar(r.p2)}<span class="sub">Paper 1</span>${bar(r.p1)}</div>
+      <div class="pf"><span>Paper 4 ${r.p4.done}/${r.p4.req}</span><span>错题 ${r.nw}${r.nm?` · 掌握 ${r.nm}`:''}</span><span>动静 ${ago(r.last)}</span><span class="grow"></span><button class="sm" data-det="${r.u}">${openDet.has(r.u)?'收起':'详情'}</button></div>
+      <div class="pdet" data-detrow="${r.u}" ${openDet.has(r.u)?'':'hidden'}>${detail(r.u)}</div></div>`;}
+  h+='</div></div>';
   // 全班矩阵
   const P=PLAN.papers[mxPaper],td=today();
-  h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">全班进度矩阵</h2><span class="sub">每格 = 一套题完成到第几步（1 做题 · 2 对答案 · 3 清零）；红框 = 该生已过期未完成；淡色 = 对该生不是必做</span><span class="grow"></span>
+  h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">全班进度矩阵</h2><span class="grow"></span>
     <div class="tabs" style="margin:0">${PAPERS.map(p=>`<button class="sm" data-mx="${p}" aria-pressed="${p===mxPaper}">${PLAN.papers[p].label.split(' ')[0]} ${PLAN.papers[p].label.split(' ')[1]||''}</button>`).join('')}</div></div>
-    <div class="mxwrap"><table class="mx"><tr><th class="rh">章节 · 套题</th><th class="rh">截止</th>${rows.map(r=>`<th title="${esc(r.u)}">${esc(r.n.slice(0,4))}</th>`).join('')}</tr>`;
+    <div class="sub" style="margin-top:4px">每格 = 一套题完成到第几步（1 做题 · 2 对答案 · 3 清零）；红框 = 该生已过期未完成；淡色 = 对该生不是必做。截止日按「标准」计划标注。</div>
+    <div class="mxwrap"><table class="mx"><tr><th class="rh">章节 · 套题</th>${rows.map(r=>`<th class="v" title="${esc(r.n)}（${esc(r.u)}）"><span>${esc(r.n)}</span></th>`).join('')}</tr>`;
   for(const ch of P.chapters)for(const c of SETCODES){const s=P.sets.find(x=>x.ch===ch&&x.set===c);if(!s)continue;
     const dueStd=(PLAN.schedules.standard&&PLAN.schedules.standard[mxPaper]||{due:{}}).due[s.id];
-    h+=`<tr><th class="rh">第${ch}章 <span class="sub">${PLAN.setLabels[c]}</span></th><th class="rh sub">${dueStd?fmt(dueStd[0]):'—'}</th>`;
+    h+=`<tr><th class="rh">第${ch}章 <span class="sub">${PLAN.setLabels[c]}${dueStd?' · '+fmt(dueStd[0]):''}</span></th>`;
     for(const r of rows){const T=PLAN.types[r.type],sc=(PLAN.schedules[r.type]||{})[mxPaper]||null,b=S[r.u].bits[s.id]|0,l=level(b);
       const d=sc&&sc.due[s.id],late=d&&d[0]<td&&b!==7,req=T.required.includes(c);
       h+=`<td><div class="c d${l} ${late?'late':''} ${!req?'opt':''}" title="${esc(r.n)} · 第${ch}章 ${PLAN.setLabels[c]}${d?' · 截止 '+fmt(d[0]):''}">${l||''}</div></td>`;}
@@ -1039,14 +1090,14 @@ function heat(u,p){const P=PLAN.papers[p],td=today(),T=TY(u),sc=(PLAN.schedules[
       h+=`<div class="c d${l} ${!req?'opt':''} ${late?'late':''}" title="${PLAN.setLabels[c]}${d?' · 截止 '+fmt(d[0]):''}">${l?l+'/3':''}</div>`;}}
   return h+'</div>';}
 
-function renderWrong(){const us=Object.keys(S).filter(u=>!wbFilterU||u===wbFilterU);
+function renderWrong(){const us=vis().filter(u=>!wbFilterU||u===wbFilterU);
   const qCount=new Map();
   for(const u of us)for(const w of S[u].wrong){const it=byId.get(w.q);if(!it||(wbFilterP&&it.p!==wbFilterP))continue;if(!qCount.has(w.q))qCount.set(w.q,[]);qCount.get(w.q).push(S[u].n);}
-  const filt=`<div class="card noprint" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="sub">筛选：</span>
+  const filt=`<div class="card noprint" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="sub">筛选：</span>
     <select id="fP"><option value="">全部试卷</option>${PAPERS.map(p=>`<option value="${p}" ${p===wbFilterP?'selected':''}>${PLAN.papers[p].label}</option>`).join('')}</select>
-    <select id="fU"><option value="">全部学生</option>${Object.keys(S).map(u=>`<option value="${u}" ${u===wbFilterU?'selected':''}>${esc(S[u].n)}</option>`).join('')}</select>
-    <span class="sub">点题号可看题目、答案和解析；划线的表示学生已标为「掌握」。</span></div>`;
-  if(!qCount.size){$('#dash').innerHTML=filt+'<div class="card"><div class="empty">还没有错题记录。学生在学生端「错题本」里标记后会立刻出现在这里。</div></div>';return;}
+    <select id="fU"><option value="">全部学生</option>${vis().map(u=>`<option value="${u}" ${u===wbFilterU?'selected':''}>${esc(S[u].n)}</option>`).join('')}</select>
+    <span class="sub">点题号可看题目、答案和解析；划线 = 学生已标为「掌握」。</span></div>`;
+  if(!qCount.size){$('#dash').innerHTML=filt+'<div class="card"><div class="empty">还没有错题记录。学生在学生端「错题本」里标记后会立刻出现在这里。</div></div>';bindF();return;}
   const syAgg=new Map();
   for(const [id,ns] of qCount){const it=byId.get(id);const sy=it.sy||('ch'+it.ch);
     if(!syAgg.has(sy))syAgg.set(sy,{hits:0,students:new Set(),qs:new Map()});const a=syAgg.get(sy);a.hits+=ns.length;ns.forEach(x=>a.students.add(x));a.qs.set(id,ns);}
@@ -1056,30 +1107,37 @@ function renderWrong(){const us=Object.keys(S).filter(u=>!wbFilterU||u===wbFilte
     const qs=[...a.qs.entries()].sort((x,y)=>y[1].length-x[1].length).map(([id,ns])=>{const it=byId.get(id);
       return `<span class="qtag" data-open="${id}" data-who="${esc(ns.join('、'))}" title="${esc(ns.join('、'))}">#${pad(it.n)} ${esc(it.o)} <b>×${ns.length}</b></span>`;}).join('');
     const pts=s?`<details><summary>考纲要求（${s.points.length} 条）</summary><ul class="pts">${s.points.map(p=>`<li>${esc(p)}</li>`).join('')}</ul></details>`:'';
-    return `<tr><td class="code">${esc(sy)}</td><td><b>${esc(title)}</b> <span class="sub">第${ch}章 ${esc(chn)}</span>${pts}<div>${qs}</div></td>
-      <td style="white-space:nowrap">${a.hits} 人次<br><span class="sub">${[...a.students].join('、')}</span></td><td style="width:110px"><div class="bar"><i style="width:${a.hits/maxSy*100}%"></i></div></td></tr>`;}).join('');
+    return `<tr><td class="code" style="vertical-align:top;padding-top:10px">${esc(sy)}</td><td><b>${esc(title)}</b> <span class="sub">第${ch}章 ${esc(chn)}</span>${pts}<div>${qs}</div></td>
+      <td style="white-space:nowrap;vertical-align:top;padding-top:10px">${a.hits} 人次<br><span class="sub" style="white-space:normal">${[...a.students].join('、')}</span></td><td style="width:110px"><div class="bar"><i style="width:${a.hits/maxSy*100}%"></i></div></td></tr>`;}).join('');
   const topQ=[...qCount.entries()].filter(([,ns])=>ns.length>=2).sort((a,b)=>b[1].length-a[1].length).slice(0,15).map(([id,ns])=>{const it=byId.get(id);
-    return `<tr><td class="code" style="cursor:pointer" data-open="${id}">#${pad(it.n)}</td><td style="cursor:pointer" data-open="${id}">${esc(it.o)} <span class="sub">第${it.ch}章 · ${esc(it.sy||'')}</span></td><td>${ns.length} 人</td><td class="sub">${esc(ns.join('、'))}</td></tr>`;}).join('');
+    return `<tr><td class="code" style="cursor:pointer" data-open="${id}">#${pad(it.n)}</td><td style="cursor:pointer" data-open="${id}">${esc(it.o)} <span class="sub">第${it.ch}章 · ${esc(it.sy||'')}</span></td><td style="white-space:nowrap">${ns.length} 人</td><td class="sub">${esc(ns.join('、'))}</td></tr>`;}).join('');
   const stuCards=us.filter(u=>S[u].wrong.length).map(u=>{const x=S[u];const ws=x.wrong.filter(w=>!wbFilterP||byId.get(w.q).p===wbFilterP).slice().sort((a,b)=>{const A=byId.get(a.q),B=byId.get(b.q);return A.p.localeCompare(B.p)||A.ch-B.ch||A.n-B.n;});
     const chs={};ws.forEach(w=>{const c=byId.get(w.q).ch;chs[c]=(chs[c]||0)+1;});
     return `<div class="scard"><b>${esc(x.n)}</b> <span class="sub">${ws.length} 题 · 已掌握 ${ws.filter(w=>w.m).length}</span>
       <div class="sub">${Object.entries(chs).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([c,k])=>`第${c}章×${k}`).join('　')||'—'}</div>
       <div style="margin-top:5px">${ws.slice(0,60).map(w=>{const it=byId.get(w.q);return `<span class="qtag ${w.m?'m':''}" data-open="${it.id}" data-who="${esc(x.n)}">#${pad(it.n)}<span class="sub"> P${it.p.slice(1)}·${it.ch}章</span></span>`;}).join('')}${ws.length>60?`<span class="sub"> …共${ws.length}题</span>`:''}</div></div>`;}).join('');
   $('#dash').innerHTML=filt+`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${totalHits}</b><small>错题人次</small></div><div class="chip"><b>${qCount.size}</b><small>不同题目</small></div><div class="chip"><b>${syAgg.size}</b><small>涉及考纲小节</small></div></div></div>
-    <div class="card"><h2>薄弱考纲点排行（人次最多在前）</h2><table><tr><th>考纲</th><th>小节 / 涉及题目</th><th>频次 / 学生</th><th></th></tr>${syRows}</table></div>
-    ${topQ?`<div class="card"><h2>多人错的同一道题（≥2 人）</h2><table><tr><th>题号</th><th>来源</th><th>人数</th><th>学生</th></tr>${topQ}</table></div>`:''}
+    <div class="card"><h2>薄弱考纲点排行（人次最多在前）</h2><table class="syl"><tr><th>考纲</th><th>小节 / 涉及题目</th><th>频次 / 学生</th><th></th></tr>${syRows}</table></div>
+    ${topQ?`<div class="card"><h2>多人错的同一道题（≥2 人）</h2><div class="tw"><table><tr><th>题号</th><th>来源</th><th>人数</th><th>学生</th></tr>${topQ}</table></div></div>`:''}
     <div class="card"><h2>按学生</h2><div class="stu">${stuCards}</div></div>`;
-  $('#fP').onchange=e=>{wbFilterP=e.target.value;render();};$('#fU').onchange=e=>{wbFilterU=e.target.value;render();};}
+  bindF();}
+function bindF(){const fp=$('#fP'),fu=$('#fU');if(fp)fp.onchange=e=>{wbFilterP=e.target.value;render();};if(fu)fu.onchange=e=>{wbFilterU=e.target.value;render();};}
 
-function renderStudents(){const us=Object.keys(S);
-  let h=`<div class="card noprint"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">学生账号</h2><span class="sub">计划类型：${Object.entries(PLAN.types).map(([k,t])=>`<b>${t.label}</b> = ${t.desc}`).join('；')}</span><span class="grow"></span><button class="primary" id="btnAdd">＋ 添加学生</button></div>
-    <table style="margin-top:10px"><tr><th>用户名</th><th>姓名</th><th>刷题计划</th><th>最近登录</th><th>创建</th><th></th></tr>`;
+function renderStudents(){const us=vis().sort((a,b)=>(S[a].klass||'').localeCompare(S[b].klass||'')||S[a].n.localeCompare(S[b].n,'zh'));const showK=classes().length>1||!!klass;
+  const acts=u=>`<button class="sm" data-edit="${u}">编辑</button> <button class="sm" data-pw="${u}">重置密码</button> <button class="sm danger" data-del="${u}">删除</button>`;
+  let h=`<div class="card noprint"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">学生账号</h2><span class="grow"></span><button class="primary" id="btnAdd">＋ 添加学生</button></div>
+    <div class="sub" style="margin:6px 0 8px">计划类型：${Object.entries(PLAN.types).map(([k,t])=>`<b>${t.label}</b> = ${t.desc}`).join('；')}</div>
+    <div class="tablewrap"><table><tr><th>用户名</th><th>姓名</th>${showK?'<th>班级</th>':''}<th>刷题计划</th><th>最近登录</th><th>创建</th><th></th></tr>`;
   for(const u of us){const x=S[u];
-    h+=`<tr><td class="code">${esc(u)}</td><td>${esc(x.n)}</td><td><span class="ptag">${TY(u).label}</span></td><td class="sub">${ago(x.seen)}</td><td class="sub">${x.created?new Date(x.created).toLocaleDateString('zh-CN'):'—'}</td>
-      <td style="white-space:nowrap"><button class="sm" data-edit="${u}">编辑 / 改计划</button> <button class="sm" data-pw="${u}">重置密码</button> <button class="sm danger" data-del="${u}">删除</button></td></tr>`;}
-  h+=`</table>${us.length?'':'<div class="empty">还没有学生，点「添加学生」。</div>'}</div>
+    h+=`<tr><td class="code">${esc(u)}</td><td>${esc(x.n)}</td>${showK?`<td>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:'<span class="sub">—</span>'}</td>`:''}<td><span class="ptag">${TY(u).label}</span></td><td class="sub">${ago(x.seen)}</td><td class="sub">${x.created?new Date(x.created).toLocaleDateString('zh-CN'):'—'}</td>
+      <td style="white-space:nowrap">${acts(u)}</td></tr>`;}
+  h+='</table></div><div class="stack">';
+  for(const u of us){const x=S[u];
+    h+=`<div class="pcard"><div class="ph"><b style="color:var(--crimson)">${esc(x.n)}</b><span class="code" style="font-weight:500">${esc(u)}</span><span class="ptag">${TY(u).label}</span>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:''}</div>
+      <div class="pf"><span>登录 ${ago(x.seen)}</span><span class="grow"></span>${acts(u)}</div></div>`;}
+  h+=`</div>${us.length?'':'<div class="empty">还没有学生，点「添加学生」。</div>'}</div>
   <div class="card noprint"><h2>导入旧错题本记录</h2><p class="sub" style="margin:0 0 8px">以前学生用旧版错题本「发给老师」的同步码还能用：选学生，粘贴同步码（或整条 <code>姓名: 码</code>），导入后学生端会立刻显示为已标记。</p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><select id="impU">${us.map(u=>`<option value="${u}">${esc(S[u].n)}（${u}）</option>`).join('')}</select><input type="text" id="impCode" placeholder="粘贴同步码" style="flex:1;min-width:240px"><button class="primary" id="impOk">导入</button><span class="msg" id="impMsg"></span></div></div>`;
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><select id="impU">${us.map(u=>`<option value="${u}">${esc(S[u].n)}（${u}）</option>`).join('')}</select><input type="text" id="impCode" placeholder="粘贴同步码" style="flex:1;min-width:200px"><button class="primary" id="impOk">导入</button><span class="msg" id="impMsg"></span></div></div>`;
   $('#dash').innerHTML=h;
   $('#btnAdd').onclick=()=>openStu(null);
   $('#impOk').onclick=async()=>{const u=$('#impU').value;let code=$('#impCode').value.trim();const m=$('#impMsg');m.className='msg';
@@ -1097,31 +1155,40 @@ function decodeIds(code){const b64=code.trim().replace(/-/g,'+').replace(/_/g,'/
     const yy=String(2016+y-2000).padStart(2,'0');ids.push(`${p}:9702_${s}${yy}_qp_${{p1:'1',p2:'2',p4:'4'}[p]}${v}:${q}`);}return ids;}
 
 /* ---------- 学生对话框 ---------- */
-let editU=null;
-function openStu(u,pwOnly){editU=u;const x=u&&S[u];
+let editU=null,pwOnlyMode=false;
+function openStu(u,pwOnly){editU=u;pwOnlyMode=!!pwOnly;const x=u&&S[u];
   $('#sTitle').textContent=u?(pwOnly?`重置密码：${x.n}`:`编辑：${x.n}`):'添加学生';
   $('#sUser').value=u||'';$('#sUser').disabled=!!u;$('#sDisp').value=x?x.n:'';
   $('#sPlan').innerHTML=Object.entries(PLAN.types).map(([k,t])=>`<option value="${k}">${t.label} — ${t.desc}</option>`).join('');
   $('#sPlan').value=x?typeOf(u):'free';
-  $('#sPass').value='';$('#sPassLbl').textContent=u?'新密码（留空 = 不改）':'初始密码（至少 4 位）';
-  $('#sDisp').parentElement.hidden=$('#sPlan').parentElement.hidden=!!pwOnly;
-  if(pwOnly)$('#sPassLbl').textContent='新密码（至少 4 位，学生所有设备需重新登录）';
+  $('#klassList').innerHTML=classes().map(k=>`<option value="${esc(k)}">`).join('');
+  $('#sKlass').value=x?x.klass:(klass||(session&&session.klass)||'');
+  $('#sPass').value='';$('#sPassLbl').textContent=u?(pwOnly?'新密码（至少 4 位，学生所有设备需重新登录）':'新密码（留空 = 不改）'):'初始密码（至少 4 位）';
+  $('#sDispL').hidden=$('#sPlanL').hidden=$('#sKlassL').hidden=!!pwOnly;
   $('#sMsg').textContent='';$('#dlgStu').showModal();if(!u)setTimeout(()=>$('#sUser').focus(),50);}
 $('#sClose').onclick=()=>$('#dlgStu').close();
 $('#sOk').onclick=async()=>{const m=$('#sMsg');m.className='msg';
-  const u=editU||$('#sUser').value.trim().toLowerCase(),disp=$('#sDisp').value.trim(),plan=editU&&$('#sPlan').parentElement.hidden?typeOf(editU):$('#sPlan').value,pass=$('#sPass').value;
+  const u=editU||$('#sUser').value.trim().toLowerCase(),pass=$('#sPass').value;
+  const disp=pwOnlyMode?S[editU].n:$('#sDisp').value.trim(),plan=pwOnlyMode?typeOf(editU):$('#sPlan').value,kl=pwOnlyMode?S[editU].klass:$('#sKlass').value.trim();
   if(!u){m.className='msg bad';m.textContent='请填用户名';return;}
-  if((!editU||$('#sDisp').parentElement.hidden)&&pass.length<4){m.className='msg bad';m.textContent='密码至少 4 位';return;}
+  if((!editU||pwOnlyMode)&&pass.length<4){m.className='msg bad';m.textContent='密码至少 4 位';return;}
   $('#sOk').disabled=true;
-  try{const j=await rpc('upsert_student',{p_token:session.token,p_user:u,p_display:disp||(editU?S[editU].n:u),p_plan:plan,p_pass:pass||null});
+  try{const args={p_token:session.token,p_user:u,p_display:disp||(editU?S[editU].n:u),p_plan:plan,p_pass:pass||null,p_klass:kl};
+    let j=await rpc('upsert_student',args);
+    if(j&&j.code==='PGRST202'){delete args.p_klass;j=await rpc('upsert_student',args);}
     if(!j.ok)throw new Error(j.error);m.className='msg good';m.textContent='已保存';toast(editU?'已更新':'已添加');await pull();setTimeout(()=>$('#dlgStu').close(),500);}
-  catch(e){m.className='msg bad';m.textContent=errMsg(e);}finally{$('#sOk').disabled=false;}};
+  catch(e){if(e.message==='NOINIT'){try{const args={p_token:session.token,p_user:u,p_display:disp||(editU?S[editU].n:u),p_plan:plan,p_pass:pass||null};const j=await rpc('upsert_student',args);
+      if(!j.ok)throw new Error(j.error);m.className='msg good';m.textContent='已保存（班级字段需先运行更新脚本）';await pull();setTimeout(()=>$('#dlgStu').close(),800);return;}catch(e2){e=e2;}}
+    m.className='msg bad';m.textContent=errMsg(e);}
+  finally{$('#sOk').disabled=false;}};
 
 /* ---------- 点击 ---------- */
 document.addEventListener('click',async e=>{
   const th=e.target.closest('th.sort');if(th){sortKey=th.dataset.k;render();return;}
   const mx=e.target.closest('[data-mx]');if(mx){mxPaper=mx.dataset.mx;render();return;}
-  const dn=e.target.closest('[data-det]');if(dn){const u=dn.dataset.det;openDet.has(u)?openDet.delete(u):openDet.add(u);const r=document.querySelector(`tr[data-detrow="${CSS.escape(u)}"]`);if(r)r.hidden=!openDet.has(u);return;}
+  const dn=e.target.closest('[data-det]');if(dn){const u=dn.dataset.det;openDet.has(u)?openDet.delete(u):openDet.add(u);
+    document.querySelectorAll(`[data-detrow="${CSS.escape(u)}"]`).forEach(r=>r.hidden=!openDet.has(u));
+    document.querySelectorAll(`button[data-det="${CSS.escape(u)}"]`).forEach(b=>b.textContent=openDet.has(u)?'收起':'详情');return;}
   const op=e.target.closest('[data-open]');if(op){openQ(op.dataset.open,op.dataset.who||'');return;}
   const ed=e.target.closest('[data-edit]');if(ed){openStu(ed.dataset.edit,false);return;}
   const pw=e.target.closest('[data-pw]');if(pw){openStu(pw.dataset.pw,true);return;}
