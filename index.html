@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908014817"></script>
+<script src="config.js?v=20260908015619"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -186,6 +186,7 @@ canvas.fx{position:fixed;inset:0;pointer-events:none;z-index:90}
 .wmain{flex:1;display:flex;min-height:0;position:relative}
 .wbody{flex:1;overflow:hidden;position:relative;padding:0;touch-action:none;overscroll-behavior:contain}
 .wbody .inner{width:900px;max-width:none;margin:0;padding:10px 0 0;transform-origin:0 0;will-change:transform}
+#wInner .nbslot{text-align:right;padding:4px 8px;background:var(--card);border-top:1px dashed #d9d0b3}
 .strip{position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0}
 .strip img{width:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .strip canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
@@ -1212,7 +1213,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908014817';
+const BUILD='20260908015619';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1532,7 +1533,7 @@ function renderSet(){const s=setOf(doSet);if(!s){doSet=null;renderPlan();return;
     html+=`<div class="dock2"><span class="n">${sb?`已批注 <b>${nAnn}</b> / ${n}`:`已答 <b>${a}</b> / ${n}`}</span><span class="grow"></span>${sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a1">看批注</button>':`<button id="doRedo2">重做</button><button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doSubmit">提交判分</button>`}</div>`;
   }else{
     for(const it of items){const at=attempts[it.id]||{},done=!!at.s,ink=hasInk(it.id),nt=notes[it.id],sm=selfOf(it.id);
-      const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:var(--green)">已提交</b>'):ink?'写了一些':'';
+      const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 自评满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:#1d4ed8">已提交 · 未自评</b>'):ink?'写了一些':'';
       html+=`<div class="qbox ${done?(sm&&!sm.full?'bad':'ok'):''}"><div class="p2q"><div class="th" data-write="${it.id}"><img loading="lazy" src="${IMG(it.i[0])}" alt=""></div>
         <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${it.t?` <span class="n">${it.t} 分</span>`:''}<small>${it.sy?`考纲 ${it.sy} · `:''}${it.i.length} 页${stt?' · '+stt:''}${flagged(it.id)?' · 📝 重点':''}</small></div>
         <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">重做</button>`:''}</div></div></div>`;}
@@ -1733,7 +1734,7 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   wProg();
   const i=W.list.indexOf(q);$('#wPrev').disabled=i<=0;$('#wNext').disabled=i<0||i>=W.list.length-1;
   const saved=await loadInk(q);if(W.q!==q)return;
-  {const inner=$('#wInner');[...inner.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(nbHas(q,k))st.insertAdjacentHTML('afterend',nbHtml(q,k,true));else if(W.annot)st.insertAdjacentHTML('afterend',`<div class="nbslot" data-nbs="${q}" data-k="${k}" style="text-align:right;padding:4px 8px;background:var(--card);border-top:1px dashed #d9d0b3"><button class="sm" data-nbadd="${q}" data-k="${k}">📝 加笔记区</button></div>`);});}
+  {const inner=$('#wInner');[...inner.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(nbHas(q,k))st.insertAdjacentHTML('afterend',nbHtml(q,k,true));});nbSlots();}
   W.prevSelf=selfOf(q);
   if(W.redo){W.old=saved.slice();INKS[q]=[];tip('重做：这次不看上次写的，写完提交再自评一次');}else W.old=[];
   const ob=$('#wTools [data-act=old]');ob.hidden=!W.redo||!W.old.length;
@@ -1787,6 +1788,10 @@ document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if
   body.addEventListener('pointerup',end,{capture:true});body.addEventListener('pointercancel',end,{capture:true});
   body.addEventListener('wheel',e=>{e.preventDefault();const [mx,my]=local(e);if(e.ctrlKey||e.metaKey){zoomAt(VZ.z*Math.exp(-e.deltaY*0.01),mx,my);fitSoon();}else panBy(-e.deltaX,-e.deltaY);},{passive:false});
   addEventListener('resize',()=>{if($('#writer').classList.contains('on')){if(VZ.z===1)$('#wInner').style.width=wBaseW()+'px';clampView();applyView();fitSoon();}});})();
+/* 已保存（看过答案）或批注模式：每段题图后给一个「加笔记区」按钮；已有笔记区的段落不重复给 */
+function nbSlots(){const q=W.q;if(!q)return;const at=attempts[q]||{};if(!(W.annot||at.s))return;
+  [...$('#wInner').querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{const nx=st.nextElementSibling;if(nx&&(nx.classList.contains('nb')||nx.classList.contains('nbslot')))return;
+    st.insertAdjacentHTML('afterend',`<div class="nbslot" data-nbs="${q}" data-k="${k}"><button class="sm" data-nbadd="${q}" data-k="${k}">📝 加笔记区</button></div>`);});}
 function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;const submitted=!!at.s,sm=selfOf(W.q),isP1=it.p==='p1';
   const setSub=!!(doSet&&subs[doSet]),last=W.list.indexOf(W.q)===W.list.length-1,nS=(INKS[W.q]||[]).filter(s=>!s.f).length;
   const phase=isP1?'annot':(W.annot||setSub)&&!W.redo?'annot':W.redo?'redo':submitted?'saved':'write';
@@ -1796,13 +1801,13 @@ function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;con
   $('#wFinal').hidden=!(phase==='annot'&&doSet&&!isDone(doSet));
   $('#wExpl').hidden=!(isP1&&submitted);
   $('#wAns').hidden=!(!isP1&&submitted&&!W.redo);
-  $('#wStatus').textContent=phase==='annot'?(doSet&&isDone(doSet)?'已清零 · 可继续补充批注':`批注中 · ${nS} 笔`):phase==='saved'?(sm?(sm.full?`已保存 · 自评满分 ${sm.s}/${sm.t} ✓`:`已保存 · 自评 ${sm.s}/${sm.t}`):`已保存 · 对答案（红笔可改）${last?' · 全套写完点「提交整套」':' · 直接点「下一题」'}`):phase==='redo'?`重做中 · ${nS} 笔`:`${nS} 笔 · 写完点「保存 · 看答案」`;
+  $('#wStatus').textContent=phase==='annot'?(doSet&&isDone(doSet)?'已清零 · 可继续补充批注':`批注中 · ${nS} 笔`):phase==='saved'?(sm?(sm.full?`已保存 · 自评满分 ${sm.s}/${sm.t} ✓`:`已保存 · 自评 ${sm.s}/${sm.t}`):`已保存 · 未自评（选做）${last?' · 全套写完点「提交整套」':' · 对完答案直接点「下一题」'}`):phase==='redo'?`重做中 · ${nS} 笔`:`${nS} 笔 · 写完点「保存 · 看答案」`;
   if(!submitted){$('#wAnsBox').hidden=true;$('#wSelf').hidden=true;}wProg();}
 let wNoteT;
 $('#wSubmit').onclick=()=>{const at=attempts[W.q]||{};if(at.s&&!W.redo)return;
   if(!(INKS[W.q]||[]).filter(s=>!s.f).length&&!confirm('这题还没写任何内容，确定提交？'))return;
   DRAW.dirty.add(W.q);flushInk();W.redo=false;W.old=[];W.showOld=false;const ob=$('#wTools [data-act=old]');if(ob)ob.hidden=true;setAttempt(W.q,null,null,true);commit();
-  setColor('#dc2626');setTool('pen');wStatus();   // 保存后换红笔：对答案时的订正一眼能分清
+  setColor('#dc2626');setTool('pen');wStatus();nbSlots();   // 保存后换红笔：对答案时的订正一眼能分清；同时给出加笔记区按钮
   $('#wAns').click();};
 $('#wSetSubmit').onclick=()=>{if(!doSet)return;flushInk();const before=!!subs[doSet];finishP2();if(!subs[doSet])return;
   W.annot=true;const first=W.list[0];if(first)openWriter(first,{annot:true});else wStatus();
@@ -1814,9 +1819,11 @@ $('#wAns').onclick=()=>{const it=byId.get(W.q);const box=$('#wAnsBox'),sm=$('#wS
   if(show){box.innerHTML=(it.a&&it.a.length)?'<div><b>评分方案</b> <span class="n">逐问对照；下面的自评是选做，报给老师看</span></div>'+it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="n">本题没有收录答案</div>';
     renderSelf();panTo(box);}};
 function renderSelf(){const it=byId.get(W.q),cur=selfOf(W.q),prev=W.prevSelf;const tot=it.t||(cur&&cur.t)||(prev&&prev.t)||null;let s=cur?cur.s:(tot||0);
-  const el=$('#wSelf');const paint=()=>{el.innerHTML=`<span>自评得分 <span class="n">（选做）</span></span><div class="stepper"><button id="smMinus">−</button><b id="smVal">${s} / ${tot||'?'}</b><button id="smPlus">＋</button></div>${tot?'':'<input type="number" id="smTot" placeholder="满分" style="width:70px;padding:6px" min="1" max="30">'}<button class="primary" id="smOk">记录</button><button id="smFull">全对 ✓</button>${cur?`<span class="n">${cur.full?'上次：满分':`上次：${cur.s}/${cur.t}`}</span>`:''}`;
-    $('#smMinus').onclick=()=>{s=Math.max(0,s-1);$('#smVal').textContent=`${s} / ${tot||($('#smTot')&&$('#smTot').value)||'?'}`;};
-    $('#smPlus').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value)||99;s=Math.min(T,s+1);$('#smVal').textContent=`${s} / ${tot||($('#smTot')&&$('#smTot').value)||'?'}`;};
+  const el=$('#wSelf');const paint=()=>{const T0=()=>tot||($('#smTot')&&$('#smTot').value)||'?';
+    el.innerHTML=`<span>自评得分 <span class="n">（选做）</span></span><div class="stepper"><button id="smMinus">−</button><b id="smVal">${s} / ${tot||'?'}</b><button id="smPlus">＋</button></div>${tot?'':'<input type="number" id="smTot" placeholder="满分" style="width:70px;padding:6px" min="1" max="30">'}<button class="primary" id="smOk">记录 ${s}/${tot||'?'}</button><button id="smFull">全对 ✓</button><span class="n" id="smState">${cur?(cur.full?`已记录：满分 ${cur.s}/${cur.t} ✓`:`已记录：${cur.s}/${cur.t}`):'还没记录 · 不记也行，老师端只显示「已提交」'}</span>`;
+    const upd=()=>{$('#smVal').textContent=`${s} / ${T0()}`;$('#smOk').textContent=`记录 ${s}/${T0()}`;};
+    $('#smMinus').onclick=()=>{s=Math.max(0,s-1);upd();};
+    $('#smPlus').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value)||99;s=Math.min(T,s+1);upd();};
     $('#smFull').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value);if(!T)return tip('先填满分');record(T,T);};
     $('#smOk').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value);if(!T)return tip('先填满分');record(Math.min(s,T),T);};};
   const record=(sc,T)=>{const full=sc>=T,wasBad=prev&&!prev.full;setAttempt(W.q,`${sc}/${T}`,full,true);commit();wStatus();
