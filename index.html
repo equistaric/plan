@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908011013"></script>
+<script src="config.js?v=20260908013059"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1221,7 +1221,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908011013';
+const BUILD='20260908013059';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1734,7 +1734,7 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   const at=attempts[q]||{};
   $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}${it.p==='p1'&&at.s?(at.ok?' · ✓ 答对':` · ✗ ${at.a?'你选 '+at.a:'未作答'} · 答案 ${it.L}`):''}`;
   $('#wTools').innerHTML=toolbarHtml()+`<button class="tb" data-tool="marker" aria-pressed="false" title="标记错处：点一下做错的那一问">❌</button><button class="tb" data-act="clear" title="清空本题">🗑</button><button class="tb wide" data-act="old" hidden aria-pressed="false" title="重做时显示上次的笔迹（淡色）">👀 上次笔迹</button>`;
-  W.zoom=1;const inn=$('#wInner');inn.style.transform='';inn.style.width='';inn.style.maxWidth='';$('#wZoom').textContent='100%';
+  W.zoom=1;const inn=$('#wInner');inn.style.transform='';inn.style.width='';inn.style.maxWidth='';inn.style.margin='';$('#wZoom').textContent='100%';
   $('#wInner').innerHTML=it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
   wProg();
   $('#wNote').value=notes[q]?notes[q].b:'';$('#wNotes').hidden=true;$('#wNoteInfo').textContent='自动保存';
@@ -1750,26 +1750,37 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   document.querySelectorAll('#wInner canvas').forEach(cv=>{bindCanvas(cv,q,+cv.dataset.i,locked,()=>$('#wBody'));const img=cv.previousElementSibling;if(img.tagName!=='IMG'||(img.complete&&img.naturalWidth))fitCanvas(cv);else img.onload=()=>fitCanvas(cv);});
   wStatus();wProg();}
 addEventListener('resize',()=>{if($('#writer').classList.contains('on'))document.querySelectorAll('#wInner canvas').forEach(fitCanvas);});
-/* 双指缩放：只放大（1×–3×），松手后按真实尺寸重排，笔迹保持清晰 */
-const PZ={ids:new Map(),active:false,d0:0,z0:1,z:1};
+/* 双指缩放：以两指中点为锚，边捏边放（1×–3×），松手停在原地不跳；松手后只把画布位图重画清晰 */
+const PZ={ids:new Map(),active:false,d0:0,z0:1,cx:0,cy:0};
 const wBaseW=()=>Math.min(900,$('#wBody').clientWidth-20);
-function applyZoom(z){z=Math.max(1,Math.min(3,z));W.zoom=z;const inner=$('#wInner');inner.style.transform='';inner.style.maxWidth='none';inner.style.width=(wBaseW()*z)+'px';
-  document.querySelectorAll('#wInner canvas').forEach(fitCanvas);$('#wZoom').textContent=Math.round(z*100)+'%';}
+function zoomTo(z,mx,my,cx,cy){z=Math.max(1,Math.min(3,z));const body=$('#wBody'),inner=$('#wInner');W.zoom=z;
+  if(z<=1.001){inner.style.width='';inner.style.maxWidth='';inner.style.margin='';body.scrollLeft=0;$('#wZoom').textContent='100%';return;}
+  inner.style.maxWidth='none';inner.style.width=(wBaseW()*z)+'px';inner.style.marginRight='0';inner.style.marginBottom='0';
+  const br=body.getBoundingClientRect(),ir=inner.getBoundingClientRect();const ml=parseFloat(inner.style.marginLeft)||0,mt=parseFloat(inner.style.marginTop)||0;
+  const baseX=(ir.left-br.left)-ml+body.scrollLeft,baseY=(ir.top-br.top)-mt+body.scrollTop;          // 内容原点（不含边距、不含滚动）
+  const tx=mx-baseX-cx*z,ty=my-baseY-cy*z;                                                          // 让锚点留在手指下需要的位移
+  inner.style.marginLeft=(tx>0?tx:0)+'px';body.scrollLeft=tx>0?0:-tx;                                 // 内容比视口窄时用边距顶过去，宽时用滚动
+  inner.style.marginTop=(ty>0?ty:0)+'px';body.scrollTop=ty>0?0:-ty;
+  $('#wZoom').textContent=Math.round(z*100)+'%';}
+function fitAll(){document.querySelectorAll('#wInner canvas').forEach(fitCanvas);}
+function applyZoom(z){const body=$('#wBody'),inner=$('#wInner');const mx=body.clientWidth/2,my=body.clientHeight/2;const br=body.getBoundingClientRect(),ir=inner.getBoundingClientRect();
+  zoomTo(z,mx,my,(mx-(ir.left-br.left))/W.zoom,(my-(ir.top-br.top))/W.zoom);fitAll();}
 $('#wZoom').onclick=()=>applyZoom(1);
-document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if(!z)return;const body=$('#wBody');const cx=body.scrollLeft+body.clientWidth/2,cy=body.scrollTop+body.clientHeight/2,z0=W.zoom;const nz=z.dataset.zoom==='+'?z0*1.25:z0/1.25;applyZoom(nz);const k=W.zoom/z0;body.scrollLeft=cx*k-body.clientWidth/2;body.scrollTop=cy*k-body.clientHeight/2;});
+document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if(!z)return;applyZoom(z.dataset.zoom==='+'?W.zoom*1.25:W.zoom/1.25);});
 (function(){const body=$('#wBody');['gesturestart','gesturechange','gestureend'].forEach(t=>body.addEventListener(t,e=>e.preventDefault()));body.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+  const midOf=()=>{const [a,b]=[...PZ.ids.values()];return[(a[0]+b[0])/2,(a[1]+b[1])/2,Math.hypot(a[0]-b[0],a[1]-b[1])];};
   body.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;if(isPalm(e)||penBusy()){e.stopPropagation();return;}
     PZ.ids.set(e.pointerId,[e.clientX,e.clientY]);
-    if(PZ.ids.size===2){const [a,b]=[...PZ.ids.values()];PZ.d0=Math.hypot(a[0]-b[0],a[1]-b[1])||1;PZ.z0=W.zoom;PZ.z=W.zoom;PZ.active=true;DRAW.scroll=null;if(DRAW.cur){DRAW.cur=null;redrawQ(W.q);}
-      const r=body.getBoundingClientRect();PZ.mid=[(a[0]+b[0])/2-r.left+body.scrollLeft,(a[1]+b[1])/2-r.top+body.scrollTop];PZ.sl=body.scrollLeft;PZ.st=body.scrollTop;e.stopPropagation();return;}
-    if(DRAW.finger&&e.target.tagName==='CANVAS')return;               // 手指书写模式：交给画布
+    if(PZ.ids.size===2){const [mx,my,d]=midOf();PZ.d0=d||1;PZ.z0=W.zoom;PZ.active=true;DRAW.scroll=null;if(DRAW.cur){DRAW.cur=null;redrawQ(W.q);}
+      const br=body.getBoundingClientRect(),ir=$('#wInner').getBoundingClientRect();PZ.cx=(mx-ir.left)/W.zoom;PZ.cy=(my-ir.top)/W.zoom;e.stopPropagation();return;}
+    if(DRAW.finger&&e.target.tagName==='CANVAS')return;
     DRAW.scroll={id:e.pointerId,x:e.clientX,y:e.clientY,top:body.scrollTop,left:body.scrollLeft,sc:body};e.stopPropagation();},{capture:true});
   body.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')return;
-    if(PZ.active&&PZ.ids.has(e.pointerId)){PZ.ids.set(e.pointerId,[e.clientX,e.clientY]);const [a,b]=[...PZ.ids.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);PZ.z=Math.max(1,Math.min(3,PZ.z0*d/PZ.d0));
-      const inner=$('#wInner');inner.style.transformOrigin='0 0';inner.style.transform=`scale(${PZ.z/W.zoom})`;e.stopPropagation();return;}
+    if(PZ.active&&PZ.ids.has(e.pointerId)){PZ.ids.set(e.pointerId,[e.clientX,e.clientY]);const [mx,my,d]=midOf();const br=body.getBoundingClientRect();
+      zoomTo(PZ.z0*d/PZ.d0,mx-br.left,my-br.top,PZ.cx,PZ.cy);e.stopPropagation();return;}
     if(DRAW.scroll&&DRAW.scroll.id===e.pointerId&&DRAW.scroll.sc===body){body.scrollTop=DRAW.scroll.top-(e.clientY-DRAW.scroll.y);body.scrollLeft=DRAW.scroll.left-(e.clientX-DRAW.scroll.x);e.stopPropagation();}},{capture:true});
   const end=e=>{if(e.pointerType!=='touch')return;PZ.ids.delete(e.pointerId);
-    if(PZ.active&&PZ.ids.size<2){PZ.active=false;const k=PZ.z/W.zoom;applyZoom(PZ.z);body.scrollLeft=PZ.mid[0]*k-(PZ.mid[0]-PZ.sl);body.scrollTop=PZ.mid[1]*k-(PZ.mid[1]-PZ.st);e.stopPropagation();return;}
+    if(PZ.active&&PZ.ids.size<2){PZ.active=false;fitAll();e.stopPropagation();return;}
     if(DRAW.scroll&&DRAW.scroll.id===e.pointerId&&DRAW.scroll.sc===body){DRAW.scroll=null;e.stopPropagation();}};
   body.addEventListener('pointerup',end,{capture:true});body.addEventListener('pointercancel',end,{capture:true});})();
 function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;const submitted=!!at.s,sm=selfOf(W.q),isP1=it.p==='p1';
