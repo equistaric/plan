@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260907171007"></script>
+<script src="config.js?v=20260907180446"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -275,6 +275,22 @@ dialog.wide{max-width:min(940px,94vw);width:940px}
 .qbody img{width:100%;display:block}
 .dexpl{padding:12px 14px;border-top:1px solid var(--line);font-size:14px;max-height:26vh;overflow:auto}
 .nav{display:flex;gap:6px;align-items:center;padding:8px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);flex-wrap:wrap}
+
+/* 判分结果更醒目 */
+.qh.okh{background:var(--green-l)}.qh.badh{background:var(--hi)}
+.res{font-weight:800;font-size:14px;padding:2px 10px;border-radius:99px}
+.res.ok{background:var(--green);color:#fff}.res.bad{background:var(--crimson);color:#fff}
+.opt.wrongsel{border-color:var(--crimson);background:var(--crimson);color:#fff;text-decoration:none}
+.opt.right{box-shadow:0 0 0 3px var(--green-l)}
+.seg.scroll{overflow-x:auto;scrollbar-width:none}.seg.scroll::-webkit-scrollbar{display:none}
+/* 批注本 */
+.acard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden}
+.acard .ah{display:flex;gap:8px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.acard .strip{border:0;border-bottom:1px solid var(--line);margin:0}
+.acard .strip canvas{pointer-events:none;touch-action:auto}
+.writer.pen .strip canvas{touch-action:none}
+.writer.annot .wh{background:var(--hi)}
+.modetag{font-size:11px;padding:2px 8px;border-radius:99px;background:var(--crimson);color:#fff;white-space:nowrap}
 /* ---------- 响应式 ---------- */
 @media(max-width:760px){.setgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:640px){
@@ -329,9 +345,10 @@ dialog.wide{max-width:min(940px,94vw);width:940px}
 <section id="viewRev" hidden>
   <div class="wrap pad">
     <div class="fbar">
-      <div class="seg" id="segRev">
+      <div class="seg scroll" id="segRev">
         <button data-v="wrong" aria-pressed="true">选择题错题<span class="cnt" id="nWrongB">0</span></button>
         <button data-v="p2" aria-pressed="false">结构题强化<span class="cnt" id="nP2B">0</span></button>
+        <button data-v="annot" aria-pressed="false">批注本<span class="cnt" id="nAnnot">0</span></button>
         <button data-v="notes" aria-pressed="false">笔记<span class="cnt" id="nNotes">0</span></button>
         <button data-v="browse" aria-pressed="false">题库</button>
       </div>
@@ -363,6 +380,7 @@ dialog.wide{max-width:min(940px,94vw);width:940px}
 <div class="writer" id="writer">
   <div class="wh">
     <button id="wBack">← 返回</button>
+    <span class="modetag" id="wMode" hidden>讲评批注</span>
     <span class="ttl" id="wTitle"></span>
     <span class="grow"></span>
     <div class="tools">
@@ -393,10 +411,12 @@ dialog.wide{max-width:min(940px,94vw);width:940px}
   <div class="wf">
     <span class="n" id="wStatus"></span>
     <span class="grow"></span>
-    <button id="wNoteBtn">📝 笔记</button>
+    <button id="wNoteBtn" title="打字笔记（可选）">⌨️</button>
+    <button id="wExpl" hidden>解析</button>
     <button id="wAns" hidden>看答案 / 自评</button>
     <button id="wPrev">← 上一题</button><button id="wNext">下一题 →</button>
     <button class="primary" id="wSubmit">提交本题</button>
+    <button class="primary" id="wFinal" hidden>✓ 本套批注完成 · 整合</button>
   </div>
 </div>
 
@@ -1191,7 +1211,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260907171007';
+const BUILD='20260907180446';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1367,7 +1387,7 @@ const commit=()=>{recalcXp(true);saveCache();flushSoon();counts();};
 const selfOf=q=>{const a=attempts[q];if(!a||!a.s||!a.a||!/^\d+\/\d+$/.test(a.a))return null;const [s,t]=a.a.split('/').map(Number);return{s,t,full:s>=t};};
 const p2Todo=()=>DATA.items.filter(i=>i.p!=='p1'&&attempts[i.id]&&attempts[i.id].s&&attempts[i.id].ok===false).sort((a,b)=>{const A=selfOf(a.id),B=selfOf(b.id);return (A?A.s/A.t:0)-(B?B.s/B.t:0)||a.ch-b.ch;});
 const todo=()=>DATA.items.filter(i=>wrong.has(i.id)&&!mastered.has(i.id));
-const counts=()=>{const nw=wrong.size,np=p2Todo().length,nn=Object.keys(notes).length;
+const counts=()=>{const nw=wrong.size,np=p2Todo().length,nn=Object.keys(notes).length;$('#nAnnot').textContent=Object.keys(inkIds).filter(q=>byId.has(q)).length;
   $('#nWrongB').textContent=$('#nWrong2').textContent=nw;$('#nP2B').textContent=np;$('#nNotes').textContent=nn;
   const rv=todo().length+np;$('#nRev').textContent=rv;$('#nRev').hidden=!rv;
   $('#btnPdf').disabled=nw===0;$('#btnPdf').textContent=nw?`生成错题集 PDF（${nw}）`:'生成错题集 PDF';};
@@ -1383,7 +1403,8 @@ function xpStats(){const ent=Object.entries(attempts).filter(([q])=>byId.has(q))
   const right=p1sub.filter(([q,o])=>o.ok).length,p2full=p2sub.filter(([q,o])=>o.ok===true).length;
   const setsTicked=Object.values(practice).filter(b=>b===7).length;
   const nsub=Object.keys(subs).length,nnotes=Object.keys(notes).length,nmast=mastered.size;
-  const total=sub.length+right+p2sub.length*4+p2full*3+nsub*20+setsTicked*10+nnotes*2+nmast*3;
+  const nann=Object.keys(inkIds).filter(q=>byId.has(q)&&byId.get(q).p==='p1').length;
+  const total=sub.length+right+p2sub.length*4+p2full*3+nsub*20+setsTicked*10+nnotes*2+nmast*3+nann*2;
   return{answered:sub.length,p1:p1sub.length,right,p2:p2sub.length,p2full,setsTicked,nsub,nnotes,nmast,total,acc:p1sub.length?Math.round(right/p1sub.length*100):null};}
 function recalcXp(push){const st=xpStats();xp=st.total;if(profile)profile.xp=xp;if(push&&xp!==xpPushed)pending.xp=xp;}
 const lvlOf=x=>Math.floor(Math.sqrt(Math.max(0,x)/40))+1;const lvlBase=l=>40*(l-1)*(l-1);
@@ -1436,7 +1457,7 @@ function renderHome(){if($('#viewHome').hidden)return;const st=xpStats(),lv=lvlO
   const ls=lastUnfinished();
   if(ls)html+=`<div class="card"><h3>▶ 继续上次</h3><div class="row"><div class="tx"><b>${setName(setOf(ls))}</b><small>已答 ${setItems(ls).filter(i=>attempts[i.id]&&attempts[i.id].a!=null).length}/${setItems(ls).length}</small></div><button class="sm" data-go="${ls}">继续</button></div></div>`;
   const nw=todo().length,np=p2Todo().length,nn=Object.keys(notes).length;
-  html+=`<div class="card"><h3>📕 待复习</h3><div class="big3"><button data-rev="wrong"><b>${nw}</b><small>选择题错题</small></button><button data-rev="p2"><b>${np}</b><small>结构题待强化</small></button><button data-rev="notes"><b>${nn}</b><small>笔记</small></button></div>
+  html+=`<div class="card"><h3>📕 待复习</h3><div class="big3"><button data-rev="wrong"><b>${nw}</b><small>选择题错题</small></button><button data-rev="p2"><b>${np}</b><small>结构题待强化</small></button><button data-rev="annot"><b>${Object.keys(inkIds).filter(q=>byId.has(q)).length}</b><small>批注本</small></button></div>
     ${nw||np?`<div class="n" style="margin-top:8px">${nw?'选择题错题用「复习模式」一题一题过；':''}${np?'结构题「重做」一遍，自评满分就算攻克。':''}</div>`:''}</div>`;
   $('#homeWrap').innerHTML=html;}
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){openSet(g.dataset.go);return;}
@@ -1497,28 +1518,39 @@ function confetti(){const cv=$('#fx');cv.hidden=false;cv.width=innerWidth;cv.hei
 /* ---- 一套题 ---- */
 function renderSet(){const s=setOf(doSet);if(!s){doSet=null;renderPlan();return;}
   const items=setItems(doSet),sb=subs[doSet],isP1=doSet.startsWith('p1'),a=answered(doSet),n=items.length,sc=schedOf(paper),d=sc&&sc.due[doSet],td=today();
-  let html=`<div class="card"><div class="sethead"><button class="sm" id="doBack">← 返回</button><h2>${setName(s)}</h2><span class="tag">${n} 题</span>${d?`<span class="tag ${d[0]<td&&!isDone(doSet)?'':'m'}">截止 ${fmt(d[0])} 周${DOW[d[1]]}</span>`:''}${isDone(doSet)?'<span class="tag g">✓ 完成</span>':sb?`<span class="tag g">已提交${sb.tt?` · ${sb.sc}/${sb.tt}`:''}</span>`:a?`<span class="tag a">进行中 ${a}/${n}</span>`:''}</div>
-    <div class="n" style="margin-top:6px">${isP1?'点选 A/B/C/D，全部答完后「提交判分」；答错的自动进错题本。':'点「写题」在题图上手写；提交后看评分方案、给自己打分，失分的题会进「复习 → 结构题强化」。'}</div>`;
+  const hasInk=q=>!!inkIds[q]||!!pending.ink[q];const nAnn=items.filter(i=>hasInk(i.id)).length;
+  let html=`<div class="card"><div class="sethead"><button class="sm" id="doBack">← 返回</button><h2>${setName(s)}</h2><span class="tag">${n} 题</span>${d?`<span class="tag ${d[0]<td&&!isDone(doSet)?'':'m'}">截止 ${fmt(d[0])} 周${DOW[d[1]]}</span>`:''}${isDone(doSet)?'<span class="tag g">✓ 完成 · 已清零</span>':sb?`<span class="tag g">已提交${sb.tt?` · ${sb.sc}/${sb.tt}`:''}</span>`:a?`<span class="tag a">进行中 ${a}/${n}</span>`:''}</div>
+    <div class="n" style="margin-top:6px">${isP1?'点选 A/B/C/D，全部答完后「提交判分」；答错的自动进错题本。':'点「写题」在题图上手写；提交后可看评分方案、给自己打分（选做）。'}</div>`;
   if(sb&&sb.tt!=null){const pct=Math.round(sb.sc/sb.tt*100);html+=`<div class="scorebar" style="margin-top:10px"><span class="bigs">${sb.sc}<span style="font-size:16px;color:var(--muted)">/${sb.tt}</span></span><span class="tag ${pct>=80?'g':pct>=60?'a':''}" style="font-size:13px">${pct}%</span><span class="n">提交于 ${new Date(sb.t).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span><span class="grow"></span><button class="sm" id="doRedo">重做本套</button></div>`;}
-  html+=`<div style="margin-top:10px"><div class="n" style="margin-bottom:4px">${sb?'清完错题后点第三个勾，这套就算完成：':'纸上做的也可以手动记录进度：'}</div>${pills(s)}</div></div>`;
+  html+=`<div style="margin-top:10px"><div class="n" style="margin-bottom:4px">${sb?'讲评批注整合后第三个勾自动点亮；纸上做的也可以手动记录：':'纸上做的也可以手动记录进度：'}</div>${pills(s)}</div></div>`;
+  if(sb){html+=`<div class="card" style="border-left:4px solid var(--crimson)"><h3>📝 讲评批注 <span class="n">老师讲题时直接在题上手写</span></h3>
+    <div class="row"><div class="tx">${isDone(doSet)?`<b>已整合进复习库 ✓</b><small>${nAnn} 题有批注 · 可继续补充，也可去「复习 → 批注本」查看</small>`:`<b>${nAnn?`已批注 ${nAnn}/${n} 题`:'还没开始批注'}</b><small>逐题手写标注；全部弄完点「整合」，这套题就算错题清零，主界面整套标绿</small>`}</div>
+      <button class="${isDone(doSet)?'':'primary'} sm" data-annot="${(items.find(i=>!hasInk(i.id))||items[0]).id}">${nAnn?'继续批注':'开始批注'}</button>${isDone(doSet)?'<button class="sm" data-rev="annot">看批注本</button>':`<button class="sm" id="doFinal">整合进复习库</button>`}</div></div>`;}
   if(isP1){
-    for(const it of items){const at=attempts[it.id]||{},done=!!at.s,key=it.id.split(':')[1]+'#Q'+it.q,ex=EXPL[key],nt=notes[it.id];
-      html+=`<div class="qbox ${done?(at.ok?'ok':'bad'):''}" id="q_${it.n}"><div class="qh"><span class="no">#${pad(it.n)}</span><span class="n">${esc(it.o)}${it.sy?` · 考纲 ${it.sy}`:''}</span><span class="grow"></span>${done?(at.ok?'<span class="tag g">✓ 答对</span>':`<span class="tag">✗ ${at.a?'':'未作答 · '}正确答案 ${it.L}</span>`):''}${wrong.has(it.id)?'<span class="tag" title="在错题本里">📕</span>':''}</div>
+    for(const it of items){const at=attempts[it.id]||{},done=!!at.s,key=it.id.split(':')[1]+'#Q'+it.q,ex=EXPL[key],nt=notes[it.id],ink=hasInk(it.id);
+      html+=`<div class="qbox ${done?(at.ok?'ok':'bad'):''}" id="q_${it.n}"><div class="qh ${done?(at.ok?'okh':'badh'):''}"><span class="no">#${pad(it.n)}</span><span class="n">${esc(it.o)}${it.sy?` · 考纲 ${it.sy}`:''}</span><span class="grow"></span>${done?(at.ok?'<span class="res ok">✓ 答对</span>':`<span class="res bad">✗ ${at.a?`你选 ${at.a}`:'未作答'} · 答案 ${it.L}</span>`):''}${ink?'<span class="tag" title="有批注">✎</span>':''}${wrong.has(it.id)?'<span class="tag" title="在错题本里">📕</span>':''}</div>
         <div class="qimg">${it.i.map(x=>`<img loading="lazy" src="${IMG(x)}" alt="">`).join('')}</div>
         <div class="opts">${['A','B','C','D'].map(L=>{let cls='';if(done){if(L===it.L)cls='right';else if(at.a===L)cls='wrongsel';}else if(at.a===L)cls='sel';return `<button class="opt ${cls}" data-ans="${L}" data-q="${it.id}" ${done?'disabled':''}>${L}</button>`;}).join('')}</div>
-        ${done?`<div class="qf"><button class="sm" data-expl="${it.n}">${ex?'解析':'无解析'}</button><button class="sm" data-notet="${it.n}">📝 笔记${nt?' ✓':''}</button>${!wrong.has(it.id)?`<button class="sm" data-mark="${it.id}">加入错题本</button>`:''}</div>
+        ${done?`<div class="qf"><button class="sm" data-expl="${it.n}">${ex?'解析':'无解析'}</button><button class="sm" data-annot="${it.id}">✎ ${ink?'看/改批注':'批注'}</button><button class="sm ghost" data-notet="${it.n}">⌨️ 打字笔记${nt?' ✓':''}</button>${!wrong.has(it.id)?`<button class="sm ghost" data-mark="${it.id}">加入错题本</button>`:''}</div>
           <div class="expl" id="ex_${it.n}" hidden>${ex?`<div class="row2"><b>答案：${it.L}</b> · ${esc(ex.point||'')}</div>`+['A','B','C','D'].map(L=>`<div class="row2"><span class="${L===it.L?'ok':'bad'}">${L===it.L?'✓':'✗'} ${L}</span> ${esc(ex[L]||'')}</div>`).join(''):'<div class="n">本题暂无解析</div>'}</div>`:''}
-        <div class="notebox" id="nb_${it.n}" ${done&&nt?'':'hidden'}><textarea data-note="${it.id}" placeholder="📝 本题笔记（自动保存）">${esc(nt?nt.b:'')}</textarea></div></div>`;}
+        <div class="notebox" id="nb_${it.n}" ${done&&nt?'':'hidden'}><textarea data-note="${it.id}" placeholder="⌨️ 打字笔记（可选，自动保存）">${esc(nt?nt.b:'')}</textarea></div></div>`;}
     html+=`<div class="dock2"><span class="n">已答 <b>${a}</b> / ${n}</span><span class="grow"></span>${sb?`<button id="doRedo2">重做本套</button>`:`<button class="primary" id="doSubmit">提交判分</button>`}</div>`;
   }else{
-    for(const it of items){const at=attempts[it.id]||{},done=!!at.s,hasInk=!!inkIds[it.id]||!!pending.ink[it.id],nt=notes[it.id],sm=selfOf(it.id);
-      const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:var(--green)">已提交</b> · 还没自评'):hasInk?'写了一些':'';
+    for(const it of items){const at=attempts[it.id]||{},done=!!at.s,ink=hasInk(it.id),nt=notes[it.id],sm=selfOf(it.id);
+      const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:var(--green)">已提交</b>'):ink?'写了一些':'';
       html+=`<div class="qbox ${done?(sm&&!sm.full?'bad':'ok'):''}"><div class="p2q"><div class="th" data-write="${it.id}"><img loading="lazy" src="${IMG(it.i[0])}" alt=""></div>
-        <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${it.t?` <span class="n">${it.t} 分</span>`:''}<small>${it.sy?`考纲 ${it.sy} · `:''}${it.i.length} 页${stt?' · '+stt:''}${nt?' · 📝':''}</small></div>
-        <button class="${done?'':'primary'} sm" data-write="${it.id}">${done?(sm&&!sm.full?'重做':'查看'):hasInk?'继续':'写题'}</button></div></div>`;}
+        <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${it.t?` <span class="n">${it.t} 分</span>`:''}<small>${it.sy?`考纲 ${it.sy} · `:''}${it.i.length} 页${stt?' · '+stt:''}${nt?' · ⌨️':''}</small></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${done?(sm&&!sm.full?'重做':'查看'):ink?'继续':'写题'}</button>${done?`<button class="sm" data-annot="${it.id}">✎ 批注</button>`:''}</div></div></div>`;}
     const sn=submittedN(doSet);
-    html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${n}</span><span class="grow"></span>${sb?'<span class="tag g">本套已完成</span>':`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
+    html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${n}</span><span class="grow"></span>${sb?'<span class="tag g">本套已提交</span>':`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
   $('#planWrap').innerHTML=html;}
+function finalizeSet(id){if(!setOf(id))return;const s=setOf(id);if(isDone(id))return toast('这套已经整合过了');
+  if(!confirm(`把「${setName(s)}」的批注整合进复习库，并标记错题清零？`))return;
+  setBits(id,bitsOf(id)|7);commit();confetti();toast('🎉 已整合 · 错题清零，这套题标绿了');
+  if($('#writer').classList.contains('on'))closeWriter();revView='annot';switchView('rev');renderAll();scrollTo(0,0);}
+document.addEventListener('click',e=>{const an=e.target.closest('[data-annot]');if(an){const q=an.dataset.annot;const it=byId.get(q);if(!it)return;
+    const code=Object.keys(SETYS).find(k=>SETYS[k]===it.ys);const sid=`${it.p}-${it.ch}-${code}`;if(setOf(sid))doSet=sid;openWriter(q,{annot:true});return;}
+  if(e.target.id==='doFinal'){finalizeSet(doSet);}});
 document.addEventListener('click',e=>{
   if(e.target.id==='doBack'){doSet=null;renderPlan();scrollTo(0,0);return;}
   const o=e.target.closest('.opt');if(o&&!o.disabled){const q=o.dataset.q,L=o.dataset.ans;const cur=attempts[q]||{};setAttempt(q,cur.a===L?null:L,null,false);commit();
@@ -1530,7 +1562,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='doFinish'){finishP2();return;}
   const ex=e.target.closest('[data-expl]');if(ex){const el=$('#ex_'+ex.dataset.expl);el.hidden=!el.hidden;return;}
   const nb=e.target.closest('[data-notet]');if(nb){const el=$('#nb_'+nb.dataset.notet);el.hidden=!el.hidden;if(!el.hidden)el.querySelector('textarea').focus();return;}
-  const w=e.target.closest('[data-write]');if(w){const q=w.dataset.write,sm=selfOf(q);openWriter(q,!!(sm&&!sm.full&&w.textContent.trim()==='重做'));return;}});
+  const w=e.target.closest('[data-write]');if(w){const q=w.dataset.write,sm=selfOf(q);openWriter(q,{redo:!!(sm&&!sm.full&&w.textContent.trim()==='重做')});return;}});
 let noteT={};
 document.addEventListener('input',e=>{const ta=e.target.closest('textarea[data-note]');if(!ta)return;const q=ta.dataset.note;clearTimeout(noteT[q]);noteT[q]=setTimeout(()=>{setNote(q,ta.value);commit();},900);});
 function submitP1(){const items=setItems(doSet);const un=items.filter(i=>!(attempts[i.id]&&attempts[i.id].a));
@@ -1549,14 +1581,16 @@ function finishP2(){const items=setItems(doSet);const sn=submittedN(doSet);
   setBits(doSet,bitsOf(doSet)|6);commit();renderSet();renderTabs();confetti();toast('🎉 本套完成！失分的题在「复习 → 结构题强化」里重做');}
 
 /* ======================================================================
-   手写答题（结构题）
+   手写答题（答题模式 / 讲评批注模式）
    ====================================================================== */
-const W={q:null,strokes:[],old:[],showOld:false,redo:false,tool:'pen',color:'#1e232a',width:3.5,finger:false,cur:null,canvases:[],dirty:false,saveT:null,list:[],warned:false};
-async function openWriter(q,redo){const it=byId.get(q);if(!it)return;W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!redo;W.showOld=false;W.warned=false;
-  const wr=$('#writer');wr.classList.add('on');document.body.style.overflow='hidden';
-  $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}`;
+const W={q:null,strokes:[],old:[],showOld:false,redo:false,annot:false,tool:'pen',color:'#1e232a',width:3.5,finger:false,cur:null,canvases:[],dirty:false,saveT:null,list:[],warned:false,penSeen:false,penNear:0,penActive:false,scroll:null};
+async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)return;W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!opts.redo;W.annot=!!opts.annot;W.showOld=false;W.warned=false;W.scroll=null;
+  const wr=$('#writer');wr.classList.add('on');wr.classList.toggle('annot',W.annot);document.body.style.overflow='hidden';
+  $('#wMode').hidden=!W.annot;
+  const at=attempts[q]||{};
+  $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}${it.p==='p1'&&at.s?(at.ok?' · ✓ 答对':` · ✗ ${at.a?'你选 '+at.a:'未作答'} · 答案 ${it.L}`):''}`;
   $('#wInner').innerHTML=it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
-  $('#wNote').value=notes[q]?notes[q].b:'';$('#wNotes').hidden=innerWidth<=860;$('#wNoteInfo').textContent='自动保存';
+  $('#wNote').value=notes[q]?notes[q].b:'';$('#wNotes').hidden=true;$('#wNoteInfo').textContent='自动保存';
   const i=W.list.indexOf(q);$('#wPrev').disabled=i<=0;$('#wNext').disabled=i<0||i>=W.list.length-1;
   let saved=pending.ink[q]||inkCache[q]||null;
   if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(j.ok&&W.q===q){saved=j.strokes||[];inkCache[q]=saved;}}catch(e){toast('手写内容加载失败：'+errMsg(e));}}}
@@ -1565,18 +1599,30 @@ async function openWriter(q,redo){const it=byId.get(q);if(!it)return;W.q=q;W.lis
   if(W.redo){W.old=saved;W.strokes=[];tip('重做：这次不看上次写的，写完提交再自评一次');}
   else{W.strokes=saved.slice();W.old=[];}
   $('#wOld').hidden=!W.redo||!W.old.length;$('#wOld').setAttribute('aria-pressed','false');
-  setTool('pen');setupCanvases();wStatus();}
+  if(W.annot){setColor('#dc2626');setTool('pen');if(!sessionStorage.getItem('annotTip')){sessionStorage.setItem('annotTip','1');tip('讲评批注：老师讲到哪就在题上写到哪；整套弄完点右下「整合」');}}
+  else setTool('pen');
+  setupCanvases();wStatus();}
 function tip(m){const t=$('#wTip');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,3200);}
-function wStatus(){const at=attempts[W.q]||{};const done=!!at.s&&!W.redo,sm=selfOf(W.q);
-  $('#wSubmit').textContent=done?'✓ 已提交':W.redo?'提交重做':'提交本题';$('#wSubmit').classList.toggle('primary',!done);
-  $('#wAns').hidden=!done;$('#wStatus').textContent=done?(sm?(sm.full?`自评满分 ${sm.s}/${sm.t} ✓`:`自评 ${sm.s}/${sm.t} · 标记错处后重做可攻克`):'已提交 · 看答案后给自己打分'):`${W.redo?'重做中 · ':''}${W.strokes.filter(s=>!s.f).length} 笔`;
-  if(!done){$('#wAnsBox').hidden=true;$('#wSelf').hidden=true;}}
+function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);const submitted=!!at.s,sm=selfOf(W.q),locked=submitted&&!W.redo&&!W.annot;
+  $('#wSubmit').hidden=W.annot||(submitted&&!W.redo);$('#wSubmit').textContent=W.redo?'提交重做':'提交本题';
+  $('#wFinal').hidden=!W.annot||!doSet||isDone(doSet);
+  $('#wExpl').hidden=!(it.p==='p1'&&submitted);
+  $('#wAns').hidden=!(it.p!=='p1'&&submitted&&!W.redo);
+  const nS=W.strokes.filter(s=>!s.f).length;
+  $('#wStatus').textContent=W.annot?(doSet&&isDone(doSet)?'已整合 · 可继续补充批注':`批注中 · ${nS} 笔`):locked?(it.p==='p1'?'已判分 · 点「批注」在题上手写讲评':sm?(sm.full?`自评满分 ${sm.s}/${sm.t} ✓`:`自评 ${sm.s}/${sm.t} · 重做可攻克`):'已提交 · 看答案后可自评（选做）'):`${W.redo?'重做中 · ':''}${nS} 笔`;
+  if(!submitted){$('#wAnsBox').hidden=true;$('#wSelf').hidden=true;}}
 function setupCanvases(){W.canvases=[];const strips=[...document.querySelectorAll('#wInner .strip')];
   W.fit=()=>strips.forEach((st,i)=>{const img=st.querySelector('img'),cv=W.canvases[i];const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';redraw(cv);});
   strips.forEach(st=>{const img=st.querySelector('img'),cv=st.querySelector('canvas');W.canvases.push(cv);
     if(img.complete&&img.naturalWidth)W.fit();else img.onload=W.fit;
     cv.onpointerdown=e=>pdown(e,cv);cv.onpointermove=e=>pmove(e,cv);cv.onpointerup=cv.onpointercancel=cv.onpointerleave=e=>pup(e,cv);});}
 addEventListener('resize',()=>{if($('#writer').classList.contains('on')&&W.fit)W.fit();});
+/* 防误触：只要出现过 Pencil（含悬停），手指就不再交给浏览器滚动，改由我们判断：
+   笔在附近 / 笔正在写 / 接触面很大（手掌）→ 忽略；否则单指拖动 = 滚动页面 */
+const notePen=e=>{if(e.pointerType==='pen'){W.penNear=Date.now();if(!W.penSeen){W.penSeen=true;$('#writer').classList.add('pen');}}};
+$('#wBody').addEventListener('pointermove',notePen,{passive:true});$('#wBody').addEventListener('pointerover',notePen,{passive:true});
+const isPalm=e=>e.pointerType==='touch'&&((e.width||0)>=35||(e.height||0)>=35);
+const penBusy=()=>W.penActive||Date.now()-W.penNear<1200;
 function ctxOf(cv){const c=cv.getContext('2d');const dpr=devicePixelRatio||1;c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';return c;}
 function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
   c.strokeStyle=s.c;const q=s.q;
@@ -1588,24 +1634,29 @@ function redraw(cv){const c=ctxOf(cv);const Wd=cv.getBoundingClientRect().width|
 function norm(e,cv){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.width];}
 const pressOf=e=>e.pointerType==='pen'?Math.max(0.05,Math.min(1,e.pressure||0.5)):0.5;
 function pdown(e,cv){if(e.pointerType==='mouse'&&e.button!==0)return;
-  if(e.pointerType==='touch'&&(!W.finger||W.penActive))return;             // 手指默认只滚动
-  if(e.pointerType==='pen')W.penActive=true;
-  const done=!!(attempts[W.q]&&attempts[W.q].s)&&!W.redo;
-  if(done&&W.tool!=='marker'){if(!W.warned){W.warned=true;tip('已提交的题不能再改笔迹；要重来点「重做」，要标错处用 ❌');}return;}
+  notePen(e);
+  if(e.pointerType==='touch'){if(isPalm(e)||penBusy())return;
+    if(!W.finger){if(W.penSeen){W.scroll={id:e.pointerId,y:e.clientY,top:$('#wBody').scrollTop};try{cv.setPointerCapture(e.pointerId);}catch(x){}}return;}}
+  if(e.pointerType==='pen'){W.penActive=true;if(W.scroll){W.scroll=null;}}
+  const locked=!!(attempts[W.q]&&attempts[W.q].s)&&!W.redo&&!W.annot;
+  if(locked&&W.tool!=='marker'){if(!W.warned){W.warned=true;tip('已提交的题不能再改笔迹；讲评时用「批注」，重来用「重做」');}return;}
   e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}const [x,y]=norm(e,cv);const i=+cv.parentElement.dataset.i;
   if(W.tool==='marker'){W.strokes.push({i,f:1,p:[+x.toFixed(4),+y.toFixed(4)]});redraw(cv);markDirty();W.cur=null;return;}
-  if(W.tool==='eraser'){W.cur={erase:true,cv};eraseAt(x,y,i,cv);return;}
+  if(W.tool==='eraser'){W.cur={erase:true,cv,id:e.pointerId};eraseAt(x,y,i,cv);return;}
   const Wd=cv.getBoundingClientRect().width,pr=pressOf(e);
-  W.cur={i,c:W.color,w:W.width/Wd,p:[+x.toFixed(4),+y.toFixed(4)],q:e.pointerType==='pen'?[+pr.toFixed(2)]:null,cv,lx:x,ly:y};}
-function pmove(e,cv){if(!W.cur||W.cur.cv!==cv)return;e.preventDefault();const Wd=cv.getBoundingClientRect().width;
+  W.cur={i,c:W.color,w:W.width/Wd,p:[+x.toFixed(4),+y.toFixed(4)],q:e.pointerType==='pen'?[+pr.toFixed(2)]:null,cv,lx:x,ly:y,id:e.pointerId};}
+function pmove(e,cv){notePen(e);
+  if(W.scroll&&W.scroll.id===e.pointerId){$('#wBody').scrollTop=W.scroll.top-(e.clientY-W.scroll.y);return;}
+  if(!W.cur||W.cur.cv!==cv||W.cur.id!==e.pointerId)return;e.preventDefault();const Wd=cv.getBoundingClientRect().width;
   if(W.cur.erase){const [x,y]=norm(e,cv);eraseAt(x,y,+cv.parentElement.dataset.i,cv);return;}
   let evs=[];try{evs=e.getCoalescedEvents?e.getCoalescedEvents():[];}catch(x){}if(!evs.length)evs=[e];
   const c=ctxOf(cv);c.strokeStyle=W.cur.c;
   for(const ev of evs){const [px,py]=norm(ev,cv);if(Math.hypot((px-W.cur.lx)*Wd,(py-W.cur.ly)*Wd)<1.2)continue;
     const pr=pressOf(ev);c.lineWidth=W.width*(W.cur.q?(0.55+0.9*pr):1);c.beginPath();c.moveTo(W.cur.lx*Wd,W.cur.ly*Wd);c.lineTo(px*Wd,py*Wd);c.stroke();
     W.cur.p.push(+px.toFixed(4),+py.toFixed(4));if(W.cur.q)W.cur.q.push(+pr.toFixed(2));W.cur.lx=px;W.cur.ly=py;}}
-function pup(e,cv){if(!W.cur||W.cur.cv!==cv)return;if(e.type==='pointerleave'&&e.buttons)return;
-  if(e.pointerType==='pen')W.penActive=false;
+function pup(e,cv){if(W.scroll&&W.scroll.id===e.pointerId){W.scroll=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}return;}
+  if(e.pointerType==='pen'&&e.type!=='pointerleave')W.penActive=false;
+  if(!W.cur||W.cur.cv!==cv||W.cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
   const cur=W.cur;W.cur=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}
   if(cur.erase){markDirty();return;}
   const s={i:cur.i,c:cur.c,w:+cur.w.toFixed(5),p:cur.p};if(cur.q&&cur.q.some(v=>Math.abs(v-cur.q[0])>0.05))s.q=cur.q;
@@ -1617,36 +1668,41 @@ function markDirty(){W.dirty=true;wStatus();clearTimeout(W.saveT);W.saveT=setTim
 function saveInk(){if(!W.dirty||!W.q)return;W.dirty=false;const q=W.q,s=W.strokes.slice();inkCache[q]=s;if(s.length)inkIds[q]=Date.now();else delete inkIds[q];pending.ink[q]=s;commit();}
 function setTool(t){W.tool=t;document.querySelectorAll('.tb[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tool===t));
   const wr=$('#writer');wr.classList.toggle('eraser',t==='eraser');wr.classList.toggle('marker',t==='marker');}
+function setColor(c){W.color=c;document.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed',x.dataset.color===c));}
 document.querySelectorAll('.tb[data-tool]').forEach(b=>b.onclick=()=>{setTool(b.dataset.tool);if(b.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');});
-document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{W.color=b.dataset.color;document.querySelectorAll('.sw').forEach(x=>x.setAttribute('aria-pressed',x===b));if(W.tool!=='pen')setTool('pen');});
+document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{setColor(b.dataset.color);if(W.tool!=='pen')setTool('pen');});
 document.querySelectorAll('.wsz').forEach(b=>b.onclick=()=>{W.width=+b.dataset.w;document.querySelectorAll('.wsz').forEach(x=>x.setAttribute('aria-pressed',x===b));if(W.tool!=='pen')setTool('pen');});
-$('#wFinger').onclick=()=>{W.finger=!W.finger;$('#wFinger').setAttribute('aria-pressed',W.finger);$('#writer').classList.toggle('finger',W.finger);tip(W.finger?'手指书写已打开：手指也能写，滚动请用两指或关闭此项':'手指只滚动，Apple Pencil / 鼠标书写');};
+$('#wFinger').onclick=()=>{W.finger=!W.finger;$('#wFinger').setAttribute('aria-pressed',W.finger);$('#writer').classList.toggle('finger',W.finger);tip(W.finger?'手指书写已打开：手指也能写；滚动请关闭此项':'手指只滚动，Apple Pencil / 鼠标书写');};
 $('#wOld').onclick=()=>{W.showOld=!W.showOld;$('#wOld').setAttribute('aria-pressed',W.showOld);W.canvases.forEach(redraw);};
-$('#wUndo').onclick=()=>{if(attempts[W.q]&&attempts[W.q].s&&!W.redo&&!W.strokes.some(s=>s.f))return tip('已提交的题不能再改');const s=W.strokes.pop();if(!s)return;redraw(W.canvases[s.i]);markDirty();};
-$('#wClear').onclick=()=>{if(attempts[W.q]&&attempts[W.q].s&&!W.redo)return tip('已提交的题不能再改，要重来点「重做」');if(!W.strokes.length||!confirm('清空本题的全部手写？'))return;W.strokes=[];W.canvases.forEach(redraw);markDirty();};
+const lockedNow=()=>!!(attempts[W.q]&&attempts[W.q].s)&&!W.redo&&!W.annot;
+$('#wUndo').onclick=()=>{if(lockedNow()&&!W.strokes.some(s=>s.f))return tip('已提交的题不能再改；讲评时用「批注」');const s=W.strokes.pop();if(!s)return;redraw(W.canvases[s.i]);markDirty();};
+$('#wClear').onclick=()=>{if(lockedNow())return tip('已提交的题不能再改，要重来点「重做」');if(!W.strokes.length||!confirm(W.annot?'清空本题的全部笔迹（含作答）？':'清空本题的全部手写？'))return;W.strokes=[];W.canvases.forEach(redraw);markDirty();};
 $('#wNoteBtn').onclick=()=>{const p=$('#wNotes');p.hidden=!p.hidden;if(!p.hidden)$('#wNote').focus();};
 let wNoteT;$('#wNote').addEventListener('input',()=>{clearTimeout(wNoteT);$('#wNoteInfo').textContent='保存中…';wNoteT=setTimeout(()=>{setNote(W.q,$('#wNote').value);commit();$('#wNoteInfo').textContent='已保存';},900);});
 $('#wSubmit').onclick=()=>{const at=attempts[W.q]||{};if(at.s&&!W.redo)return;
   if(!W.strokes.filter(s=>!s.f).length&&!confirm('这题还没写任何内容，确定提交？'))return;
   clearTimeout(W.saveT);W.dirty=true;saveInk();W.redo=false;W.old=[];W.showOld=false;$('#wOld').hidden=true;setAttempt(W.q,null,null,true);commit();wStatus();
   $('#wAns').click();};
+$('#wFinal').onclick=()=>{if(doSet)finalizeSet(doSet);};
+$('#wExpl').onclick=()=>{const it=byId.get(W.q);const box=$('#wAnsBox');box.hidden=!box.hidden;
+  if(!box.hidden){const key=it.id.split(':')[1]+'#Q'+it.q,ex=EXPL[key];box.innerHTML=ex?`<div><b>答案：${it.L}</b> · ${esc(ex.point||'')}</div>`+['A','B','C','D'].map(L=>`<div class="row2"><span class="${L===it.L?'ok':'bad'}">${L===it.L?'✓':'✗'} ${L}</span> ${esc(ex[L]||'')}</div>`).join(''):'<div class="n">本题暂无解析</div>';box.scrollIntoView({behavior:'smooth'});}};
 $('#wAns').onclick=()=>{const it=byId.get(W.q);const box=$('#wAnsBox'),sm=$('#wSelf');const show=box.hidden;box.hidden=!show;sm.hidden=!show;
-  if(show){box.innerHTML=(it.a&&it.a.length)?'<div><b>评分方案</b> <span class="n">逐问对照，算算自己拿到几分</span></div>'+it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="n">本题没有收录答案</div>';
+  if(show){box.innerHTML=(it.a&&it.a.length)?'<div><b>评分方案</b> <span class="n">逐问对照；下面的自评是选做，报给老师看</span></div>'+it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="n">本题没有收录答案</div>';
     renderSelf();box.scrollIntoView({behavior:'smooth'});}};
 function renderSelf(){const it=byId.get(W.q),cur=selfOf(W.q),prev=W.prevSelf;const tot=it.t||(cur&&cur.t)||(prev&&prev.t)||null;let s=cur?cur.s:(tot||0);
-  const el=$('#wSelf');const paint=()=>{el.innerHTML=`<span>自评得分</span><div class="stepper"><button id="smMinus">−</button><b id="smVal">${s} / ${tot||'?'}</b><button id="smPlus">＋</button></div>${tot?'':'<input type="number" id="smTot" placeholder="满分" style="width:70px;padding:6px" min="1" max="30">'}<button class="primary" id="smOk">记录</button><button id="smFull">全对 ✓</button>${cur?`<span class="n">${cur.full?'上次：满分':`上次：${cur.s}/${cur.t}`}</span>`:''}`;
+  const el=$('#wSelf');const paint=()=>{el.innerHTML=`<span>自评得分 <span class="n">（选做）</span></span><div class="stepper"><button id="smMinus">−</button><b id="smVal">${s} / ${tot||'?'}</b><button id="smPlus">＋</button></div>${tot?'':'<input type="number" id="smTot" placeholder="满分" style="width:70px;padding:6px" min="1" max="30">'}<button class="primary" id="smOk">记录</button><button id="smFull">全对 ✓</button>${cur?`<span class="n">${cur.full?'上次：满分':`上次：${cur.s}/${cur.t}`}</span>`:''}`;
     $('#smMinus').onclick=()=>{s=Math.max(0,s-1);$('#smVal').textContent=`${s} / ${tot||($('#smTot')&&$('#smTot').value)||'?'}`;};
     $('#smPlus').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value)||99;s=Math.min(T,s+1);$('#smVal').textContent=`${s} / ${tot||($('#smTot')&&$('#smTot').value)||'?'}`;};
     $('#smFull').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value);if(!T)return tip('先填满分');record(T,T);};
     $('#smOk').onclick=()=>{const T=tot||+($('#smTot')&&$('#smTot').value);if(!T)return tip('先填满分');record(Math.min(s,T),T);};};
   const record=(sc,T)=>{const full=sc>=T,wasBad=prev&&!prev.full;setAttempt(W.q,`${sc}/${T}`,full,true);commit();wStatus();
     if(full){if(wasBad){confetti();toast('🛡️ 攻克！这题从强化列表移除');}else toast('满分 ✓');W.prevSelf=selfOf(W.q);}
-    else{setTool('marker');tip('用 ❌ 点一下失分的那一问，再在笔记里写一句原因');if($('#wNotes').hidden&&innerWidth>860)$('#wNotes').hidden=false;}
+    else{setTool('marker');tip('用 ❌ 点一下失分的那一问，再手写一句原因');}
     renderSelf();};
   paint();}
-function closeWriter(){clearTimeout(W.saveT);saveInk();clearTimeout(wNoteT);setNote(W.q,$('#wNote').value);commit();$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;renderAll();}
+function closeWriter(){clearTimeout(W.saveT);saveInk();clearTimeout(wNoteT);setNote(W.q,$('#wNote').value);commit();$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;W.annot=false;renderAll();}
 $('#wBack').onclick=closeWriter;
-const wStep=k=>{const i=W.list.indexOf(W.q);const j=i+k;if(j<0||j>=W.list.length)return;clearTimeout(W.saveT);saveInk();setNote(W.q,$('#wNote').value);commit();openWriter(W.list[j],false);};
+const wStep=k=>{const i=W.list.indexOf(W.q);const j=i+k;if(j<0||j>=W.list.length)return;clearTimeout(W.saveT);saveInk();setNote(W.q,$('#wNote').value);commit();openWriter(W.list[j],{annot:W.annot});};
 $('#wPrev').onclick=()=>wStep(-1);$('#wNext').onclick=()=>wStep(1);
 
 /* ======================================================================
@@ -1673,7 +1729,7 @@ function fillCh(){const mine=DATA.items.filter(i=>i.p===wbPaper);const cur=$('#s
   if(chs.includes(+cur))$('#selCh').value=cur;}
 function revRender(){counts();if($('#viewRev').hidden)return;[...$('#segRev').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===revView));
   $('#barBrowse').hidden=revView!=='browse';$('#wbDock').hidden=revView!=='wrong';
-  ({wrong:renderWrong,p2:renderP2,notes:renderNotes,browse:renderBrowse})[revView]();}
+  ({wrong:renderWrong,p2:renderP2,annot:renderAnnot,notes:renderNotes,browse:renderBrowse})[revView]();}
 function renderBrowse(){
   const ch=$('#selCh').value,ys=$('#selYs').value,kw=$('#q').value.trim().toLowerCase();
   const numOnly=/^#?\d{1,3}$/.test(kw)?String(+kw.replace('#','')):null;
@@ -1720,7 +1776,31 @@ function renderP2(){const list=p2Todo();shown=list;$('#count').textContent=`${li
       <div style="display:flex;flex-direction:column;gap:6px"><button class="primary sm" data-redo="${it.id}">重做</button><button class="sm" data-write="${it.id}">看上次</button></div></div></div>`;}
   if(conquered.length)html+=`<div class="grp" style="color:var(--green);margin-top:14px">已攻克<span class="sub">${conquered.length} 题</span></div><div class="wgrid">${conquered.map(r=>`<div class="qcard"><div class="chd"><span class="no">#${pad(r.n)}</span><span class="tag g">满分</span></div><div class="thumb" data-write="${r.id}"><img loading="lazy" src="${IMG(r.i[0])}" alt=""></div><div class="cft">${esc(r.o)} · 第${r.ch}章</div></div>`).join('')}</div>`;
   $('#body').innerHTML=html;}
-document.addEventListener('click',e=>{const rd=e.target.closest('[data-redo]');if(rd){doSet=null;openWriter(rd.dataset.redo,true);}});
+document.addEventListener('click',e=>{const rd=e.target.closest('[data-redo]');if(rd){doSet=null;openWriter(rd.dataset.redo,{redo:true});}});
+
+/* ---- 批注本：所有写过字的题，按套题分组，整张题图 + 笔迹渲染出来直接看 ---- */
+let annotPaper='';
+function renderAnnot(){const ids=Object.keys(inkIds).filter(q=>byId.has(q)&&(!annotPaper||byId.get(q).p===annotPaper));
+  const groups=new Map();for(const q of ids){const it=byId.get(q);const code=Object.keys(SETYS).find(k=>SETYS[k]===it.ys);const sid=`${it.p}-${it.ch}-${code}`;if(!groups.has(sid))groups.set(sid,[]);groups.get(sid).push(it);}
+  const keys=[...groups.keys()].sort((a,b)=>{const A=setOf(a),B=setOf(b);return (a.split('-')[0]).localeCompare(b.split('-')[0])||(A?A.ch:0)-(B?B.ch:0)||a.localeCompare(b);});
+  shown=[];$('#count').textContent=`${ids.length} 题`;
+  let html=`<div class="fbar"><div class="seg">${[['','全部'],['p1','Paper 1'],['p2','Paper 2'],['p4','Paper 4']].map(([k,l])=>`<button data-ap="${k}" aria-pressed="${annotPaper===k}">${l}</button>`).join('')}</div><span class="n">讲评时手写的批注都在这里；绿色 = 这套已整合（错题清零）。点题可继续批注。</span></div>`;
+  if(!keys.length){$('#body').innerHTML=html+`<div class="empty"><h3>还没有批注</h3><p>提交一套题后，老师讲题时点「开始批注」在题上手写；整套弄完点「整合」，就会汇总到这里。</p></div>`;return;}
+  for(const sid of keys){const s=setOf(sid),rows=groups.get(sid).sort((a,b)=>a.n-b.n),done=isDone(sid);
+    html+=`<details class="acard" ${keys.indexOf(sid)<2?'open':''}><summary class="ah" style="cursor:pointer;list-style:none"><b style="color:${done?'var(--green)':'var(--crimson)'}">${s?setName(s):sid}</b><span class="tag ${done?'g':'a'}">${done?'已整合 · 清零':'未整合'}</span><span class="n">${rows.length} 题有批注</span><span class="grow"></span>${done?'':`<button class="sm" data-final="${sid}">整合 · 清零</button>`}<button class="sm" data-go="${sid}">套题</button></summary>
+      ${rows.map(it=>{const at=attempts[it.id]||{};const res=it.p==='p1'&&at.s?(at.ok?'<span class="res ok">✓</span>':`<span class="res bad">✗ ${at.a?'选 '+at.a:'未作答'} · 答案 ${it.L}</span>`):(selfOf(it.id)?`<span class="tag ${selfOf(it.id).full?'g':''}">自评 ${selfOf(it.id).s}/${selfOf(it.id).t}</span>`:'');
+        return `<div class="ah" style="border-top:1px solid var(--line)"><span class="no">#${pad(it.n)}</span><span class="n">${esc(it.o)}${it.sy?` · 考纲 ${it.sy}`:''}</span>${res}<span class="grow"></span><button class="sm" data-annot="${it.id}">✎ 继续批注</button></div>
+          <div class="astrips" data-q="${it.id}">${it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img loading="lazy" src="${IMG(src)}" alt=""><canvas></canvas></div>`).join('')}</div>`;}).join('')}</details>`;}
+  $('#body').innerHTML=html;
+  const io=new IntersectionObserver(ents=>{for(const en of ents){if(!en.isIntersecting)continue;io.unobserve(en.target);paintAnnot(en.target);}},{rootMargin:'300px'});
+  document.querySelectorAll('.astrips').forEach(el=>io.observe(el));}
+async function paintAnnot(el){const q=el.dataset.q;let strokes=pending.ink[q]||inkCache[q];
+  if(!strokes){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});strokes=(j.ok&&j.strokes)||[];inkCache[q]=strokes;}catch(e){strokes=[];}}
+  const draw=()=>el.querySelectorAll('.strip').forEach(st=>{const img=st.querySelector('img'),cv=st.querySelector('canvas');const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';
+    const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+st.dataset.i;for(const s of strokes)if(s.i===i)drawStroke(c,s,r.width);});
+  el.querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)draw();else im.onload=draw;});}
+document.addEventListener('click',e=>{const ap=e.target.closest('[data-ap]');if(ap){annotPaper=ap.dataset.ap;revRender();return;}
+  const fn=e.target.closest('[data-final]');if(fn){e.preventDefault();finalizeSet(fn.dataset.final);}});
 function renderNotes(){const list=Object.entries(notes).filter(([q])=>byId.has(q)).map(([q,o])=>({it:byId.get(q),b:o.b,t:o.t})).sort((a,b)=>a.it.p.localeCompare(b.it.p)||a.it.ch-b.it.ch||a.it.n-b.it.n);
   shown=list.map(x=>x.it);$('#count').textContent=`${list.length} 条`;
   if(!list.length){$('#body').innerHTML=`<div class="empty"><h3>还没有笔记</h3><p>选择题提交后、结构题手写页的「📝 笔记」、看题对话框底部，都可以给每道题写笔记，这里按章节汇总，考前复习用。</p></div>`;return;}
@@ -1807,7 +1887,7 @@ function renderMe(){if($('#viewMe').hidden)return;const st=xpStats(),lv=lvlOf(xp
   html+=`<div class="card"><h3>本周活动</h3><div class="week">${wk.map(w=>`<div class="${w.n?'':'z'}" style="height:${Math.max(4,w.n/mx*100)}%" title="${w.k}：${w.n} 次"><span>${w.lbl}</span></div>`).join('')}</div><div style="height:18px"></div></div>`;
   const B=badges(),got=B.filter(b=>b.got).length;
   html+=`<div class="card"><h3>成就 <span class="n">${got}/${B.length}</span></h3><div class="badges2">${B.map(b=>`<div class="bd ${b.got?'':'lock'}" title="${esc(b.desc)}"><div class="ic">${b.ic}</div><b>${b.name}</b><small>${b.got?'已获得':`${b.cur}/${b.goal}`}</small></div>`).join('')}</div>
-    <div class="n" style="margin-top:8px">XP：作答 +1，选择题答对再 +1，手写提交 +5，自评满分再 +3，在线提交一套 +20，一套三个勾 +10，笔记 +2，掌握错题 +3</div></div>`;
+    <div class="n" style="margin-top:8px">XP：作答 +1，选择题答对再 +1，手写提交 +5，自评满分再 +3，在线提交一套 +20，一套三个勾（整合清零）+10，选择题批注 +2/题，笔记 +2，掌握错题 +3</div></div>`;
   html+=`<div class="card" id="boardCard"><h3>本班 XP 榜</h3><div class="n">加载中…</div></div>`;
   html+=`<div class="card"><h3>账号</h3><div class="kv"><div>用户名 <b>${esc(profile.username)}</b> · 姓名 <b>${esc(profile.display||'—')}</b></div><div>刷题计划 <b>${T.label}</b> <span class="n">${T.desc}</span></div>
     <div class="n">${npend()?`有 ${npend()} 项改动还没同步到服务器，联网后会自动补传`:'所有记录已保存在你的账号里，换设备登录即可看到'}</div>${profile.role==='teacher'?'<div><a href="teacher.html" style="color:var(--crimson)">→ 打开教师端</a></div>':''}</div>

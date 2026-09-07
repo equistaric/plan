@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260907171007"></script>
+<script src="config.js?v=20260907180446"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -950,7 +950,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260907171007';
+const BUILD='20260907180446';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -1161,8 +1161,8 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=P.sets;const cnt=id=>
     const rowsQ=items.map(it=>{const ans=active.map(u=>A[u]&&A[u][it.id]).filter(a=>a&&a.a);const wrongU=active.filter(u=>A[u]&&A[u][it.id]&&A[u][it.id].s&&A[u][it.id].a&&A[u][it.id].ok===false);const dist={};ans.forEach(a=>dist[a.a]=(dist[a.a]||0)+1);return{it,ans:ans.length,wrongU,dist};});
     const avg=subsU.length?Math.round(subsU.reduce((a,u)=>a+(S[u].subs[cur].tt?S[u].subs[cur].sc/S[u].subs[cur].tt:0),0)/subsU.length*100):null;
     h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>已提交</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${avg!=null?avg+'%':'—'}</b><small>平均分</small></div><div class="chip"><b>${items.length}</b><small>题</small></div></div></div>`;
-    h+=`<div class="card"><h2>按题：谁错了</h2><div class="tw"><table><tr><th>题号</th><th>来源 / 考纲</th><th>答案</th><th>错误率</th><th>选项分布</th><th>答错的同学</th></tr>${rowsQ.map(r=>{const it=r.it;const wr=r.ans?Math.round(r.wrongU.length/r.ans*100):0;
-      return `<tr><td class="code" style="cursor:pointer" data-open="${it.id}">#${pad(it.n)}</td><td style="cursor:pointer" data-open="${it.id}">${esc(it.o)}<div class="sub">${it.sy||''} ${esc((SYL[it.sy]||{}).en||'')}</div></td><td class="okc">${it.L}</td><td style="min-width:120px"><div style="display:flex;gap:6px;align-items:center"><div class="bar" style="flex:1"><i style="width:${wr}%;background:${wr>=50?'var(--crimson)':wr>=25?'var(--amber)':'var(--green)'}"></i></div><span class="${wr>=50?'late':''}" style="white-space:nowrap">${r.wrongU.length}/${r.ans}</span></div></td><td class="sub" style="white-space:nowrap">${['A','B','C','D'].map(L=>`<span style="${L===it.L?'color:var(--green);font-weight:700':''}">${L}${r.dist[L]||0}</span>`).join(' ')}</td><td>${r.wrongU.map(u=>`<span class="qtag" data-open="${it.id}" data-who="${esc(S[u].n)}">${esc(S[u].n)}<span class="sub"> 选${A[u][it.id].a||'—'}</span></span>`).join('')||'<span class="sub">—</span>'}</td></tr>`;}).join('')}</table></div></div>`;
+    h+=`<div class="card"><h2>按题：谁错了</h2><div class="sub" style="margin-bottom:6px">「批注」列 = 讲评时在题上手写过的同学，点名字看笔迹。</div><div class="tw"><table><tr><th>题号</th><th>来源 / 考纲</th><th>答案</th><th>错误率</th><th>选项分布</th><th>答错的同学</th><th>批注</th></tr>${rowsQ.map(r=>{const it=r.it;const wr=r.ans?Math.round(r.wrongU.length/r.ans*100):0;const inkU=active.filter(u=>I[u]&&I[u][it.id]);
+      return `<tr><td class="code" style="cursor:pointer" data-open="${it.id}">#${pad(it.n)}</td><td style="cursor:pointer" data-open="${it.id}">${esc(it.o)}<div class="sub">${it.sy||''} ${esc((SYL[it.sy]||{}).en||'')}</div></td><td class="okc">${it.L}</td><td style="min-width:120px"><div style="display:flex;gap:6px;align-items:center"><div class="bar" style="flex:1"><i style="width:${wr}%;background:${wr>=50?'var(--crimson)':wr>=25?'var(--amber)':'var(--green)'}"></i></div><span class="${wr>=50?'late':''}" style="white-space:nowrap">${r.wrongU.length}/${r.ans}</span></div></td><td class="sub" style="white-space:nowrap">${['A','B','C','D'].map(L=>`<span style="${L===it.L?'color:var(--green);font-weight:700':''}">${L}${r.dist[L]||0}</span>`).join(' ')}</td><td>${r.wrongU.map(u=>`<span class="qtag" data-open="${it.id}" data-who="${esc(S[u].n)}">${esc(S[u].n)}<span class="sub"> 选${A[u][it.id].a||'—'}</span></span>`).join('')||'<span class="sub">—</span>'}</td><td>${inkU.map(u=>`<span class="qtag" data-ink="${it.id}" data-u="${u}">✎ ${esc(S[u].n)}</span>`).join('')||'<span class="sub">—</span>'}</td></tr>`;}).join('')}</table></div></div>`;
     h+=`<div class="card"><h2>矩阵</h2><div class="sub">列 = 学生，行 = 题目；绿 ✓ 对，红 = 错（显示所选选项），淡色 = 已选未提交，空 = 未作答</div><div class="mxwrap"><table class="mx"><tr><th class="rh">题号</th>${active.map(u=>`<th class="v" title="${esc(S[u].n)}"><span>${esc(S[u].n)}</span></th>`).join('')}</tr>
       <tr><th class="rh">得分</th>${active.map(u=>{const sb=S[u].subs[cur];return `<td><div class="c ${sb?'d3':''}" style="width:auto;padding:0 4px;min-width:32px;${sb?'':'color:var(--muted)'}">${sb&&sb.tt?`${sb.sc}/${sb.tt}`:'—'}</div></td>`;}).join('')}</tr>
       ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${it.L}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id];const st=!a||!a.a?'':a.s?(a.ok?'ok':'bad'):'draft';const txt=!a||!a.a?'':a.s?(a.ok?'✓':a.a):a.a;
