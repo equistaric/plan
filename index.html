@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908015619"></script>
+<script src="config.js?v=20260908020143"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -186,7 +186,8 @@ canvas.fx{position:fixed;inset:0;pointer-events:none;z-index:90}
 .wmain{flex:1;display:flex;min-height:0;position:relative}
 .wbody{flex:1;overflow:hidden;position:relative;padding:0;touch-action:none;overscroll-behavior:contain}
 .wbody .inner{width:900px;max-width:none;margin:0;padding:10px 0 0;transform-origin:0 0;will-change:transform}
-#wInner .nbslot{text-align:right;padding:4px 8px;background:var(--card);border-top:1px dashed #d9d0b3}
+#wInner .nbslot{text-align:right;padding:5px 8px;background:var(--card);border-top:1px dashed #d9d0b3}
+#wInner .nbslot button{font-size:13px;padding:5px 14px;border:1px dashed var(--crimson);color:var(--crimson);background:#fff}
 .strip{position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0}
 .strip img{width:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .strip canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
@@ -1213,7 +1214,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908015619';
+const BUILD='20260908020143';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1754,7 +1755,7 @@ function clampView(){const body=$('#wBody'),inner=$('#wInner');const vw=body.cli
   VZ.tx=cw<=vw?(vw-cw)/2:Math.min(0,Math.max(vw-cw,VZ.tx));VZ.ty=ch<=vh?0:Math.min(0,Math.max(vh-ch,VZ.ty));}
 function zoomAt(z,mx,my){z=Math.max(1,Math.min(3,z));const k=z/VZ.z;VZ.tx=mx-(mx-VZ.tx)*k;VZ.ty=my-(my-VZ.ty)*k;VZ.z=z;clampView();applyView();}
 function panBy(dx,dy){VZ.tx+=dx;VZ.ty+=dy;clampView();applyView();}
-function panTo(el){if(!el)return;VZ.ty=-(el.offsetTop*VZ.z-12);clampView();applyView();}
+function panTo(el,pad){if(!el)return;VZ.ty=-(el.offsetTop*VZ.z-(pad==null?12:pad));clampView();applyView();}
 function resetView(){VZ.z=1;VZ.tx=0;VZ.ty=0;$('#wInner').style.width=wBaseW()+'px';clampView();applyView();}
 function fitAll(){document.querySelectorAll('#wInner canvas').forEach(fitCanvas);}
 let fitT;const fitSoon=()=>{clearTimeout(fitT);fitT=setTimeout(fitAll,250);};
@@ -1816,8 +1817,12 @@ $('#wFinal').onclick=()=>{if(doSet)finalizeSet(doSet);};
 $('#wExpl').onclick=()=>{const it=byId.get(W.q);const box=$('#wAnsBox');box.hidden=!box.hidden;
   if(!box.hidden){const key=it.id.split(':')[1]+'#Q'+it.q,ex=EXPL[key];box.innerHTML=ex?`<div><b>答案：${it.L}</b> · ${esc(ex.point||'')}</div>`+['A','B','C','D'].map(L=>`<div class="row2"><span class="${L===it.L?'ok':'bad'}">${L===it.L?'✓':'✗'} ${L}</span> ${esc(ex[L]||'')}</div>`).join(''):'<div class="n">本题暂无解析</div>';panTo(box);}};
 $('#wAns').onclick=()=>{const it=byId.get(W.q);const box=$('#wAnsBox'),sm=$('#wSelf');const show=box.hidden;box.hidden=!show;sm.hidden=!show;
-  if(show){box.innerHTML=(it.a&&it.a.length)?'<div><b>评分方案</b> <span class="n">逐问对照；下面的自评是选做，报给老师看</span></div>'+it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="n">本题没有收录答案</div>';
-    renderSelf();panTo(box);}};
+  if(show){nbSlots();const hd=`<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><b>评分方案</b><span class="n">逐问对照；自评选做</span><span class="grow"></span><button class="sm" data-nbtop="${it.id}">📝 加笔记区</button></div>`;
+    box.innerHTML=(it.a&&it.a.length)?hd+it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):hd+'<div class="n">本题没有收录答案</div>';
+    renderSelf();panTo(box,52);}};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-nbtop]');if(!b)return;const q=b.dataset.nbtop;const strips=[...$('#wInner').querySelectorAll('.strip:not(.nb)')];const k=strips.length-1;if(k<0)return;
+  const slot=$('#wInner').querySelector(`.nbslot[data-k="${k}"] [data-nbadd]`);if(slot){slot.click();panTo(strips[k].nextElementSibling,12);return;}
+  const nb=$('#wInner').querySelector(`.strip.nb[data-k="${k}"]`);if(nb)panTo(nb,12);});
 function renderSelf(){const it=byId.get(W.q),cur=selfOf(W.q),prev=W.prevSelf;const tot=it.t||(cur&&cur.t)||(prev&&prev.t)||null;let s=cur?cur.s:(tot||0);
   const el=$('#wSelf');const paint=()=>{const T0=()=>tot||($('#smTot')&&$('#smTot').value)||'?';
     el.innerHTML=`<span>自评得分 <span class="n">（选做）</span></span><div class="stepper"><button id="smMinus">−</button><b id="smVal">${s} / ${tot||'?'}</b><button id="smPlus">＋</button></div>${tot?'':'<input type="number" id="smTot" placeholder="满分" style="width:70px;padding:6px" min="1" max="30">'}<button class="primary" id="smOk">记录 ${s}/${tot||'?'}</button><button id="smFull">全对 ✓</button><span class="n" id="smState">${cur?(cur.full?`已记录：满分 ${cur.s}/${cur.t} ✓`:`已记录：${cur.s}/${cur.t}`):'还没记录 · 不记也行，老师端只显示「已提交」'}</span>`;
@@ -1831,7 +1836,7 @@ function renderSelf(){const it=byId.get(W.q),cur=selfOf(W.q),prev=W.prevSelf;con
     else{setTool('marker');tip('用 ❌ 点一下失分的那一问，再手写一句原因');}
     renderSelf();};
   paint();}
-function closeWriter(){flushInk();commit();$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;W.annot=false;W.redo=false;renderAll();}
+function closeWriter(){flushInk();commit();$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;W.annot=false;W.redo=false;renderAll();setTimeout(checkUpdate,800);}
 $('#wBack').onclick=closeWriter;
 const wStep=k=>{const i=W.list.indexOf(W.q);const j=i+k;if(j<0||j>=W.list.length)return;flushInk();commit();const nq=W.list[j];openWriter(nq,{annot:W.annot});};
 $('#wPrev').onclick=()=>wStep(-1);$('#wNext').onclick=()=>wStep(1);
