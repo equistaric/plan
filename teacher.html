@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260907180446"></script>
+<script src="config.js?v=20260907184625"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -92,7 +92,7 @@ summary{cursor:pointer;color:var(--crimson);font-size:13px}
 .mx th.v span{display:inline-block;writing-mode:vertical-rl;text-orientation:mixed;white-space:nowrap;max-height:150px;overflow:hidden;text-overflow:ellipsis;font-size:11.5px;line-height:1.1;letter-spacing:.02em}
 .mx td{padding:0;border:0}
 .mx .c{width:32px;height:22px;border-radius:5px;background:var(--line);display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px}
-.mx .c.d1{background:#e8c3ca}.mx .c.d2{background:#c8455a}.mx .c.d3{background:var(--green)}.mx .c.late{outline:2px solid var(--crimson);outline-offset:-2px}.mx .c.opt{opacity:.4}
+.mx .c.d1{background:#e8c3ca}.mx .c.d2{background:#c8455a}.mx .c.d3{background:var(--green)}.mx .c.s1,.heat .c.s1{background:#1f4e79}.mx .c.s2,.heat .c.s2{background:#b7791f}.mx .c.s3,.heat .c.s3{background:var(--green)}.mx .c.late{outline:2px solid var(--crimson);outline-offset:-2px}.mx .c.opt{opacity:.4}
 .mx tr:nth-child(4n+2) th.rh{border-top:1px solid var(--line)}
 .empty{text-align:center;color:var(--muted);padding:34px}
 .msg{font-size:13px;min-height:18px}.msg.bad{color:var(--crimson)}.msg.good{color:var(--green)}
@@ -950,7 +950,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260907180446';
+const BUILD='20260907184625';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -1009,12 +1009,9 @@ const classes=()=>[...new Set(Object.values(S).map(x=>x.klass).filter(Boolean))]
 const vis=()=>Object.keys(S).filter(u=>!klass||S[u].klass===klass);
 const typeOf=u=>PLAN.types[S[u]&&S[u].type]?S[u].type:'free';
 const TY=u=>PLAN.types[typeOf(u)];
-function stStats(u,p){const T=TY(u),P=PLAN.papers[p],sc=(PLAN.schedules[typeOf(u)]||{})[p]||null,td=today();
-  const bits=id=>(S[u].bits[id])|0,done=id=>bits(id)===7;
-  const req=P.sets.filter(s=>T.required.includes(s.set)),nd=req.filter(s=>done(s.id)).length;
-  const sched=sc?P.sets.filter(s=>sc.due[s.id]):[];const planned=sched.filter(s=>sc.due[s.id][0]<=td).length,ds=sched.filter(s=>done(s.id)).length;
-  const late=sched.filter(s=>sc.due[s.id][0]<td&&!done(s.id));
-  return{req:req.length,done:nd,pct:req.length?Math.round(nd/req.length*100):0,late,planned,doneSched:ds,sc};}
+function stStats(u,p){const P=PLAN.papers[p];const bits=id=>(S[u].bits[id])|0,done=id=>bits(id)===7;
+  const req=P.sets,nd=req.filter(s=>done(s.id)).length;
+  return{req:req.length,done:nd,pct:req.length?Math.round(nd/req.length*100):0,late:[],planned:0,doneSched:nd,sc:null};}
 const level=b=>b?((b>>2)&1)+((b>>1)&1)+(b&1):0;
 
 /* ---------- 登录 ---------- */
@@ -1047,31 +1044,31 @@ function renderCls(){const cls=classes(),bar=$('#clsBar');if(cls.length<2){bar.h
 $('#clsBar').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;klass=b.dataset.k||null;render();});
 function renderChips(){const us=vis();const td=today();
   const avg=p=>us.length?Math.round(us.reduce((a,u)=>a+stStats(u,p).pct,0)/us.length):0;
-  const lateN=us.filter(u=>stStats(u,'p1').late.length+stStats(u,'p2').late.length>0).length;
+  const clearN=us.reduce((a,u)=>a+Object.values(S[u].bits).filter(b=>b===7).length,0);
   const wrongN=us.reduce((a,u)=>a+S[u].wrong.length,0);
   const active=us.filter(u=>S[u].last&&dkey(S[u].last)===td).length;
   $('#chips').innerHTML=`<div class="chip"><b>${us.length}</b><small>学生</small></div><div class="chip"><b>${avg('p2')}%</b><small>Paper 2 平均</small></div><div class="chip"><b>${avg('p1')}%</b><small>Paper 1 平均</small></div>
-    <div class="chip"><b class="${lateN?'late':''}">${lateN}</b><small>落后计划</small></div><div class="chip"><b>${wrongN}</b><small>错题总数</small></div><div class="chip"><b>${active}</b><small>今天有动静</small></div>`;}
+    <div class="chip"><b>${clearN}</b><small>已清零套数</small></div><div class="chip"><b>${wrongN}</b><small>错题总数</small></div><div class="chip"><b>${active}</b><small>今天有动静</small></div>`;}
 
 const bar=s=>`<div style="display:flex;gap:8px;align-items:center"><div class="bar" style="flex:1"><i style="width:${s.pct}%"></i></div><span class="pct">${s.pct}%</span><span class="sub">${s.done}/${s.req}</span></div>`;
 function rowsSorted(){const rows=vis().map(u=>({u,n:S[u].n,type:typeOf(u),klass:S[u].klass,p1:stStats(u,'p1'),p2:stStats(u,'p2'),p4:stStats(u,'p4'),last:S[u].last,seen:S[u].seen,nw:S[u].wrong.length,nm:S[u].wrong.filter(w=>w.m).length}));
-  rows.sort((a,b)=>sortKey==='name'?a.n.localeCompare(b.n,'zh'):sortKey==='p1'?b.p1.pct-a.p1.pct:sortKey==='p2'?b.p2.pct-a.p2.pct:sortKey==='wrong'?b.nw-a.nw:sortKey==='last'?b.last-a.last:(b.p1.late.length+b.p2.late.length)-(a.p1.late.length+a.p2.late.length)||a.n.localeCompare(b.n,'zh'));
+  rows.sort((a,b)=>sortKey==='name'?a.n.localeCompare(b.n,'zh'):sortKey==='p1'?b.p1.pct-a.p1.pct:sortKey==='p2'?b.p2.pct-a.p2.pct:sortKey==='wrong'?b.nw-a.nw:sortKey==='last'?b.last-a.last:(b.p1.done+b.p2.done)-(a.p1.done+a.p2.done)||a.n.localeCompare(b.n,'zh'));
   return rows;}
 function renderProgress(){const rows=rowsSorted();
   if(!rows.length){$('#dash').innerHTML='<div class="card"><div class="empty">这个班还没有学生 —— 到「学生管理」添加。</div></div>';return;}
-  const dl=p=>{const sc=PLAN.schedules.standard&&PLAN.schedules.standard[p];return sc?`（${fmt(sc.deadline)} 截止）`:'';};
-  const lateTxt=r=>{const lt=r.p1.late.length+r.p2.late.length;return r.p2.sc||r.p1.sc?`<span class="${lt?'late':'ok'}">${lt?`落后 ${lt} 套`:'✓ 按计划'}</span>`:'<span class="sub">不排期</span>';};
+  const dl=p=>'';
+  const lateTxt=r=>'';
   const showK=!klass&&classes().length>1;
   const online=u=>{const x=S[u];const ss=Object.values(x.subs);const g=ss.filter(o=>o.tt);const avg=g.length?Math.round(g.reduce((a,o)=>a+o.sc/o.tt,0)/g.length*100):null;
     return ss.length?`${ss.length} 套${avg!=null?` · 均分 ${avg}%`:''}<div class="sub">提交 ${x.na} 题 · Lv.${Math.floor(Math.sqrt(x.xp/40))+1}</div>`:`<span class="sub">${x.na?`提交 ${x.na} 题`:'—'}</span>`;};
-  let h=`<div class="card"><div class="tablewrap"><table><tr><th class="sort" data-k="name">学生</th><th>计划</th><th class="sort" data-k="p2">Paper 2 ${dl('p2')}</th><th class="sort" data-k="p1">Paper 1 ${dl('p1')}</th><th>Paper 4</th><th class="sort" data-k="late">落后</th><th>在线做题</th><th class="sort" data-k="wrong">错题</th><th class="sort" data-k="last">最近动静</th></tr>`;
+  let h=`<div class="card"><div class="tablewrap"><table><tr><th class="sort" data-k="name">学生</th><th class="sort" data-k="p2">Paper 2 已清零</th><th class="sort" data-k="p1">Paper 1 已清零</th><th>Paper 4</th><th>在线做题</th><th class="sort" data-k="wrong">错题</th><th class="sort" data-k="last">最近动静</th></tr>`;
   for(const r of rows){const T=PLAN.types[r.type];
-    h+=`<tr><td><span class="name" data-det="${r.u}">${esc(r.n)}</span><div class="sub">${esc(r.u)}${showK&&r.klass?` · ${esc(r.klass)} 班`:''}</div></td><td><span class="ptag" title="${esc(T.desc)}">${T.label}</span></td><td>${bar(r.p2)}</td><td>${bar(r.p1)}</td><td class="sub">${r.p4.done}/${r.p4.req}</td>
-      <td>${lateTxt(r)}</td><td style="font-size:13px">${online(r.u)}</td><td>${r.nw}${r.nm?`<span class="sub"> · 掌握 ${r.nm}</span>`:''}</td><td class="sub" title="${r.last?new Date(r.last).toLocaleString('zh-CN'):''}">${ago(r.last)}<div>登录 ${ago(r.seen)}</div></td></tr>`;
-    h+=`<tr class="det" data-detrow="${r.u}" ${openDet.has(r.u)?'':'hidden'}><td colspan="9">${detail(r.u)}</td></tr>`;}
+    h+=`<tr><td><span class="name" data-det="${r.u}">${esc(r.n)}</span><div class="sub">${esc(r.u)}${showK&&r.klass?` · ${esc(r.klass)} 班`:''}</div></td><td>${bar(r.p2)}</td><td>${bar(r.p1)}</td><td class="sub">${r.p4.done}/${r.p4.req}</td>
+      <td style="font-size:13px">${online(r.u)}</td><td>${r.nw}${r.nm?`<span class="sub"> · 掌握 ${r.nm}</span>`:''}</td><td class="sub" title="${r.last?new Date(r.last).toLocaleString('zh-CN'):''}">${ago(r.last)}<div>登录 ${ago(r.seen)}</div></td></tr>`;
+    h+=`<tr class="det" data-detrow="${r.u}" ${openDet.has(r.u)?'':'hidden'}><td colspan="7">${detail(r.u)}</td></tr>`;}
   h+='</table></div><div class="stack">';
   for(const r of rows){const T=PLAN.types[r.type];
-    h+=`<div class="pcard"><div class="ph"><span class="name" data-det="${r.u}">${esc(r.n)}</span><span class="sub">${esc(r.u)}</span><span class="ptag">${T.label}</span>${showK&&r.klass?`<span class="ktag">${esc(r.klass)} 班</span>`:''}<span class="grow"></span>${lateTxt(r)}</div>
+    h+=`<div class="pcard"><div class="ph"><span class="name" data-det="${r.u}">${esc(r.n)}</span><span class="sub">${esc(r.u)}</span>${showK&&r.klass?`<span class="ktag">${esc(r.klass)} 班</span>`:''}<span class="grow"></span></div>
       <div class="pr"><span class="sub">Paper 2</span>${bar(r.p2)}<span class="sub">Paper 1</span>${bar(r.p1)}</div>
       <div class="pf"><span>Paper 4 ${r.p4.done}/${r.p4.req}</span><span>错题 ${r.nw}${r.nm?` · 掌握 ${r.nm}`:''}</span><span>在线 ${Object.keys(S[r.u].subs).length} 套 · ${S[r.u].na} 题</span><span>动静 ${ago(r.last)}</span><span class="grow"></span><button class="sm" data-det="${r.u}">${openDet.has(r.u)?'收起':'详情'}</button></div>
       <div class="pdet" data-detrow="${r.u}" ${openDet.has(r.u)?'':'hidden'}>${detail(r.u)}</div></div>`;}
@@ -1080,14 +1077,12 @@ function renderProgress(){const rows=rowsSorted();
   const P=PLAN.papers[mxPaper],td=today();
   h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">全班进度矩阵</h2><span class="grow"></span>
     <div class="tabs" style="margin:0">${PAPERS.map(p=>`<button class="sm" data-mx="${p}" aria-pressed="${p===mxPaper}">${PLAN.papers[p].label.split(' ')[0]} ${PLAN.papers[p].label.split(' ')[1]||''}</button>`).join('')}</div></div>
-    <div class="sub" style="margin-top:4px">每格 = 一套题完成到第几步（1 做题 · 2 对答案 · 3 清零）；红框 = 该生已过期未完成；淡色 = 对该生不是必做。截止日按「标准」计划标注。</div>
+    <div class="sub" style="margin-top:4px">每格 = 一套题到了第几步：1 做完题（蓝）· 2 对完答案（橙）· 3 错题清零（绿）</div>
     <div class="mxwrap"><table class="mx"><tr><th class="rh">章节 · 套题</th>${rows.map(r=>`<th class="v" title="${esc(r.n)}（${esc(r.u)}）"><span>${esc(r.n)}</span></th>`).join('')}</tr>`;
   for(const ch of P.chapters)for(const c of SETCODES){const s=P.sets.find(x=>x.ch===ch&&x.set===c);if(!s)continue;
-    const dueStd=(PLAN.schedules.standard&&PLAN.schedules.standard[mxPaper]||{due:{}}).due[s.id];
-    h+=`<tr><th class="rh">第${ch}章 <span class="sub">${PLAN.setLabels[c]}${dueStd?' · '+fmt(dueStd[0]):''}</span></th>`;
-    for(const r of rows){const T=PLAN.types[r.type],sc=(PLAN.schedules[r.type]||{})[mxPaper]||null,b=S[r.u].bits[s.id]|0,l=level(b);
-      const d=sc&&sc.due[s.id],late=d&&d[0]<td&&b!==7,req=T.required.includes(c);
-      h+=`<td><div class="c d${l} ${late?'late':''} ${!req?'opt':''}" title="${esc(r.n)} · 第${ch}章 ${PLAN.setLabels[c]}${d?' · 截止 '+fmt(d[0]):''}">${l||''}</div></td>`;}
+    h+=`<tr><th class="rh">第${ch}章 <span class="sub">${PLAN.setLabels[c]}</span></th>`;
+    for(const r of rows){const b=S[r.u].bits[s.id]|0,l=b===7?3:(b&6)===6?2:(b&4)?1:0;
+      h+=`<td><div class="c s${l}" title="${esc(r.n)} · 第${ch}章 ${PLAN.setLabels[c]}">${l||''}</div></td>`;}
     h+='</tr>';}
   h+='</table></div></div>';
   $('#dash').innerHTML=h;}
@@ -1100,12 +1095,12 @@ function detail(u){const x=S[u];
     <div><div class="sub" style="margin-top:10px"><b>错题 ${ws.length} 题</b> ${Object.entries(chs).sort((a,b)=>b[1]-a[1]).map(([c,k])=>`第${c}章×${k}`).join('　')}</div>
       ${top?`<div class="sub" style="margin-top:6px">薄弱考纲点：</div><div>${top}</div>`:''}
       <div style="margin-top:6px">${ws.map(w=>{const it=byId.get(w.q);return `<span class="qtag ${w.m?'m':''}" data-open="${it.id}" data-who="${esc(x.n)}" title="${w.m?'已掌握':'待复习'}">#${pad(it.n)}<span class="sub"> P${it.p.slice(1)}·${it.ch}章</span></span>`;}).join('')||'<span class="sub">还没有记录错题</span>'}</div></div></div>`;}
-function heat(u,p){const P=PLAN.papers[p],td=today(),T=TY(u),sc=(PLAN.schedules[typeOf(u)]||{})[p]||null;
+function heat(u,p){const P=PLAN.papers[p];
   let h=`<div class="sub" style="margin-top:10px"><b>${P.label}</b></div><div class="heat"><div></div>${SETCODES.map(c=>`<div class="h">${PLAN.setLabels[c]}</div>`).join('')}`;
   for(const ch of P.chapters){h+=`<div class="h" style="text-align:left">第${ch}章</div>`;
     for(const c of SETCODES){const s=P.sets.find(x=>x.ch===ch&&x.set===c);if(!s){h+='<div></div>';continue;}
-      const b=S[u].bits[s.id]|0,l=level(b),d=sc&&sc.due[s.id],late=d&&d[0]<td&&b!==7,req=T.required.includes(c);
-      h+=`<div class="c d${l} ${!req?'opt':''} ${late?'late':''}" title="${PLAN.setLabels[c]}${d?' · 截止 '+fmt(d[0]):''}">${l?l+'/3':''}</div>`;}}
+      const b=S[u].bits[s.id]|0,l=b===7?3:(b&6)===6?2:(b&4)?1:0;
+      h+=`<div class="c s${l}" title="${PLAN.setLabels[c]}">${l?l+'/3':''}</div>`;}}
   return h+'</div>';}
 
 function renderWrong(){const us=vis().filter(u=>!wbFilterU||u===wbFilterU);
@@ -1196,14 +1191,14 @@ document.addEventListener('change',e=>{if(e.target.id==='rsSel'){rsSet=e.target.
 function renderStudents(){const us=vis().sort((a,b)=>(S[a].klass||'').localeCompare(S[b].klass||'')||S[a].n.localeCompare(S[b].n,'zh'));const showK=classes().length>1||!!klass;
   const acts=u=>`<button class="sm" data-edit="${u}">编辑</button> <button class="sm" data-pw="${u}">重置密码</button> <button class="sm" data-reset="${u}" title="清空该生全部记录，账号保留">清空记录</button> <button class="sm danger" data-del="${u}">删除</button>`;
   let h=`<div class="card noprint"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">学生账号</h2><span class="grow"></span><button class="primary" id="btnAdd">＋ 添加学生</button></div>
-    <div class="sub" style="margin:6px 0 8px">计划类型：${Object.entries(PLAN.types).map(([k,t])=>`<b>${t.label}</b> = ${t.desc}`).join('；')}</div>
-    <div class="tablewrap"><table><tr><th>用户名</th><th>姓名</th>${showK?'<th>班级</th>':''}<th>刷题计划</th><th>最近登录</th><th>创建</th><th></th></tr>`;
+    <div class="sub" style="margin:6px 0 8px">四套题一视同仁，不排时间线；学生按自己的节奏做完 → 对答案 → 错题清零。</div>
+    <div class="tablewrap"><table><tr><th>用户名</th><th>姓名</th>${showK?'<th>班级</th>':''}<th>最近登录</th><th>创建</th><th></th></tr>`;
   for(const u of us){const x=S[u];
-    h+=`<tr><td class="code">${esc(u)}</td><td>${esc(x.n)}</td>${showK?`<td>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:'<span class="sub">—</span>'}</td>`:''}<td><span class="ptag">${TY(u).label}</span></td><td class="sub">${ago(x.seen)}</td><td class="sub">${x.created?new Date(x.created).toLocaleDateString('zh-CN'):'—'}</td>
+    h+=`<tr><td class="code">${esc(u)}</td><td>${esc(x.n)}</td>${showK?`<td>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:'<span class="sub">—</span>'}</td>`:''}<td class="sub">${ago(x.seen)}</td><td class="sub">${x.created?new Date(x.created).toLocaleDateString('zh-CN'):'—'}</td>
       <td style="white-space:nowrap">${acts(u)}</td></tr>`;}
   h+='</table></div><div class="stack">';
   for(const u of us){const x=S[u];
-    h+=`<div class="pcard"><div class="ph"><b style="color:var(--crimson)">${esc(x.n)}</b><span class="code" style="font-weight:500">${esc(u)}</span><span class="ptag">${TY(u).label}</span>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:''}</div>
+    h+=`<div class="pcard"><div class="ph"><b style="color:var(--crimson)">${esc(x.n)}</b><span class="code" style="font-weight:500">${esc(u)}</span>${x.klass?`<span class="ktag">${esc(x.klass)}</span>`:''}</div>
       <div class="pf"><span>登录 ${ago(x.seen)}</span><span class="grow"></span>${acts(u)}</div></div>`;}
   h+=`</div>${us.length?'':'<div class="empty">还没有学生，点「添加学生」。</div>'}</div>
   <div class="card noprint"><h2>导入旧错题本记录</h2><p class="sub" style="margin:0 0 8px">以前学生用旧版错题本「发给老师」的同步码还能用：选学生，粘贴同步码（或整条 <code>姓名: 码</code>），导入后学生端会立刻显示为已标记。</p>
@@ -1234,7 +1229,7 @@ function openStu(u,pwOnly){editU=u;pwOnlyMode=!!pwOnly;const x=u&&S[u];
   $('#klassList').innerHTML=classes().map(k=>`<option value="${esc(k)}">`).join('');
   $('#sKlass').value=x?x.klass:(klass||(session&&session.klass)||'');
   $('#sPass').value='';$('#sPassLbl').textContent=u?(pwOnly?'新密码（至少 4 位，学生所有设备需重新登录）':'新密码（留空 = 不改）'):'初始密码（至少 4 位）';
-  $('#sDispL').hidden=$('#sPlanL').hidden=$('#sKlassL').hidden=!!pwOnly;
+  $('#sDispL').hidden=$('#sKlassL').hidden=!!pwOnly;$('#sPlanL').hidden=true;
   $('#sMsg').textContent='';$('#dlgStu').showModal();if(!u)setTimeout(()=>$('#sUser').focus(),50);}
 $('#sClose').onclick=()=>$('#dlgStu').close();
 $('#sOk').onclick=async()=>{const m=$('#sMsg');m.className='msg';
