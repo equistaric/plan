@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260907154735"></script>
+<script src="config.js?v=20260907162045"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -950,7 +950,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260907154735';
+const BUILD='20260907162045';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -1063,7 +1063,7 @@ function renderProgress(){const rows=rowsSorted();
   const lateTxt=r=>{const lt=r.p1.late.length+r.p2.late.length;return r.p2.sc||r.p1.sc?`<span class="${lt?'late':'ok'}">${lt?`落后 ${lt} 套`:'✓ 按计划'}</span>`:'<span class="sub">不排期</span>';};
   const showK=!klass&&classes().length>1;
   const online=u=>{const x=S[u];const ss=Object.values(x.subs);const g=ss.filter(o=>o.tt);const avg=g.length?Math.round(g.reduce((a,o)=>a+o.sc/o.tt,0)/g.length*100):null;
-    return ss.length?`${ss.length} 套${avg!=null?` · 均分 ${avg}%`:''}<div class="sub">作答 ${x.na} 题 · Lv.${Math.floor(Math.sqrt(x.xp/40))+1}</div>`:`<span class="sub">${x.na?`作答 ${x.na} 题`:'—'}</span>`;};
+    return ss.length?`${ss.length} 套${avg!=null?` · 均分 ${avg}%`:''}<div class="sub">提交 ${x.na} 题 · Lv.${Math.floor(Math.sqrt(x.xp/40))+1}</div>`:`<span class="sub">${x.na?`提交 ${x.na} 题`:'—'}</span>`;};
   let h=`<div class="card"><div class="tablewrap"><table><tr><th class="sort" data-k="name">学生</th><th>计划</th><th class="sort" data-k="p2">Paper 2 ${dl('p2')}</th><th class="sort" data-k="p1">Paper 1 ${dl('p1')}</th><th>Paper 4</th><th class="sort" data-k="late">落后</th><th>在线做题</th><th class="sort" data-k="wrong">错题</th><th class="sort" data-k="last">最近动静</th></tr>`;
   for(const r of rows){const T=PLAN.types[r.type];
     h+=`<tr><td><span class="name" data-det="${r.u}">${esc(r.n)}</span><div class="sub">${esc(r.u)}${showK&&r.klass?` · ${esc(r.klass)} 班`:''}</div></td><td><span class="ptag" title="${esc(T.desc)}">${T.label}</span></td><td>${bar(r.p2)}</td><td>${bar(r.p1)}</td><td class="sub">${r.p4.done}/${r.p4.req}</td>
@@ -1158,7 +1158,7 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=P.sets;const cnt=id=>
   const active=us.filter(u=>A[u]||I[u]||N[u]||S[u].subs[cur]);
   const subsU=active.filter(u=>S[u].subs[cur]);
   if(rsPaper==='p1'){
-    const rowsQ=items.map(it=>{const ans=active.map(u=>A[u]&&A[u][it.id]).filter(a=>a&&a.a);const wrongU=active.filter(u=>A[u]&&A[u][it.id]&&A[u][it.id].s&&A[u][it.id].ok===false);const dist={};ans.forEach(a=>dist[a.a]=(dist[a.a]||0)+1);return{it,ans:ans.length,wrongU,dist};});
+    const rowsQ=items.map(it=>{const ans=active.map(u=>A[u]&&A[u][it.id]).filter(a=>a&&a.a);const wrongU=active.filter(u=>A[u]&&A[u][it.id]&&A[u][it.id].s&&A[u][it.id].a&&A[u][it.id].ok===false);const dist={};ans.forEach(a=>dist[a.a]=(dist[a.a]||0)+1);return{it,ans:ans.length,wrongU,dist};});
     const avg=subsU.length?Math.round(subsU.reduce((a,u)=>a+(S[u].subs[cur].tt?S[u].subs[cur].sc/S[u].subs[cur].tt:0),0)/subsU.length*100):null;
     h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>已提交</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${avg!=null?avg+'%':'—'}</b><small>平均分</small></div><div class="chip"><b>${items.length}</b><small>题</small></div></div></div>`;
     h+=`<div class="card"><h2>按题：谁错了</h2><div class="tw"><table><tr><th>题号</th><th>来源 / 考纲</th><th>答案</th><th>错误率</th><th>选项分布</th><th>答错的同学</th></tr>${rowsQ.map(r=>{const it=r.it;const wr=r.ans?Math.round(r.wrongU.length/r.ans*100):0;
