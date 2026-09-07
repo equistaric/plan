@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260907192105"></script>
+<script src="config.js?v=20260908001350"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -950,7 +950,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260907192105';
+const BUILD='20260908001350';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -1174,17 +1174,26 @@ async function loadResults(set){if(rsLoading)return;rsLoading=true;
     if(!j.ok)throw new Error(j.error);RS={set,at:Date.now(),attempts:j.attempts||[],ink:j.ink||[],notes:j.notes||[]};if(tab==='results'&&rsSet===set)render();}
   catch(e){if(tab==='results')$('#dash').insertAdjacentHTML('beforeend',`<div class="card"><div class="empty">${esc(errMsg(e))}</div></div>`);}
   finally{rsLoading=false;}}
+function smoothPts(pts){const P=[];for(let k=0;k<pts.length;k+=2)P.push([pts[k],pts[k+1]]);if(P.length<3)return P;
+  const out=[P[0]];for(let i=1;i<P.length-1;i++)out.push([(P[i-1][0]+2*P[i][0]+P[i+1][0])/4,(P[i-1][1]+2*P[i][1]+P[i+1][1])/4]);out.push(P[P.length-1]);return out;}
+function curvePath(c,P,Wd){c.moveTo(P[0][0]*Wd,P[0][1]*Wd);for(let i=1;i<P.length-1;i++){const mx=(P[i][0]+P[i+1][0])/2*Wd,my=(P[i][1]+P[i+1][1])/2*Wd;c.quadraticCurveTo(P[i][0]*Wd,P[i][1]*Wd,mx,my);}const L=P[P.length-1];c.lineTo(L[0]*Wd,L[1]*Wd);}
+function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
+  const P=smoothPts(s.p),base=s.w*Wd;c.fillStyle=s.c;c.strokeStyle=s.c;
+  if(P.length<2){c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,base/2,0,Math.PI*2);c.fill();return;}
+  const q=s.q&&s.q.length===P.length?s.q:null;
+  if(!q){c.lineWidth=base;c.beginPath();curvePath(c,P,Wd);c.stroke();return;}
+  const w=q.map(v=>base*(0.55+0.9*v)),ws=w.map((v,i)=>i&&i<w.length-1?(w[i-1]+v+w[i+1])/3:v);
+  const L=[],R=[];for(let i=0;i<P.length;i++){const a=P[Math.max(0,i-1)],b=P[Math.min(P.length-1,i+1)];const dx=b[0]-a[0],dy=b[1]-a[1];const len=Math.hypot(dx,dy)||1e-6;const nx=-dy/len,ny=dx/len,h=ws[i]/2/Wd;L.push([P[i][0]+nx*h,P[i][1]+ny*h]);R.push([P[i][0]-nx*h,P[i][1]-ny*h]);}
+  c.beginPath();curvePath(c,L,Wd);const Rr=R.slice().reverse();const E=P[P.length-1];c.lineTo(Rr[0][0]*Wd,Rr[0][1]*Wd);for(let i=1;i<Rr.length-1;i++){const mx=(Rr[i][0]+Rr[i+1][0])/2*Wd,my=(Rr[i][1]+Rr[i+1][1])/2*Wd;c.quadraticCurveTo(Rr[i][0]*Wd,Rr[i][1]*Wd,mx,my);}c.lineTo(Rr[Rr.length-1][0]*Wd,Rr[Rr.length-1][1]*Wd);c.closePath();c.fill();
+  c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,ws[0]/2,0,Math.PI*2);c.fill();c.beginPath();c.arc(E[0]*Wd,E[1]*Wd,ws[ws.length-1]/2,0,Math.PI*2);c.fill();}
 async function openInk(q,u){const it=byId.get(q);if(!it)return;$('#iNo').textContent='#'+pad(it.n);$('#iTitle').textContent=it.o;$('#iWho').textContent=S[u]?S[u].n:u;
   $('#iBody').innerHTML='<div class="empty">加载中…</div>';$('#iNote').hidden=true;$('#dlgInk').showModal();
   let strokes=[];try{const j=await rpc('teacher_ink',{p_token:session.token,p_user:u,p_qid:q});if(j.ok)strokes=j.strokes||[];}catch(e){}
   const nt=RS&&RS.notes.find(x=>x.u===u&&x.q===q);if(nt){$('#iNote').hidden=false;$('#iNote').innerHTML=`<b>📝 学生笔记</b><div style="white-space:pre-wrap">${esc(nt.b)}</div>`;}
-  $('#iBody').innerHTML=it.i.map((src,i)=>`<div style="position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0"><img src="${IMG(src)}" alt="" style="width:100%;display:block"><canvas data-i="${i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>`).join('')+(strokes.length?'':'<div class="sub" style="padding:6px">这题没有手写内容</div>');
+  const nbR=k=>{let m=0;for(const s of strokes)if(s.i===100+k)for(let j=1;j<s.p.length;j+=2)m=Math.max(m,s.p[j]);return Math.max(0.18,m+0.06);};
+  $('#iBody').innerHTML=it.i.map((src,i)=>`<div style="position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0"><img src="${IMG(src)}" alt="" style="width:100%;display:block"><canvas data-i="${i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>`+(strokes.some(s=>s.i===100+i)?`<div style="position:relative;margin:-6px 0 6px;line-height:0;border:1px solid var(--line);border-top:1px dashed #d9d0b3"><div style="width:100%;padding-bottom:${(nbR(i)*100).toFixed(1)}%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)"></div><canvas data-i="${100+i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas><span style="position:absolute;left:8px;top:4px;font-size:11px;color:#a89f80;line-height:1.2">📝 笔记区</span></div>`:'')).join('')+(strokes.length?'':'<div class="sub" style="padding:6px">这题没有手写内容</div>');
   const draw=()=>{$('#iBody').querySelectorAll('canvas').forEach(cv=>{const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+cv.dataset.i;
-    for(const s of strokes){if(s.i!==i)continue;const W=r.width;
-      if(s.f){const x=s.p[0]*W,y=s.p[1]*W,rad=Math.max(10,W*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);continue;}
-      c.strokeStyle=s.c;const q=s.q;
-      if(q&&q.length*2===s.p.length){for(let k=2;k<s.p.length;k+=2){c.lineWidth=s.w*W*(0.55+0.9*q[k/2]);c.beginPath();c.moveTo(s.p[k-2]*W,s.p[k-1]*W);c.lineTo(s.p[k]*W,s.p[k+1]*W);c.stroke();}if(s.p.length===2){c.lineWidth=s.w*W;c.beginPath();c.moveTo(s.p[0]*W,s.p[1]*W);c.lineTo(s.p[0]*W+.1,s.p[1]*W);c.stroke();}}
-      else{c.lineWidth=s.w*W;c.beginPath();for(let k=0;k<s.p.length;k+=2){const x=s.p[k]*W,y=s.p[k+1]*W;k?c.lineTo(x,y):c.moveTo(x,y);}if(s.p.length===2)c.lineTo(s.p[0]*W+.1,s.p[1]*W);c.stroke();}}});};
+    for(const s of strokes){if(s.i!==i)continue;drawStroke(c,s,r.width);}});};
   $('#iBody').querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)draw();else im.onload=draw;});setTimeout(draw,300);}
 document.addEventListener('change',e=>{if(e.target.id==='rsSel'){rsSet=e.target.value;RS=null;render();}});
 
