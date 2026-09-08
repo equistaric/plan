@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908020143"></script>
+<script src="config.js?v=20260908235325"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -137,6 +137,61 @@ dialog::backdrop{background:rgba(20,10,12,.62)}
   dialog{width:auto}.db{max-height:55vh}
   .lcard{padding:22px 18px 18px}}
 @media print{header,.tabs,.cls,.noprint{display:none!important}.card{box-shadow:none}}
+/* ---- 批作业（全屏批改） ---- */
+.grader{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column}.grader.on{display:flex}
+.gh{display:flex;gap:6px;align-items:center;padding:7px 10px;padding-top:calc(7px + env(safe-area-inset-top));background:var(--card);border-bottom:1px solid var(--line);flex:none;flex-wrap:wrap}
+.gh .ttl{font-weight:700;color:var(--crimson);font-size:14px}
+.gtools{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.gtools .tb{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px;border-radius:9px}
+.gtools .tb.wide{width:auto;padding:0 10px;font-size:13px}
+.gtools [aria-pressed="true"]{border-color:var(--crimson);box-shadow:0 0 0 2px color-mix(in srgb,var(--crimson) 25%,transparent)}
+.gtools .sw{width:26px;height:26px;border-radius:50%;border:2px solid transparent;padding:0}.gtools .sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px #fff inset}
+.gtools .wsz{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center}.gtools .wsz i{display:block;background:var(--ink);border-radius:99px;width:14px}
+.gtools .sep{width:1px;height:24px;background:var(--line);margin:0 3px}
+.gprog{display:flex;gap:3px;align-items:center;padding:5px 10px 6px;background:var(--card);border-bottom:1px solid var(--line);flex:none}
+.gprog i{flex:1;height:6px;border-radius:3px;background:var(--line);cursor:pointer}.gprog i.s{background:var(--green)}.gprog i.p{background:var(--amber)}.gprog i.cur{box-shadow:0 0 0 2px var(--crimson)}
+.gprog span{font-size:11px;color:var(--muted);margin-left:8px;white-space:nowrap}
+.gbody{flex:1;overflow:auto;padding:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ginner{max-width:900px;margin:0 auto}
+.gstrip{position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0}
+.gstrip img{width:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.gstrip canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.gstrip.nb{border-top:1px dashed #d9d0b3}.gstrip.nb .nbg{background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px);width:100%}
+.gstrip.nb .nbl{position:absolute;left:8px;top:4px;font-size:11px;color:#a89f80;line-height:1.2;pointer-events:none}
+.gpanel{background:var(--card);border:1px solid var(--line);border-left:3px solid #6366f1;border-radius:var(--radius);padding:10px 12px;margin-top:10px;font-size:14px;line-height:1.5}
+.gpanel .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stepper{display:inline-flex;align-items:center;gap:4px}.stepper button{width:36px;height:36px;padding:0;font-size:18px}.stepper b{min-width:70px;text-align:center;font-size:17px;color:#4338ca}
+.gpanel textarea{flex:1;min-width:200px;height:60px;font:14px/1.4 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+.gans{margin-top:10px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);padding:10px 12px}.gans img{width:100%;display:block}
+.gf{flex:none;background:var(--card);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gtag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;background:#eef2ff;color:#4338ca;white-space:nowrap}
+.gtip{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;background:var(--ink);color:#fff;padding:7px 14px;border-radius:99px;font-size:13px;pointer-events:none;z-index:2}
+@media(max-width:760px){.gh .ttl{width:100%;order:-1}.gtools .tb{width:32px;height:32px;font-size:14px}.gf button{padding:6px 9px;font-size:13px}}
+/* ---- 讲题模式（左：题目 + 老师板书；右：全班答案） ---- */
+.lecture{position:fixed;inset:0;z-index:71;background:var(--bg);display:none;flex-direction:column;--lw:56%}.lecture.on{display:flex}
+.lmain{flex:1;display:flex;min-height:0;position:relative}
+.lleft{width:var(--lw);min-width:30%;max-width:78%;overflow:auto;padding:10px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative}
+.lsplit{width:10px;flex:none;background:var(--line);cursor:col-resize;touch-action:none;display:flex;align-items:center;justify-content:center}
+.lsplit i{width:3px;height:36px;border-radius:2px;background:#fff}
+.lright{flex:1;min-width:0;overflow:auto;padding:8px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#efece8}
+.lgrid{display:grid;grid-template-columns:repeat(var(--lcols,2),1fr);gap:8px}
+.lcard{background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+.lcard.pin{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber-l)}
+.lcard.dragging{opacity:.45}
+.lcard .lh{display:flex;gap:6px;align-items:center;padding:5px 8px;border-bottom:1px solid var(--line);font-size:12px;background:var(--card)}
+.lcard .lh b{color:var(--crimson);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lcard .lh button{font-size:11px;padding:2px 7px;border-radius:99px}
+.lcard .drag{cursor:grab;touch-action:none;color:var(--muted);font-size:15px;padding:0 4px;user-select:none}
+.lcard .lb{padding:4px;line-height:0}
+.lcard .ls{position:relative;line-height:0;margin-bottom:3px;border:1px solid #eee}
+.lcard .ls img{width:100%;display:block;pointer-events:none}
+.lcard .ls canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.lcard .lempty{padding:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.4}
+.lbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font-size:12px;color:var(--muted)}
+.lbar button{font-size:12px;padding:3px 9px;border-radius:99px}.lbar button[aria-pressed="true"]{background:var(--sat);border-color:var(--crimson-l);color:var(--crimson);font-weight:600}
+.lwho{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-bottom:6px;flex-wrap:wrap}
+.lwho b{color:#4338ca}
+@media(max-width:760px){.lecture{--lw:52%}.lgrid{--lcols:1}}
 </style>
 </head>
 <body>
@@ -164,10 +219,29 @@ dialog::backdrop{background:rgba(20,10,12,.62)}
   <div class="tabs" id="tabs">
     <button data-t="progress" aria-pressed="true">📅 刷题进度</button>
     <button data-t="results" aria-pressed="false">📝 做题结果</button>
+    <button data-t="grading" aria-pressed="false">✍️ 批作业</button>
     <button data-t="wrong" aria-pressed="false">📕 错题分析</button>
     <button data-t="students" aria-pressed="false">👥 学生管理</button>
   </div>
   <div id="dash"></div>
+</div>
+
+<div class="grader" id="grader">
+  <div class="gh"><button id="gBack">← 返回</button><span class="ttl" id="gTitle"></span><span class="grow"></span><div class="gtools" id="gTools"></div></div>
+  <div class="gprog" id="gProg"></div>
+  <div class="gbody" id="gBody" style="position:relative"><div class="ginner" id="gInner"></div><div class="gtip" id="gTip" hidden></div></div>
+  <div class="gf"><span class="sub" id="gStatus"></span><span class="grow"></span><button id="gAnsBtn">评分方案</button><button id="gPrev">← 上一题</button><button id="gNext">下一题 →</button><button class="primary" id="gDone">完成 · 返回</button></div>
+</div>
+
+<div class="lecture" id="lecture">
+  <div class="gh"><button id="lBack">← 结束讲题</button><span class="ttl" id="lTitle"></span><span class="grow"></span><div class="gtools" id="lTools"></div></div>
+  <div class="gprog" id="lProg"></div>
+  <div class="lmain">
+    <div class="lleft" id="lLeft"><div class="lwho" id="lWho" hidden></div><div class="ginner" id="lInner" style="max-width:none"></div><div class="gtip" id="lTip" hidden></div></div>
+    <div class="lsplit" id="lSplit"><i></i></div>
+    <div class="lright" id="lRight"><div class="lbar" id="lBar"></div><div class="lgrid" id="lGrid"></div></div>
+  </div>
+  <div class="gf"><span class="sub" id="lStatus"></span><span class="grow"></span><button id="lAnsBtn">评分方案</button><button id="lPrev">← 上一题</button><button id="lNext">下一题 →</button></div>
 </div>
 
 <dialog id="dlgInk">
@@ -950,7 +1024,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908020143';
+const BUILD='20260908235325';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -985,11 +1059,17 @@ function mockRpc(fn,a){const S=[['lichun','lichun','full','Frank'],['qinliyun','
   if(fn==='overview'){const pr=[],wr=[],sb=[];S.forEach(([u],i)=>{PLAN.papers.p2.sets.slice(0,3+i*2).forEach((s,k)=>pr.push({u,s:s.id,b:k%3?7:4,t:now-k*3600}));PLAN.papers.p1.sets.slice(0,1+i).forEach(s=>pr.push({u,s:s.id,b:7,t:now}));
       DATA.items.filter(x=>x.p==='p1'&&x.ch===1+(i%3)).slice(0,4+i*3).forEach((x,k)=>wr.push({u,q:x.id,m:k%4===0,t:now-k*80000}));
       if(i<4)sb.push({u,s:'p1-1-SR',sc:9+i,tt:13,t:now-i*4000});if(i<3)sb.push({u,s:'p2-1-SR',sc:null,tt:null,t:now-i*9000});});
-    return Promise.resolve({ok:true,now,me:'Frank',students:S.map(([u,n,p,k],i)=>({u,n,p,k,c:now-99999,l:now-i*5000,xp:100*i,na:10*i,nn:i,ni:i*2})),practice:pr,wrong:wr,submissions:sb});}
+    return Promise.resolve({ok:true,now,me:'Frank',students:S.map(([u,n,p,k],i)=>({u,n,p,k,c:now-99999,l:now-i*5000,xp:100*i,na:10*i,nn:i,ni:i*2})),practice:pr,wrong:wr,submissions:sb,grades:window.__mockGradeSum||[]});}
   if(fn==='results_for'){const qs=a.p_qids||[];const at=[],ik=[],nt=[];S.forEach(([u],i)=>{if(i>=4)return;qs.forEach((q,k)=>{const it=byId.get(q);if(!it)return;
       if(it.p==='p1'){const ok=(k+i)%3!==0;at.push({u,q,a:ok?it.L:'ABCD'.replace(it.L,'')[k%3],ok,s:true,t:now});}else{if(k<3+i){at.push({u,q,a:null,ok:null,s:k<2+i,t:now});ik.push({u,q,t:now});}if(k===0)nt.push({u,q,b:'这题要先画受力图',t:now});}});});
-    return Promise.resolve({ok:true,attempts:at,ink:ik,notes:nt});}
+    const gsv=window.__mockSaved||{};const grs=Object.entries(gsv).filter(([k])=>qs.includes(k.split('|')[1])).map(([k,g])=>({u:k.split('|')[0],q:k.split('|')[1],sc:g.score,tt:g.total,c:!!g.comment,n:(g.strokes||[]).length,t:now}));
+    return Promise.resolve({ok:true,attempts:at,ink:ik,notes:nt,grades:(window.__mockGradeRows||[]).concat(grs)});}
   if(fn==='teacher_ink')return Promise.resolve({ok:true,strokes:[{i:0,c:'#1d4ed8',w:0.004,p:[0.1,0.1,0.3,0.15,0.5,0.1,0.6,0.2]},{i:0,c:'#dc2626',w:0.006,p:[0.2,0.3,0.25,0.35,0.3,0.3]}]});
+  if(fn==='teacher_ink_all'){const mk=window.__mockInk||[{i:0,c:'#1d4ed8',w:0.003,p:[0.1,0.1,0.3,0.15,0.5,0.1,0.6,0.2],q:[0.3,0.6,0.8,0.5]}];return Promise.resolve({ok:true,rows:S.slice(0,4).map(([u],k)=>({u,strokes:mk.map(s=>({...s,p:s.p.map((v,j)=>j%2?v+k*0.01:v)}))}))});}
+  if(fn==='save_ink'){window.__mockLect=window.__mockLect||{};window.__mockLect[a.p_qid]=a.p_strokes;return Promise.resolve({ok:true});}
+  if(fn==='get_ink'){return Promise.resolve({ok:true,strokes:(window.__mockLect||{})[a.p_qid]||[]});}
+  if(fn==='teacher_grade_get'){window.__mockSaved=window.__mockSaved||{};const k=a.p_user+'|'+a.p_qid;return Promise.resolve({ok:true,ink:window.__mockInk||[{i:0,c:'#1d4ed8',w:0.003,p:[0.1,0.1,0.3,0.15,0.5,0.1,0.6,0.2],q:[0.3,0.6,0.8,0.5]}],grade:window.__mockSaved[k]||window.__mockGrade||null});}
+  if(fn==='teacher_grade'){window.__mockSaved=window.__mockSaved||{};window.__mockSaved[a.p_user+'|'+a.p_qid]={score:a.p_score,total:a.p_total,comment:a.p_comment,strokes:a.p_strokes,teacher:'teacher'};return Promise.resolve({ok:true});}
   return Promise.resolve({ok:true});}
 
 /* ---------- 状态 ---------- */
@@ -1037,7 +1117,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&session)p
 
 /* ---------- 渲染 ---------- */
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;tab=b.dataset.t;[...$('#tabs').children].forEach(x=>x.setAttribute('aria-pressed',x===b));render();});
-function render(){if(!OV)return;renderCls();renderChips();({progress:renderProgress,results:renderResults,wrong:renderWrong,students:renderStudents})[tab]();}
+function render(){if(!OV)return;renderCls();renderChips();({progress:renderProgress,results:renderResults,grading:renderGrading,wrong:renderWrong,students:renderStudents})[tab]();}
 function renderCls(){const cls=classes(),bar=$('#clsBar');if(cls.length<2){bar.hidden=true;return;}bar.hidden=false;
   const cnt=k=>Object.values(S).filter(x=>!k||x.klass===k).length;
   bar.innerHTML=`<span class="sub">班级：</span><button data-k="" aria-pressed="${klass===null}">全部 ${cnt('')}</button>`+cls.map(k=>`<button data-k="${esc(k)}" aria-pressed="${klass===k}">${esc(k)} 班 ${cnt(k)}</button>`).join('');}
@@ -1164,15 +1244,15 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=P.sets;const cnt=id=>
         return `<td><div class="c ${st==='ok'?'d3':st==='draft'?'d1':''}" style="${st==='bad'?'background:var(--crimson)':''}" title="${esc(S[u].n)} #${pad(it.n)}：${a&&a.a?'选 '+a.a:'未作答'}${a&&a.s?(a.ok?'（对）':'（错）'):'（未提交）'}">${txt}</div></td>`;}).join('')}</tr>`).join('')}</table></div></div>`;
   }else{
     h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>完成本套</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${items.length}</b><small>题</small></div></div></div>`;
-    h+=`<div class="card"><h2>谁写了</h2><div class="sub">✓ 已提交 · ✎ 写了还没提交 · 📝 有笔记；点格子查看该生的手写和笔记</div><div class="mxwrap"><table class="mx"><tr><th class="rh">题号</th>${active.map(u=>`<th class="v" title="${esc(S[u].n)}"><span>${esc(S[u].n)}</span></th>`).join('')}</tr>
+    h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">谁写了</h2><span class="grow"></span><button data-lecture="${cur}">🎤 讲题模式</button><button class="primary" data-gss="${cur}" data-totab="grading">✍️ 去批作业</button></div><div class="sub">✓ 已提交 · ✎ 写了还没提交 · 📝 有笔记；点格子查看该生的手写和笔记</div><div class="mxwrap"><table class="mx"><tr><th class="rh">题号</th>${active.map(u=>`<th class="v" title="${esc(S[u].n)}"><span>${esc(S[u].n)}</span></th>`).join('')}</tr>
       ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${esc(it.o)}${it.t?` · ${it.t} 分`:''}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id],ink=I[u]&&I[u][it.id],nt=N[u]&&N[u][it.id];const done=a&&a.s;const sc=done&&a.a?a.a:null;const full=done&&a.ok===true;
         return `<td><div class="c ${done?(full?'d3':(sc?'':'d2')):ink?'d1':''}" style="width:auto;min-width:32px;padding:0 3px;cursor:${ink||nt||done?'pointer':'default'};${done&&sc&&!full?'background:var(--crimson)':''}" data-ink="${it.id}" data-u="${u}" title="${esc(S[u].n)} #${pad(it.n)}${sc?' · 自评 '+sc:''}">${done?(sc?sc:'✓'):ink?'✎':''}${nt?'📝':''}</div></td>`;}).join('')}</tr>`).join('')}</table></div>
     <div class="sub" style="margin-top:6px">格子里的分数是学生对照评分方案后的自评得分（绿 = 满分，红 = 有失分）；✓ = 提交了但没自评。</div></div>`;}
   $('#dash').innerHTML=h;}
 async function loadResults(set){if(rsLoading)return;rsLoading=true;
   try{const j=await rpc('results_for',{p_token:session.token,p_qids:setItems(set).map(i=>i.id)});
-    if(!j.ok)throw new Error(j.error);RS={set,at:Date.now(),attempts:j.attempts||[],ink:j.ink||[],notes:j.notes||[]};if(tab==='results'&&rsSet===set)render();}
-  catch(e){if(tab==='results')$('#dash').insertAdjacentHTML('beforeend',`<div class="card"><div class="empty">${esc(errMsg(e))}</div></div>`);}
+    if(!j.ok)throw new Error(j.error);RS={set,at:Date.now(),attempts:j.attempts||[],ink:j.ink||[],notes:j.notes||[],grades:j.grades||[]};if((tab==='results'&&rsSet===set)||(tab==='grading'&&gSet===set))render();}
+  catch(e){if(tab==='results'||tab==='grading')$('#dash').insertAdjacentHTML('beforeend',`<div class="card"><div class="empty">${esc(errMsg(e))}</div></div>`);}
   finally{rsLoading=false;}}
 function smoothPts(pts){const P=[];for(let k=0;k<pts.length;k+=2)P.push([pts[k],pts[k+1]]);if(P.length<3)return P;
   const out=[P[0]];for(let i=1;i<P.length-1;i++)out.push([(P[i-1][0]+2*P[i][0]+P[i+1][0])/4,(P[i-1][1]+2*P[i][1]+P[i+1][1])/4]);out.push(P[P.length-1]);return out;}
@@ -1189,12 +1269,13 @@ function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(1
   c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,ws[0]/2,0,Math.PI*2);c.fill();c.beginPath();c.arc(E[0]*Wd,E[1]*Wd,ws[ws.length-1]/2,0,Math.PI*2);c.fill();}
 async function openInk(q,u){const it=byId.get(q);if(!it)return;$('#iNo').textContent='#'+pad(it.n);$('#iTitle').textContent=it.o;$('#iWho').textContent=S[u]?S[u].n:u;
   $('#iBody').innerHTML='<div class="empty">加载中…</div>';$('#iNote').hidden=true;$('#dlgInk').showModal();
-  let strokes=[];try{const j=await rpc('teacher_ink',{p_token:session.token,p_user:u,p_qid:q});if(j.ok)strokes=j.strokes||[];}catch(e){}
+  let strokes=[],grade=null;try{const j=await rpc('teacher_grade_get',{p_token:session.token,p_user:u,p_qid:q});if(j.ok){strokes=j.ink||[];grade=j.grade;}else throw new Error(j.error);}catch(e){try{const j=await rpc('teacher_ink',{p_token:session.token,p_user:u,p_qid:q});if(j.ok)strokes=j.strokes||[];}catch(e2){}}
+  if(grade)$('#iWho').textContent+=`　老师批改 ${grade.score!=null?grade.score+'/'+(grade.total||'?'):'（只有批注）'}`;
   const nt=RS&&RS.notes.find(x=>x.u===u&&x.q===q);if(nt){$('#iNote').hidden=false;$('#iNote').innerHTML=`<b>📝 学生笔记</b><div style="white-space:pre-wrap">${esc(nt.b)}</div>`;}
   const nbR=k=>{let m=0;for(const s of strokes)if(s.i===100+k)for(let j=1;j<s.p.length;j+=2)m=Math.max(m,s.p[j]);return Math.max(0.18,m+0.06);};
   $('#iBody').innerHTML=it.i.map((src,i)=>`<div style="position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0"><img src="${IMG(src)}" alt="" style="width:100%;display:block"><canvas data-i="${i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>`+(strokes.some(s=>s.i===100+i)?`<div style="position:relative;margin:-6px 0 6px;line-height:0;border:1px solid var(--line);border-top:1px dashed #d9d0b3"><div style="width:100%;padding-bottom:${(nbR(i)*100).toFixed(1)}%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)"></div><canvas data-i="${100+i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas><span style="position:absolute;left:8px;top:4px;font-size:11px;color:#a89f80;line-height:1.2">📝 笔记区</span></div>`:'')).join('')+(strokes.length?'':'<div class="sub" style="padding:6px">这题没有手写内容</div>');
   const draw=()=>{$('#iBody').querySelectorAll('canvas').forEach(cv=>{const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+cv.dataset.i;
-    for(const s of strokes){if(s.i!==i)continue;drawStroke(c,s,r.width);}});};
+    for(const s of strokes){if(s.i!==i)continue;drawStroke(c,s,r.width);}if(grade)for(const s of grade.strokes||[]){if(s.i===i)drawStroke(c,s,r.width);}});};
   $('#iBody').querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)draw();else im.onload=draw;});setTimeout(draw,300);}
 document.addEventListener('change',e=>{if(e.target.id==='rsSel'){rsSet=e.target.value;RS=null;render();}});
 
@@ -1267,6 +1348,10 @@ document.addEventListener('click',async e=>{
   const op=e.target.closest('[data-open]');if(op){openQ(op.dataset.open,op.dataset.who||'');return;}
   const rp=e.target.closest('[data-rsp]');if(rp){rsPaper=rp.dataset.rsp;rsSet='';RS=null;render();return;}
   const rss=e.target.closest('[data-rss]');if(rss){rsSet=rss.dataset.rss;RS=null;render();return;}
+  const gp=e.target.closest('[data-gp]');if(gp){gPaper=gp.dataset.gp;gSet='';render();return;}
+  const gss=e.target.closest('[data-gss]');if(gss){gSet=gss.dataset.gss;if(gss.dataset.totab){tab=gss.dataset.totab;[...$('#tabs').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===tab));}if(!RS||RS.set!==gSet)RS=null;render();return;}
+  const lec=e.target.closest('[data-lecture]');if(lec){const set=lec.dataset.lecture;if(!RS||RS.set!==set){gSet=set;loadResults(set);}openLecture(set);return;}
+  const gd=e.target.closest('[data-grade]');if(gd){gSet=gd.dataset.grade;openGrader(gd.dataset.u,gd.dataset.grade);return;}
   const ik=e.target.closest('[data-ink]');if(ik){openInk(ik.dataset.ink,ik.dataset.u);return;}
   const rs=e.target.closest('[data-reset]');if(rs){const u=rs.dataset.reset;if(!confirm(`清空「${S[u].n}」的全部记录（打勾、错题、作答、手写、笔记、成绩、XP）？账号保留，记录不可恢复。`))return;
     try{const j=await rpc('teacher_reset_student',{p_token:session.token,p_user:u});if(!j.ok)throw new Error(j.error);toast('已清空');RS=null;pull();}catch(err){alert(errMsg(err));}return;}
@@ -1285,6 +1370,214 @@ function openQ(id,who){const it=byId.get(id);if(!it)return;
   $('#dlgQ').showModal();}
 $('#dClose').onclick=()=>$('#dlgQ').close();
 $('#iClose').onclick=()=>$('#dlgInk').close();
+/* ======================================================================
+   讲题模式：左边是题目 + 老师的板书（保存在老师自己的 ink 记录里，下次讲还在），
+   右边是这道题全班每个人的手写答案（可置顶 / 拖动排序 / 拿到左边讲）。
+   ====================================================================== */
+const L={on:false,set:null,q:null,list:[],all:{},base:null,baseU:null,filter:'all',order:[],cols:2,drag:null,dirty:false,saveT:null,ink:{}};
+const lOrderKey=()=>'ial27w.lorder.'+L.set;
+async function openLecture(set,q){await gSave();await lSave();L.on=true;L.set=set;L.list=setItems(set).map(i=>i.id);L.q=q||L.list[0];L.all={};L.ink={};L.base=null;L.baseU=null;
+  try{L.order=JSON.parse(localStorage.getItem(lOrderKey())||'[]');}catch(e){L.order=[];}
+  try{const lw=localStorage.getItem('ial27w.lw');if(lw)$('#lecture').style.setProperty('--lw',lw);}catch(e){}
+  G.mode='lecture';G.q=L.q;$('#lecture').classList.add('on');document.body.style.overflow='hidden';lLoad();}
+async function closeLecture(){await lSave();L.on=false;G.mode='grade';$('#lecture').classList.remove('on');document.body.style.overflow='';}
+function lProg(){const box=$('#lProg');const i=L.list.indexOf(L.q);box.innerHTML=L.list.map((q,k)=>`<i class="${(L.ink[q]||[]).length?'s':''} ${k===i?'cur':''}" data-lq="${q}" title="#${pad(byId.get(q).n)}"></i>`).join('')+`<span>第 ${i+1} / ${L.list.length} 题</span>`;}
+async function lLoad(){const q=L.q,it=byId.get(q);if(!it)return;G.q=q;
+  $('#lTitle').textContent=`讲题 · #${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}`;$('#lTools').innerHTML=gToolbar();
+  const i0=L.list.indexOf(q);$('#lPrev').disabled=i0<=0;$('#lNext').disabled=i0>=L.list.length-1;lProg();
+  // 老师自己的板书
+  if(!L.ink[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});L.ink[q]=(j.ok&&j.strokes)||[];}catch(e){L.ink[q]=[];}}
+  if(L.q!==q)return;
+  $('#lInner').innerHTML=it.i.map((src,i)=>`<div class="gstrip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-i="${i}"></canvas></div>`).join('')+
+    `<div class="gans" id="lAnsBox" ${G.showAns?'':'hidden'}><b>评分方案</b>${(it.a&&it.a.length)?it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="sub">本题没有收录答案</div>'}</div><div style="height:20vh"></div>`;
+  $('#lInner').querySelectorAll('.gstrip canvas').forEach(cv=>{gBind(cv);const bg=cv.previousElementSibling;if(bg.complete&&bg.naturalWidth)gFit(cv);else bg.onload=()=>gFit(cv);});
+  setTimeout(()=>$('#lInner').querySelectorAll('.gstrip canvas').forEach(gFit),300);
+  lWho();$('#lLeft').scrollTop=0;
+  // 全班答案
+  $('#lGrid').innerHTML='<div class="lempty">加载全班答案…</div>';
+  if(!L.all[q]){let rows=null;try{const j=await rpc('teacher_ink_all',{p_token:session.token,p_qid:q});if(j.ok)rows=j.rows||[];}catch(e){}
+    if(!rows){rows=[];const us=vis().filter(u=>S[u].subs[L.set]||(RS&&RS.set===L.set&&RS.ink.some(x=>x.u===u&&x.q===q)));
+      await Promise.all(us.map(async u=>{try{const j=await rpc('teacher_ink',{p_token:session.token,p_user:u,p_qid:q});if(j.ok&&(j.strokes||[]).length)rows.push({u,strokes:j.strokes});}catch(e){}}));}
+    L.all[q]=rows;}
+  if(L.q!==q)return;lGrid();}
+function lWho(){const w=$('#lWho');if(!L.baseU){w.hidden=true;return;}w.hidden=false;w.innerHTML=`正在看 <b>${esc(S[L.baseU]?S[L.baseU].n:L.baseU)}</b> 的答案（老师板书叠在上面）<button class="sm" id="lClearBase">只看题目</button>`;$('#lClearBase').onclick=()=>{L.base=null;L.baseU=null;lWho();gRedrawAll();};}
+function lStudents(){const q=L.q;const rows=L.all[q]||[];const A={};for(const r of rows)A[r.u]=r.strokes;
+  const gr={};for(const g of (RS&&RS.set===L.set?RS.grades:[]))if(g.q===q)gr[g.u]=g;
+  let us=vis().filter(u=>S[u].subs[L.set]||A[u]);
+  if(L.filter==='ink')us=us.filter(u=>A[u]&&A[u].some(s=>!s.a&&!s.f));
+  if(L.filter==='lost')us=us.filter(u=>gr[u]&&gr[u].sc!=null&&gr[u].tt&&gr[u].sc<gr[u].tt);
+  const pos=u=>{const i=L.order.indexOf(u);return i<0?999:i;};
+  us.sort((a,b)=>pos(a)-pos(b)||S[a].n.localeCompare(S[b].n,'zh'));
+  return{us,A,gr};}
+function lGrid(){const {us,A,gr}=lStudents();const q=L.q,it=byId.get(q);
+  $('#lBar').innerHTML=`<span>${us.length} 人</span><button data-lf="all" aria-pressed="${L.filter==='all'}">全部</button><button data-lf="ink" aria-pressed="${L.filter==='ink'}">写了的</button><button data-lf="lost" aria-pressed="${L.filter==='lost'}">有失分</button><span class="grow"></span><button data-lcols="1" aria-pressed="${L.cols===1}">1 列</button><button data-lcols="2" aria-pressed="${L.cols===2}">2 列</button><button data-lcols="3" aria-pressed="${L.cols===3}">3 列</button>`;
+  $('#lRight').style.setProperty('--lcols',L.cols);
+  $('#lGrid').innerHTML=us.length?us.map(u=>{const st=(A[u]||[]).filter(s=>!s.a&&!s.f),g=gr[u],pin=L.order.includes(u);
+    return `<div class="lcard ${pin?'pin':''}" data-u="${u}"><div class="lh"><span class="drag" title="按住拖动排序">⠿</span><b>${esc(S[u].n)}</b>${g&&g.sc!=null?`<span class="gtag">${g.sc}/${g.tt||'?'}</span>`:''}<span class="grow"></span><button data-lpin="${u}" aria-pressed="${pin}" title="置顶">${pin?'⭐':'☆'}</button><button data-lshow="${u}" title="放到左边，在上面讲">← 讲</button><button data-lbig="${u}" title="放大看">⤢</button></div>
+      <div class="lb">${st.length?it.i.map((src,i)=>`<div class="ls" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-i="${i}"></canvas></div>`).join(''):'<div class="lempty">没有手写内容</div>'}</div></div>`;}).join(''):'<div class="lempty">这道题还没有人提交手写答案</div>';
+  const paint=card=>{const u=card.dataset.u;const st=(A[u]||[]).filter(s=>!s.a&&!s.f);card.querySelectorAll('.ls').forEach(ls=>{const img=ls.querySelector('img'),cv=ls.querySelector('canvas');const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+ls.dataset.i;for(const s of st)if(s.i===i)drawStroke(c,s,r.width);});};
+  $('#lGrid').querySelectorAll('.lcard').forEach(card=>{card.querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)paint(card);else im.onload=()=>paint(card);});});
+  setTimeout(()=>$('#lGrid').querySelectorAll('.lcard').forEach(paint),400);}
+function lMark(){L.dirty=true;$('#lStatus').textContent='板书保存中…';clearTimeout(L.saveT);L.saveT=setTimeout(lSave,1200);lProg();}
+async function lSave(){clearTimeout(L.saveT);if(!L.dirty)return;const q=L.q;L.dirty=false;try{const j=await rpc('save_ink',{p_token:session.token,p_qid:q,p_strokes:L.ink[q]||[]});if(!j.ok)throw new Error(j.error);if(L.q===q)$('#lStatus').textContent='板书已保存';}catch(e){L.dirty=true;$('#lStatus').textContent='⚠ 板书没存上：'+errMsg(e);}}
+async function lGo(k){const i=L.list.indexOf(L.q)+k;if(i<0||i>=L.list.length)return;await lSave();L.q=L.list[i];L.base=null;L.baseU=null;lLoad();}
+$('#lBack').onclick=closeLecture;$('#lPrev').onclick=()=>lGo(-1);$('#lNext').onclick=()=>lGo(1);
+$('#lAnsBtn').onclick=()=>{G.showAns=!G.showAns;const b=$('#lAnsBox');if(b){b.hidden=!G.showAns;if(G.showAns)b.scrollIntoView({behavior:'smooth'});}};
+$('#lProg').addEventListener('click',async e=>{const i=e.target.closest('[data-lq]');if(!i||i.dataset.lq===L.q)return;await lSave();L.q=i.dataset.lq;L.base=null;L.baseU=null;lLoad();});
+$('#lTools').addEventListener('click',gToolClick);
+$('#lRight').addEventListener('click',e=>{const f=e.target.closest('[data-lf]');if(f){L.filter=f.dataset.lf;lGrid();return;}
+  const c=e.target.closest('[data-lcols]');if(c){L.cols=+c.dataset.lcols;lGrid();return;}
+  const pin=e.target.closest('[data-lpin]');if(pin){const u=pin.dataset.lpin;const i=L.order.indexOf(u);if(i>=0)L.order.splice(i,1);else L.order.unshift(u);localStorage.setItem(lOrderKey(),JSON.stringify(L.order));lGrid();return;}
+  const sh=e.target.closest('[data-lshow]');if(sh){const u=sh.dataset.lshow;const row=(L.all[L.q]||[]).find(r=>r.u===u);L.base=(row?row.strokes:[]).filter(s=>!s.a&&!s.f);L.baseU=u;lWho();gRedrawAll();$('#lLeft').scrollTop=0;return;}
+  const big=e.target.closest('[data-lbig]');if(big){openInk(L.q,big.dataset.lbig);return;}});
+/* 拖动排序：按住 ⠿ 拖到别的卡片上 */
+$('#lGrid').addEventListener('pointerdown',e=>{const h=e.target.closest('.drag');if(!h)return;const card=h.closest('.lcard');e.preventDefault();L.drag={card,id:e.pointerId};card.classList.add('dragging');try{h.setPointerCapture(e.pointerId);}catch(x){}});
+$('#lGrid').addEventListener('pointermove',e=>{const d=L.drag;if(!d||d.id!==e.pointerId)return;const el=document.elementFromPoint(e.clientX,e.clientY);const over=el&&el.closest?el.closest('.lcard'):null;if(!over||over===d.card)return;
+  const r=over.getBoundingClientRect();const before=(e.clientY-r.top)<r.height/2||((e.clientX-r.left)<r.width/2&&L.cols>1&&(e.clientY-r.top)<r.height/2);over.parentNode.insertBefore(d.card,before?over:over.nextSibling);});
+const lDragEnd=e=>{const d=L.drag;if(!d||d.id!==e.pointerId)return;d.card.classList.remove('dragging');L.drag=null;
+  L.order=[...$('#lGrid').querySelectorAll('.lcard')].map(c=>c.dataset.u);localStorage.setItem(lOrderKey(),JSON.stringify(L.order));$('#lGrid').querySelectorAll('.lcard').forEach(c=>{const pin=L.order.indexOf(c.dataset.u)>=0;c.classList.toggle('pin',pin);const b=c.querySelector('[data-lpin]');if(b){b.textContent=pin?'⭐':'☆';b.setAttribute('aria-pressed',pin);}});};
+$('#lGrid').addEventListener('pointerup',lDragEnd);$('#lGrid').addEventListener('pointercancel',lDragEnd);
+/* 分栏宽度拖动 */
+(function(){const sp=$('#lSplit');let d=null;sp.addEventListener('pointerdown',e=>{d={id:e.pointerId};try{sp.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();});
+  sp.addEventListener('pointermove',e=>{if(!d||d.id!==e.pointerId)return;const r=$('.lmain').getBoundingClientRect();const pct=Math.max(30,Math.min(78,(e.clientX-r.left)/r.width*100));$('#lecture').style.setProperty('--lw',pct.toFixed(1)+'%');});
+  const end=e=>{if(!d||d.id!==e.pointerId)return;d=null;try{localStorage.setItem('ial27w.lw',$('#lecture').style.getPropertyValue('--lw'));}catch(x){}$('#lInner').querySelectorAll('canvas').forEach(gFit);lGrid();};
+  sp.addEventListener('pointerup',end);sp.addEventListener('pointercancel',end);})();
+['gesturestart','gesturechange','gestureend'].forEach(t=>$('#lLeft').addEventListener(t,e=>e.preventDefault()));
+addEventListener('resize',()=>{if(L.on){$('#lInner').querySelectorAll('canvas').forEach(gFit);lGrid();}});
+document.addEventListener('keydown',e=>{if(!L.on||e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')lGo(1);if(e.key==='ArrowLeft')lGo(-1);if(e.key==='Escape')closeLecture();});
+
+/* ======================================================================
+   批作业：学生提交整套后，老师在学生的手写上直接用笔批改（红笔 ✓✗、批语），再打分、写评语。
+   批改存 grades 表（每人每题一条：分数 / 满分 / 评语 / 老师笔迹），学生端打开题目就能看到。
+   ====================================================================== */
+let gPaper='p2',gSet='';
+const gSum=(u,s)=>(OV&&OV.grades||[]).find(x=>x.u===u&&x.s===s)||null;
+function renderGrading(){const P=PLAN.papers[gPaper],sets=P.sets;const cnt=id=>vis().filter(u=>S[u].subs[id]).length,gcnt=id=>vis().filter(u=>gSum(u,id)).length;
+  const cur=gSet&&sets.find(s=>s.id===gSet)?gSet:'';
+  let h=`<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="tabs" style="margin:0">${['p2','p4'].map(p=>`<button class="sm" data-gp="${p}" aria-pressed="${p===gPaper}">${PLAN.papers[p].label}</button>`).join('')}</div>
+    <select id="gSel"><option value="">选择一套题…</option>${P.chapters.map(ch=>`<optgroup label="第${ch}章 ${PLAN.chapters[ch]}">${SETCODES.map(c=>{const s=sets.find(x=>x.ch===ch&&x.set===c);return s?`<option value="${s.id}" ${s.id===cur?'selected':''}>${PLAN.setLabels[c]} · ${s.n} 题${cnt(s.id)?` · ${cnt(s.id)} 人已交`:''}${gcnt(s.id)?` · 已批 ${gcnt(s.id)} 人`:''}</option>`:'';}).join('')}</optgroup>`).join('')}</select>
+    <span class="sub">学生「提交整套」后就能批：iPad 上用 Apple Pencil 直接在学生的手写上打 ✓✗、写批语，再打分；保存即同步到学生端</span></div></div>`;
+  if(!cur){const rows=sets.map(s=>{const us=vis().filter(u=>S[u].subs[s.id]);const gd=us.filter(u=>gSum(u,s.id)&&gSum(u,s.id).n>=s.n);const part=us.filter(u=>gSum(u,s.id)&&gSum(u,s.id).n<s.n);return{s,us,gd,part};}).filter(r=>r.us.length);
+    h+=rows.length?`<div class="card"><h2>待批 / 已批的套题</h2><div class="tw"><table><tr><th>套题</th><th>已交</th><th>批完</th><th>批了一部分</th><th>还没批</th><th></th></tr>${rows.map(r=>{const todo=r.us.filter(u=>!gSum(u,r.s.id));return `<tr><td><span class="name" data-gss="${r.s.id}">第${r.s.ch}章 ${PLAN.chapters[r.s.ch]} · ${PLAN.setLabels[r.s.set]}</span><div class="sub">${r.s.n} 题</div></td><td>${r.us.length}</td><td class="ok">${r.gd.length}</td><td>${r.part.length?`<span style="color:var(--amber);font-weight:700">${r.part.length}</span>`:'0'}</td><td>${todo.length?`<span class="late">${todo.length}</span> <span class="sub">${esc(todo.map(u=>S[u].n).join('、'))}</span>`:'0'}</td><td><button class="sm primary" data-gss="${r.s.id}">批改</button></td></tr>`;}).join('')}</table></div></div>`
+      :`<div class="card"><div class="empty">这张卷还没有学生提交整套。学生在手写页写到最后一题点「提交整套」后会出现在这里。</div></div>`;
+    $('#dash').innerHTML=h;return;}
+  const items=setItems(cur),N=items.length;
+  if(!RS||RS.set!==cur){h+='<div class="card"><div class="empty">加载中…</div></div>';$('#dash').innerHTML=h;loadResults(cur);return;}
+  if(Date.now()-RS.at>12000)loadResults(cur);
+  const A={};for(const a of RS.attempts){if(!S[a.u])continue;(A[a.u]=A[a.u])||(A[a.u]={});A[a.u][a.q]=a;}
+  const I={};for(const x of RS.ink){if(!S[x.u])continue;(I[x.u]=I[x.u]||{})[x.q]=x.t;}
+  const Gd={};for(const g of RS.grades||[]){if(!S[g.u])continue;(Gd[g.u]=Gd[g.u]||{})[g.q]=g;}
+  const us=vis().filter(u=>S[u].subs[cur]||A[u]||I[u]);
+  const subsU=us.filter(u=>S[u].subs[cur]),draft=us.filter(u=>!S[u].subs[cur]);
+  const row=u=>{const g=Gd[u]||{};const gq=items.filter(it=>g[it.id]);const scored=gq.filter(it=>g[it.id].sc!=null);const sc=scored.reduce((a,it)=>a+g[it.id].sc,0),tt=scored.reduce((a,it)=>a+(g[it.id].tt||0),0);
+    const selfN=items.filter(it=>A[u]&&A[u][it.id]&&A[u][it.id].s&&/^\d+\/\d+$/.test(A[u][it.id].a||'')),selfS=selfN.reduce((a,it)=>a+ +A[u][it.id].a.split('/')[0],0),selfT=selfN.reduce((a,it)=>a+ +A[u][it.id].a.split('/')[1],0);
+    const sub=S[u].subs[cur];const st=gq.length>=N?'<span class="ok">✓ 批完</span>':gq.length?`<span style="color:var(--amber);font-weight:700">批了 ${gq.length}/${N}</span>`:'<span class="late">未批</span>';
+    return `<tr><td><span class="name" data-grade="${cur}" data-u="${u}">${esc(S[u].n)}</span>${S[u].klass?` <span class="ktag">${esc(S[u].klass)}</span>`:''}</td><td class="sub">${sub?ago(sub.t):'<span class="late">未提交</span> · 写了 '+items.filter(it=>I[u]&&I[u][it.id]).length+' 题'}</td><td class="sub">${selfN.length?`${selfS}/${selfT}（${selfN.length} 题）`:'—'}</td><td>${st}</td><td>${scored.length?`<b style="color:#4338ca">${sc} / ${tt}</b>${scored.length<N?` <span class="sub">(${scored.length} 题)</span>`:''}`:'—'}</td><td><button class="sm ${gq.length>=N?'':'primary'}" data-grade="${cur}" data-u="${u}">${gq.length>=N?'查看 / 改':gq.length?'继续批':'批改'}</button></td></tr>`;};
+  h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>已提交</small></div><div class="chip"><b>${subsU.filter(u=>(Gd[u]&&items.filter(it=>Gd[u][it.id]).length>=N)).length}</b><small>已批完</small></div><div class="chip"><b>${subsU.filter(u=>!Gd[u]).length}</b><small>待批</small></div><div class="chip"><b>${N}</b><small>题</small></div></div></div>`;
+  const nextU=subsU.find(u=>!(Gd[u]&&items.filter(it=>Gd[u][it.id]).length>=N));
+  h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">学生</h2><span class="sub">点名字或「批改」进入全屏批改；老师总分 = 已打分题目之和</span><span class="grow"></span><button data-lecture="${cur}" title="左边讲题批注，右边看全班答案">🎤 讲题模式</button>${nextU?`<button class="primary" data-grade="${cur}" data-u="${nextU}">▶ 批下一个：${esc(S[nextU].n)}</button>`:''}</div>
+    <div class="tw"><table style="margin-top:8px"><tr><th>学生</th><th>提交</th><th>学生自评</th><th>批改进度</th><th>老师总分</th><th></th></tr>${subsU.map(row).join('')}${draft.length?`<tr><td colspan="6" class="sub" style="background:var(--bg)">还没提交整套（也可以先批）</td></tr>`+draft.map(row).join(''):''}</table></div>${us.length?'':'<div class="empty">这套题还没有学生动笔。</div>'}</div>`;
+  $('#dash').innerHTML=h;}
+document.addEventListener('change',e=>{if(e.target.id==='gSel'){gSet=e.target.value;render();}});
+
+/* ---------- 全屏批改 ---------- */
+const G={mode:'grade',u:null,set:null,q:null,list:[],ink:{},grade:{},cur:null,tool:'pen',color:'#dc2626',width:2.5,finger:false,showAnn:false,showAns:false,penSeen:false,penNear:0,penActive:false,scroll:null,dirty:false,saveT:null,seq:0};
+function gTip(m){const t=$('#gTip');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,3000);}
+function gToolbar(){return `<button class="tb" data-gtool="pen" aria-pressed="${G.tool==='pen'}" title="红笔">✏️</button><button class="tb" data-gtool="eraser" aria-pressed="${G.tool==='eraser'}" title="橡皮（整笔擦，只擦老师的笔迹）">🧽</button><span class="sep"></span>${['#dc2626','#1d4ed8','#16a34a','#1e232a'].map(c=>`<button class="sw" data-gcolor="${c}" aria-pressed="${G.color===c}" style="background:${c}"></button>`).join('')}<span class="sep"></span>${[[2,3],[3.2,5],[5,8]].map(([w,h])=>`<button class="wsz" data-gw="${w}" aria-pressed="${G.width===w}"><i style="height:${h}px"></i></button>`).join('')}<span class="sep"></span><button class="tb" data-gact="undo" title="撤销">↶</button><button class="tb" data-gact="clear" title="清空本题笔迹">🗑</button><button class="tb wide" data-gact="ann" aria-pressed="${G.showAnn}" title="显示学生交卷后写的批注层">学生批注</button><button class="tb wide" data-gact="finger" aria-pressed="${G.finger}" title="没有笔时用手指写">☝️ 手指</button>`;}
+async function openGrader(u,set,q){await gSave();G.mode='grade';G.u=u;G.set=set;G.list=setItems(set).map(i=>i.id);G.q=q||G.list[0];G.ink={};G.grade={};
+  $('#grader').classList.add('on');document.body.style.overflow='hidden';gLoad();}
+function gKnown(q){const g=(RS&&RS.set===G.set?RS.grades:[]).find(x=>x.u===G.u&&x.q===q);return g?(g.sc!=null||g.n>0||g.c):false;}
+function gProg(){const box=$('#gProg');const i=G.list.indexOf(G.q);box.innerHTML=G.list.map((q,k)=>{const gr=G.grade[q];const done=gr?(gr.score!=null||(gr.strokes&&gr.strokes.length)||gr.comment):gKnown(q);const part=gr&&gr.score==null&&done;return `<i class="${done?(part?'p':'s'):''} ${k===i?'cur':''}" data-gq="${q}" title="#${pad(byId.get(q).n)}"></i>`;}).join('')+`<span>第 ${i+1} / ${G.list.length} 题</span>`;}
+async function gLoad(){const q=G.q,u=G.u,it=byId.get(q);if(!it)return;
+  $('#gTitle').textContent=`${S[u]?S[u].n:u} · #${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}`;
+  $('#gTools').innerHTML=gToolbar();$('#gInner').innerHTML='<div class="empty">加载中…</div>';$('#gStatus').textContent='';
+  const i0=G.list.indexOf(q);$('#gPrev').disabled=i0<=0;$('#gNext').disabled=i0>=G.list.length-1;gProg();
+  if(!G.ink[q]){try{const j=await rpc('teacher_grade_get',{p_token:session.token,p_user:u,p_qid:q});if(j.ok){G.ink[q]=j.ink||[];if(j.grade)G.grade[q]=j.grade;}else throw new Error(j.error);}
+    catch(e){G.ink[q]=[];if(e.message==='NOINIT'||/teacher_grade_get/.test(e.message)){$('#gInner').innerHTML='<div class="empty">批作业功能需要先在 Supabase 运行 <b>_private/update3.sql</b>（建 grades 表和批改函数）。</div>';return;}}}
+  if(G.q!==q)return;
+  const strokes=G.ink[q];const selfA=(RS&&RS.set===G.set?RS.attempts:[]).find(x=>x.u===u&&x.q===q);const self=selfA&&selfA.s&&/^\d+\/\d+$/.test(selfA.a||'')?selfA.a:null;
+  const gr=G.grade[q]||(G.grade[q]={score:null,total:it.t||(self?+self.split('/')[1]:null),comment:'',strokes:[],_new:true});
+  if(gr.total==null)gr.total=it.t||(self?+self.split('/')[1]:null);
+  const nbR=k=>{let m=0;for(const s of strokes)if(s.i===100+k)for(let j=1;j<s.p.length;j+=2)m=Math.max(m,s.p[j]);return Math.max(0.18,m+0.06);};
+  const submitted=!!(selfA&&selfA.s);
+  $('#gInner').innerHTML=`${submitted?'':'<div class="sub" style="margin-bottom:6px">⚠ 这题学生还没点「保存」，看到的是草稿</div>'}${strokes.filter(s=>!s.a&&!s.f).length?'':'<div class="sub" style="margin-bottom:6px">这题学生没有手写内容</div>'}`+
+    it.i.map((src,i)=>`<div class="gstrip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-i="${i}"></canvas></div>`+(strokes.some(s=>s.i===100+i)?`<div class="gstrip nb" data-i="${100+i}"><div class="nbg" style="padding-bottom:${(nbR(i)*100).toFixed(1)}%"></div><canvas data-i="${100+i}"></canvas><span class="nbl">📝 学生笔记区</span></div>`:'')).join('')+
+    `<div class="gpanel"><div class="row"><b>打分</b><div class="stepper"><button id="gMinus">−</button><b id="gVal">${gr.score==null?'—':gr.score} / ${gr.total||'?'}</b><button id="gPlus">＋</button></div>${gr.total?'':'<input type="number" id="gTot" placeholder="满分" min="1" max="30" style="width:76px">'}<button id="gFull">全对 ✓</button><button id="gZero">0 分</button><span class="sub">${self?`学生自评 ${self}`:'学生没有自评'}${gr.teacher&&!gr._new?` · 上次 ${esc(gr.teacher)} 批过`:''}</span></div>
+      <div class="row" style="margin-top:8px;align-items:flex-start"><b style="padding-top:8px">评语</b><textarea id="gCom" placeholder="写给学生的话（可选）；也可以直接用笔写在题上">${esc(gr.comment||'')}</textarea></div>
+      <div class="sub" style="margin-top:6px">题上的红笔、分数、评语都自动保存；学生端打开这题就能看到（自评不会被覆盖，两者并列显示）。</div></div>
+    <div class="gans" id="gAnsBox" ${G.showAns?'':'hidden'}><b>评分方案</b>${(it.a&&it.a.length)?it.a.map(x=>`<img src="${IMG(x)}" alt="">`).join(''):'<div class="sub">本题没有收录答案</div>'}</div><div style="height:30vh"></div>`;
+  $('#gInner').querySelectorAll('.gstrip canvas').forEach(cv=>{gBind(cv);const bg=cv.previousElementSibling;if(bg.tagName!=='IMG'||(bg.complete&&bg.naturalWidth))gFit(cv);else bg.onload=()=>gFit(cv);});
+  setTimeout(()=>$('#gInner').querySelectorAll('.gstrip canvas').forEach(gFit),300);
+  const setScore=v=>{const T=gr.total||+($('#gTot')&&$('#gTot').value)||null;if(!T)return gTip('先填满分');gr.total=T;gr.score=v==null?null:Math.max(0,Math.min(T,v));$('#gVal').textContent=`${gr.score==null?'—':gr.score} / ${T}`;gMark();};
+  $('#gMinus').onclick=()=>setScore((gr.score==null?(gr.total||0):gr.score)-1);
+  $('#gPlus').onclick=()=>setScore((gr.score==null?-1:gr.score)+1);
+  $('#gFull').onclick=()=>setScore(gr.total||+($('#gTot')&&$('#gTot').value)||0);
+  $('#gZero').onclick=()=>setScore(0);
+  const tot=$('#gTot');if(tot)tot.onchange=()=>{gr.total=+tot.value||null;$('#gVal').textContent=`${gr.score==null?'—':gr.score} / ${gr.total||'?'}`;if(gr.score!=null)gMark();};
+  let cT;$('#gCom').oninput=()=>{gr.comment=$('#gCom').value;clearTimeout(cT);cT=setTimeout(gMark,600);};
+  $('#gBody').scrollTop=0;}
+function gFit(cv){const bg=cv.previousElementSibling;const r=bg.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';gRedraw(cv);}
+function gCtx(cv){const c=cv.getContext('2d');const dpr=devicePixelRatio||1;c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';return c;}
+/* 当前正在写的笔迹数组：批改模式 = 该生该题的批改；讲题模式 = 老师自己的板书 */
+const gTarget=()=>{if(G.mode==='lecture')return L.ink[G.q]=L.ink[G.q]||[];const gr=G.grade[G.q];if(!gr)return null;return gr.strokes=gr.strokes||[];};
+const gChanged=()=>G.mode==='lecture'?lMark():gMark();
+function gRedraw(cv){const i=+cv.dataset.i,q=G.q;const c=gCtx(cv);const Wd=cv.getBoundingClientRect().width||1;c.clearRect(0,0,cv.width,cv.height);
+  const base=G.mode==='lecture'?(L.base||[]):(G.ink[q]||[]);
+  for(const s of base){if(s.i!==i)continue;if((s.a||s.f)&&!G.showAnn)continue;drawStroke(c,s,Wd);}
+  const own=G.mode==='lecture'?(L.ink[q]||[]):((G.grade[q]||{}).strokes||[]);for(const s of own)if(s.i===i)drawStroke(c,s,Wd);}
+const gRedrawAll=()=>document.querySelectorAll('#gInner canvas, #lInner canvas').forEach(gRedraw);
+const gNorm=(e,cv)=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.width];};
+const gPress=e=>e.pointerType==='pen'?Math.max(0.05,Math.min(1,e.pressure||0.5)):0.5;
+const gPalm=e=>e.pointerType==='touch'&&G.penSeen&&((e.width||0)>=70||(e.height||0)>=70);
+const gBusy=()=>G.penActive||Date.now()-G.penNear<1200;
+function gBind(cv){cv.addEventListener('pointerdown',e=>gDown(e,cv));cv.addEventListener('pointermove',e=>gMove(e,cv));['pointerup','pointercancel','pointerleave'].forEach(t=>cv.addEventListener(t,e=>gUp(e,cv)));}
+function gDown(e,cv){if(e.pointerType==='mouse'&&e.button!==0)return;if(e.pointerType==='pen'){G.penSeen=true;G.penNear=Date.now();G.penActive=true;}
+  if(e.pointerType==='touch'){if(gPalm(e)||gBusy())return;if(!G.finger){const sc=G.mode==='lecture'?$('#lLeft'):$('#gBody');G.scroll={id:e.pointerId,y:e.clientY,top:sc.scrollTop,sc};try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}}
+  e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}const [x,y]=gNorm(e,cv);const i=+cv.dataset.i;
+  if(G.tool==='eraser'){G.cur={erase:true,cv,id:e.pointerId};gErase(x,y,i,cv);return;}
+  const pr=gPress(e),Wd=cv.getBoundingClientRect().width;
+  G.cur={cv,id:e.pointerId,i,c:G.color,w:G.width/Wd,p:[+x.toFixed(4),+y.toFixed(4)],qq:e.pointerType==='pen'?[+pr.toFixed(2)]:null,lx:x,ly:y,mx:x,my:y,lw:G.width*(e.pointerType==='pen'?(0.55+0.9*pr):1)};}
+function gMove(e,cv){if(G.scroll&&G.scroll.id===e.pointerId){G.scroll.sc.scrollTop=G.scroll.top-(e.clientY-G.scroll.y);return;}
+  if(e.pointerType==='pen')G.penNear=Date.now();const cur=G.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;e.preventDefault();const Wd=cv.getBoundingClientRect().width;
+  if(cur.erase){const [x,y]=gNorm(e,cv);gErase(x,y,+cv.dataset.i,cv);return;}
+  let evs=[];try{evs=e.getCoalescedEvents?e.getCoalescedEvents():[];}catch(x){}if(!evs.length)evs=[e];const c=gCtx(cv);c.strokeStyle=cur.c;
+  for(const ev of evs){const [px,py]=gNorm(ev,cv);if(Math.hypot((px-cur.lx)*Wd,(py-cur.ly)*Wd)<1.2)continue;const pr=gPress(ev);const tw=G.width*(cur.qq?(0.55+0.9*pr):1);cur.lw=cur.lw*0.7+tw*0.3;
+    const nmx=(cur.lx+px)/2,nmy=(cur.ly+py)/2;c.lineWidth=cur.lw;c.beginPath();c.moveTo(cur.mx*Wd,cur.my*Wd);c.quadraticCurveTo(cur.lx*Wd,cur.ly*Wd,nmx*Wd,nmy*Wd);c.stroke();
+    cur.p.push(+px.toFixed(4),+py.toFixed(4));if(cur.qq)cur.qq.push(+pr.toFixed(2));cur.lx=px;cur.ly=py;cur.mx=nmx;cur.my=nmy;}}
+function gUp(e,cv){if(G.scroll&&G.scroll.id===e.pointerId){G.scroll=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}return;}
+  if(e.pointerType==='pen'&&e.type!=='pointerleave')G.penActive=false;const cur=G.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
+  G.cur=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}if(cur.erase)return;
+  const s={i:cur.i,c:cur.c,w:+cur.w.toFixed(5),p:cur.p};if(cur.qq&&cur.qq.some(v=>Math.abs(v-cur.qq[0])>0.05))s.q=cur.qq;
+  const arr=gTarget();if(!arr)return;arr.push(s);gRedraw(cv);gChanged();}
+function gErase(x,y,i,cv){const arr=gTarget();if(!arr||!arr.length)return;const Wd=cv.getBoundingClientRect().width,r=14/Wd;const n=arr.length;
+  const keep=arr.filter(s=>{if(s.i!==i)return true;for(let k=0;k<s.p.length;k+=2)if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r)return false;return true;});
+  if(keep.length!==n){arr.length=0;arr.push(...keep);gRedraw(cv);gChanged();}}
+function gMark(){G.dirty=true;$('#gStatus').textContent='保存中…';clearTimeout(G.saveT);G.saveT=setTimeout(gSave,900);gProg();}
+async function gSave(){clearTimeout(G.saveT);if(!G.dirty)return;const q=G.q,u=G.u,set=G.set,gr=G.grade[q];if(!gr)return;G.dirty=false;const seq=++G.seq;
+  try{const j=await rpc('teacher_grade',{p_token:session.token,p_user:u,p_qid:q,p_set:set,p_score:gr.score==null?null:gr.score,p_total:gr.total==null?null:gr.total,p_comment:gr.comment||'',p_strokes:gr.strokes||[]});
+    if(!j.ok)throw new Error(j.error);delete gr._new;gr.teacher=session.username;
+    if(RS&&RS.set===set){const k=RS.grades.findIndex(x=>x.u===u&&x.q===q);const row={u,q,sc:gr.score,tt:gr.total,c:!!gr.comment,n:(gr.strokes||[]).length,t:Date.now()/1000};if(k>=0)RS.grades[k]=row;else RS.grades.push(row);}
+    if(seq===G.seq)$('#gStatus').textContent='已保存 '+new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});}
+  catch(e){G.dirty=true;$('#gStatus').textContent='⚠ 没存上：'+(e.message==='NOINIT'?'请先在 Supabase 运行 update3.sql':errMsg(e));}}
+async function gGo(k){const i=G.list.indexOf(G.q)+k;if(i<0||i>=G.list.length)return;await gSave();G.q=G.list[i];gLoad();}
+async function closeGrader(){await gSave();$('#grader').classList.remove('on');document.body.style.overflow='';G.q=null;pull();}
+$('#gBack').onclick=closeGrader;$('#gDone').onclick=closeGrader;
+$('#gPrev').onclick=()=>gGo(-1);$('#gNext').onclick=()=>gGo(1);
+$('#gAnsBtn').onclick=()=>{G.showAns=!G.showAns;const b=$('#gAnsBox');if(b){b.hidden=!G.showAns;if(G.showAns)b.scrollIntoView({behavior:'smooth'});}};
+$('#gProg').addEventListener('click',async e=>{const i=e.target.closest('[data-gq]');if(!i||i.dataset.gq===G.q)return;await gSave();G.q=i.dataset.gq;gLoad();});
+function gToolClick(e){const box=e.currentTarget,tipf=G.mode==='lecture'?lTip:gTip;const t=e.target.closest('[data-gtool]');if(t){G.tool=t.dataset.gtool;box.innerHTML=gToolbar();return;}
+  const c=e.target.closest('[data-gcolor]');if(c){G.color=c.dataset.gcolor;G.tool='pen';box.innerHTML=gToolbar();return;}
+  const w=e.target.closest('[data-gw]');if(w){G.width=+w.dataset.gw;G.tool='pen';box.innerHTML=gToolbar();return;}
+  const a=e.target.closest('[data-gact]');if(!a)return;
+  if(a.dataset.gact==='undo'){const arr=gTarget();if(!arr||!arr.length)return tipf('没有可撤销的笔迹');arr.pop();gRedrawAll();gChanged();}
+  if(a.dataset.gact==='clear'){const arr=gTarget();if(!arr||!arr.length)return;if(!confirm(G.mode==='lecture'?'清空这题的板书？':'清空这题的批改笔迹？（分数、评语保留）'))return;arr.length=0;gRedrawAll();gChanged();}
+  if(a.dataset.gact==='ann'){G.showAnn=!G.showAnn;box.innerHTML=gToolbar();gRedrawAll();tipf(G.showAnn?'显示学生交卷后写的批注层':'只显示学生交卷时的原答案');}
+  if(a.dataset.gact==='finger'){G.finger=!G.finger;box.innerHTML=gToolbar();tipf(G.finger?'手指也能写；要滚动请关闭':'手指只滚动，Apple Pencil / 鼠标书写');}}
+$('#gTools').addEventListener('click',gToolClick);
+function lTip(m){const t=$('#lTip');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,3000);}
+['gesturestart','gesturechange','gestureend'].forEach(t=>$('#gBody').addEventListener(t,e=>e.preventDefault()));
+addEventListener('resize',()=>{if($('#grader').classList.contains('on'))$('#gInner').querySelectorAll('canvas').forEach(gFit);});
+document.addEventListener('keydown',e=>{if(!$('#grader').classList.contains('on')||e.target.tagName==='TEXTAREA'||e.target.tagName==='INPUT')return;if(e.key==='ArrowRight')gGo(1);if(e.key==='ArrowLeft')gGo(-1);if(e.key==='Escape')closeGrader();});
 boot();
 </script>
 </body>

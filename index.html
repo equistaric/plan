@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908020143"></script>
+<script src="config.js?v=20260908235325"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -53,7 +53,7 @@ textarea{min-height:80px;resize:vertical;line-height:1.5}
 .card h3{margin:0 0 8px;font-size:14px;color:var(--crimson);display:flex;gap:8px;align-items:center}
 .card h3 .n{font-weight:500}
 .tag{font-size:11px;padding:2px 8px;border-radius:99px;background:color-mix(in srgb,var(--crimson) 10%,transparent);color:var(--crimson);white-space:nowrap}
-.tag.g{background:var(--green-l);color:var(--green)}.tag.b{background:var(--blue-l);color:var(--blue)}.tag.a{background:var(--amber-l);color:var(--amber)}.tag.m{background:var(--line);color:var(--muted)}
+.tag.t{background:#eef2ff;color:#4338ca}.tag.g{background:var(--green-l);color:var(--green)}.tag.b{background:var(--blue-l);color:var(--blue)}.tag.a{background:var(--amber-l);color:var(--amber)}.tag.m{background:var(--line);color:var(--muted)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--card);max-width:100%}
 .seg button{border:0;border-radius:0;padding:6px 12px;font-size:13px;color:var(--muted);background:var(--card);white-space:nowrap}
 .seg button+button{border-left:1px solid var(--line)}
@@ -194,6 +194,7 @@ canvas.fx{position:fixed;inset:0;pointer-events:none;z-index:90}
 .writer.eraser .strip canvas{cursor:cell}
 .writer.marker .strip canvas{cursor:copy}
 .wans{margin-top:10px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--green);border-radius:var(--radius);padding:10px 12px;font-size:14px}
+.wans.tg{margin:0 0 8px;border-left-color:#6366f1;background:#f5f6ff}
 .wans img{width:100%;display:block;margin-top:6px}
 .selfmark{margin-top:10px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--crimson);border-radius:var(--radius);padding:10px 12px;font-size:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .stepper{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:9px;overflow:hidden}
@@ -1214,7 +1215,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908020143';
+const BUILD='20260908235325';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1258,7 +1259,8 @@ async function rpc(fn,args){
 const errMsg=e=>({NOCFG:'页面缺少数据库配置',NOINIT:'数据库还没更新（老师需要先运行更新脚本）',NET:'网络连不上',auth:'登录已失效'})[e.message]||e.message;
 const mockRpc=(fn,a)=>{const t=new URLSearchParams(location.search).get('type')||'standard';
   const R={login:{ok:true,token:'mock',username:a.p_user||'demo',display:a.p_user||'demo',role:'student',plan_type:t},
-    me:{ok:true,profile:{username:'demo',display:'演示同学',role:'student',plan_type:t,xp:0},practice:{},wrong:[],attempts:{},notes:{},ink:{},submissions:{}},
+    me:{ok:true,profile:{username:'demo',display:'演示同学',role:'student',plan_type:t,xp:0},practice:{},wrong:[],attempts:{},notes:{},ink:{},submissions:{},grades:window.__mockGrades||{}},
+    get_grade:{ok:true,grade:window.__mockGrade||null},
     get_ink:{ok:true,strokes:[]},board:{ok:true,board:[{u:'demo',n:'演示同学',xp:120},{u:'a',n:'同学甲',xp:300},{u:'b',n:'同学乙',xp:80}]}};
   return Promise.resolve(R[fn]||{ok:true});};
 
@@ -1270,17 +1272,19 @@ let attempts={};                          // qid -> {a,ok,s,t}   结构题：a =
 let notes={};                             // qid -> {b,t}
 let inkIds={};                            // qid -> ms
 let subs={};                              // set_id -> {sc,tt,t}
+let grades={};                            // qid -> {sc,tt,t,c,set}  老师批改（摘要）
+const TG={};                              // qid -> {score,total,comment,strokes}  老师批改（详情，按需拉取）
 let xp=0,xpPushed=null;
 const inkCache={};
 const emptyPending=()=>({practice:{},wrong:{},attempts:{},notes:{},ink:{},subs:{},xp:null});
 let pending=emptyPending();
 const ukey=k=>`ial27w.${k}.${session.username}`;
-function loadCache(){practice={};ptime={};wrong=new Set();mastered=new Set();wtime={};attempts={};notes={};inkIds={};subs={};xp=0;pending=emptyPending();
+function loadCache(){practice={};ptime={};wrong=new Set();mastered=new Set();wtime={};attempts={};notes={};inkIds={};subs={};grades={};xp=0;pending=emptyPending();
   try{const c=JSON.parse(localStorage.getItem(ukey('cache'))||'null');if(c){practice=c.practice||{};ptime=c.ptime||{};wrong=new Set(c.wrong||[]);mastered=new Set(c.mastered||[]);wtime=c.wtime||{};
-    attempts=c.attempts||{};notes=c.notes||{};inkIds=c.inkIds||{};subs=c.subs||{};xp=c.xp||0;}}catch(e){}
+    attempts=c.attempts||{};notes=c.notes||{};inkIds=c.inkIds||{};subs=c.subs||{};grades=c.grades||{};xp=c.xp||0;}}catch(e){}
   try{const p=JSON.parse(localStorage.getItem(ukey('pending'))||'null');if(p)pending=Object.assign(emptyPending(),p);}catch(e){}}
 function saveCache(){if(!session)return;
-  try{localStorage.setItem(ukey('cache'),JSON.stringify({practice,ptime,wrong:[...wrong],mastered:[...mastered],wtime,attempts,notes,inkIds,subs,xp}));
+  try{localStorage.setItem(ukey('cache'),JSON.stringify({practice,ptime,wrong:[...wrong],mastered:[...mastered],wtime,attempts,notes,inkIds,subs,grades,xp}));
       localStorage.setItem(ukey('pending'),JSON.stringify(pending));}catch(e){}}
 function applyServer(j){
   profile=j.profile;session.display=profile.display;session.plan_type=profile.plan_type;session.role=profile.role;
@@ -1291,13 +1295,14 @@ function applyServer(j){
   const nt={};for(const [q,v] of Object.entries(j.notes||{}))nt[q]={b:v[0],t:(v[1]||0)*1000};
   const ik={};for(const [q,t] of Object.entries(j.ink||{}))ik[q]=(t||0)*1000;
   const sb={};for(const [s,v] of Object.entries(j.submissions||{}))sb[s]={sc:v[0],tt:v[1],t:(v[2]||0)*1000};
+  const gr={};for(const [q,v] of Object.entries(j.grades||{})){gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};if(grades[q]&&grades[q].t!==gr[q].t)delete TG[q];}
   for(const [id,b] of Object.entries(pending.practice)){pr[id]=b;pt[id]=ptime[id]||Date.now();}
   for(const [q,o] of Object.entries(pending.wrong)){if(o.on){w.add(q);o.m?m.add(q):m.delete(q);wt[q]=wtime[q]||Date.now();}else{w.delete(q);m.delete(q);}}
   for(const [q,o] of Object.entries(pending.attempts))at[q]={a:o.a,ok:o.ok,s:!!o.s,t:(attempts[q]&&attempts[q].t)||Date.now()};
   for(const [q,b] of Object.entries(pending.notes)){if(b)nt[q]={b,t:(notes[q]&&notes[q].t)||Date.now()};else delete nt[q];}
   for(const q of Object.keys(pending.ink))ik[q]=Date.now();
   for(const [s,o] of Object.entries(pending.subs))sb[s]={sc:o.sc,tt:o.tt,t:(subs[s]&&subs[s].t)||Date.now()};
-  practice=pr;ptime=pt;wrong=w;mastered=m;wtime=wt;attempts=at;notes=nt;inkIds=ik;subs=sb;
+  practice=pr;ptime=pt;wrong=w;mastered=m;wtime=wt;attempts=at;notes=nt;inkIds=ik;subs=sb;grades=gr;
   xpPushed=profile.xp|0;
 }
 function migrateLegacy(){
@@ -1387,6 +1392,14 @@ function setNote(q,body){body=(body||'').trim();if(body){notes[q]={b:body,t:Date
 function setAttempt(q,a,ok,s){const o={a:a==null?null:a,ok:ok==null?null:!!ok,s:!!s};attempts[q]={...o,t:Date.now()};pending.attempts[q]=o;}
 const commit=()=>{recalcXp(true);saveCache();flushSoon();counts();};
 /* 结构题：自评 "得分/满分" 存在 attempts.a；ok=true 表示满分（攻克） */
+/* 老师批改：grades[q] 摘要来自 me()；详情（笔迹/评语）打开题目时按需拉取 */
+const gradeOf=q=>grades[q]||null;
+const gradeTag=q=>{const g=grades[q];if(!g)return '';return g.sc!=null?` · <b style="color:#4338ca">老师 ${g.sc}/${g.tt||'?'}</b>`:' · <b style="color:#4338ca">老师已批</b>';};
+const setGrade=id=>{let n=0,sc=0,tt=0,has=false;for(const it of setItems(id)){const g=grades[it.id];if(!g)continue;n++;if(g.sc!=null&&g.tt){sc+=g.sc;tt+=g.tt;has=true;}}return{n,sc,tt:has?tt:0};};
+async function loadGrade(q){if(!grades[q])return null;if(TG[q])return TG[q];try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(j.ok&&j.grade){TG[q]=j.grade;return j.grade;}}catch(e){}return null;}
+const gradeHtml=g=>`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
+/* 已保存（看过答案）的题：原答案锁定，之后写的都算批注层（a:1），只能撤销 / 擦除批注 */
+const annotLayer=q=>{const at=attempts[q]||{};return !!(at.s&&!(W.q===q&&W.redo));};
 const selfOf=q=>{const a=attempts[q];if(!a||!a.s||!a.a||!/^\d+\/\d+$/.test(a.a))return null;const [s,t]=a.a.split('/').map(Number);return{s,t,full:s>=t};};
 const p2Todo=()=>DATA.items.filter(i=>i.p!=='p1'&&attempts[i.id]&&attempts[i.id].s&&attempts[i.id].ok===false).sort((a,b)=>{const A=selfOf(a.id),B=selfOf(b.id);return (A?A.s/A.t:0)-(B?B.s/B.t:0)||a.ch-b.ch;});
 const todo=()=>DATA.items.filter(i=>wrong.has(i.id)&&!mastered.has(i.id));
@@ -1456,6 +1469,8 @@ function renderHome(){if($('#viewHome').hidden)return;const st=xpStats(),lv=lvlO
   html+=`<div class="card"><h3>📌 接着做</h3>${ls?`<div class="row"><div class="tx"><b>${setName(setOf(ls))}</b> <span class="tag a">做到一半</span><small>已答 ${setItems(ls).filter(i=>attempts[i.id]&&attempts[i.id].a!=null).length}/${setItems(ls).length}</small></div><button class="primary sm" data-go="${ls}">继续</button></div>`:''}
     ${pend.slice(0,3).map(s=>`<div class="row"><div class="tx"><b>${setName(s)}</b> <span class="tag a">已提交 · 待清零</span><small>讲评后批注、点「错题清零」</small></div><button class="sm" data-go="${s.id}">去清零</button></div>`).join('')}
     ${sug?`<div class="row"><div class="tx"><b>${setName(sug)}</b> <span class="tag m">下一套</span><small>${sug.n} 题</small></div><button class="${ls||pend.length?'':'primary'} sm" data-go="${sug.id}">开始</button></div>`:'<div class="n">P1 / P2 全部清零 🎉</div>'}</div>`;
+  const gradedSets=allSets().map(s=>({s,g:setGrade(s.id)})).filter(x=>x.g.n).sort((a,b)=>{const ta=Math.max(...setItems(a.s.id).map(i=>(grades[i.id]||{}).t||0)),tb=Math.max(...setItems(b.s.id).map(i=>(grades[i.id]||{}).t||0));return tb-ta;});
+  if(gradedSets.length)html+=`<div class="card"><h3>📬 老师批改</h3>${gradedSets.slice(0,4).map(({s,g})=>`<div class="row"><div class="tx"><b>${setName(s)}</b> <span class="tag t">已批 ${g.n}/${setItems(s.id).length}${g.tt?` · ${g.sc}/${g.tt}`:''}</span><small>打开题目能看到老师的红笔批改和评语</small></div><button class="sm" data-go="${s.id}">去看</button></div>`).join('')}</div>`;
   html+=`<div class="card"><h3>各卷进度</h3>${PAPERS.map(p=>{const st2=stats(p);return `<div class="row"><div class="tx"><b>${PLAN.papers[p].label}</b><small>已清零 ${st2.done}/${st2.req} 套${PLAN.papers[p].exam?` · 距考试 ${Math.ceil((new Date(PLAN.papers[p].exam)-new Date(td))/864e5)} 天`:''}</small></div><div style="width:120px"><div class="xpbar" style="margin:0"><i style="width:${st2.pct}%"></i></div></div><b style="color:var(--crimson);min-width:44px;text-align:right">${st2.pct}%</b></div>`;}).join('')}</div>`;
   const nw=todo().length,a1=Object.keys(notes).filter(q=>byId.has(q)&&byId.get(q).p==='p1').length,a2=Object.keys(notes).filter(q=>byId.has(q)&&byId.get(q).p!=='p1').length;
   html+=`<div class="card"><h3>📕 复习</h3><div class="big3"><button data-rev="wrong"><b>${nw}</b><small>选择题错题</small></button><button data-rev="a1"><b>${a1}</b><small>选择题批注</small></button><button data-rev="a2"><b>${a2}</b><small>AS大题批注</small></button></div><div class="n" style="margin-top:8px">批注页里是你特意加过笔记区的题——自己标出来的复习重点。</div></div>`;
@@ -1536,10 +1551,10 @@ function renderSet(){const s=setOf(doSet);if(!s){doSet=null;renderPlan();return;
     for(const it of items){const at=attempts[it.id]||{},done=!!at.s,ink=hasInk(it.id),nt=notes[it.id],sm=selfOf(it.id);
       const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 自评满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:#1d4ed8">已提交 · 未自评</b>'):ink?'写了一些':'';
       html+=`<div class="qbox ${done?(sm&&!sm.full?'bad':'ok'):''}"><div class="p2q"><div class="th" data-write="${it.id}"><img loading="lazy" src="${IMG(it.i[0])}" alt=""></div>
-        <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${it.t?` <span class="n">${it.t} 分</span>`:''}<small>${it.sy?`考纲 ${it.sy} · `:''}${it.i.length} 页${stt?' · '+stt:''}${flagged(it.id)?' · 📝 重点':''}</small></div>
+        <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${it.t?` <span class="n">${it.t} 分</span>`:''}<small>${it.sy?`考纲 ${it.sy} · `:''}${it.i.length} 页${stt?' · '+stt:''}${gradeTag(it.id)}${flagged(it.id)?' · 📝 重点':''}</small></div>
         <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">重做</button>`:''}</div></div></div>`;}
-    const sn=submittedN(doSet);
-    html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${n}</span><span class="grow"></span>${sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a2">看批注</button>':`<button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
+    const sn=submittedN(doSet),gs=setGrade(doSet);
+    html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${n}${gs.n?` · <span style="color:#4338ca">老师已批 <b>${gs.n}</b>/${n}${gs.tt?` · 得分 <b>${gs.sc}</b>/${gs.tt}`:''}</span>`:''}</span><span class="grow"></span>${sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a2">看批注</button>':`<button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
   $('#planWrap').innerHTML=html;
   if(isP1&&sb)mountInline();}
 /* 套题页里的批注画布：懒加载笔迹、按需渲染 */
@@ -1627,6 +1642,7 @@ function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(1
   c.beginPath();curvePath(c,L,Wd);const Rr=R.slice().reverse();const E=P[P.length-1];c.lineTo(Rr[0][0]*Wd,Rr[0][1]*Wd);for(let i=1;i<Rr.length-1;i++){const mx=(Rr[i][0]+Rr[i+1][0])/2*Wd,my=(Rr[i][1]+Rr[i+1][1])/2*Wd;c.quadraticCurveTo(Rr[i][0]*Wd,Rr[i][1]*Wd,mx,my);}c.lineTo(Rr[Rr.length-1][0]*Wd,Rr[Rr.length-1][1]*Wd);c.closePath();c.fill();
   c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,ws[0]/2,0,Math.PI*2);c.fill();c.beginPath();c.arc(E[0]*Wd,E[1]*Wd,ws[ws.length-1]/2,0,Math.PI*2);c.fill();}
 function redraw(cv){const {q,i}=cv._ink;const c=ctxOf(cv);const Wd=(cv.getBoundingClientRect().width||cv.width)/zoomOf(cv);c.clearRect(0,0,cv.width,cv.height);
+  const tg=TG[q];if(tg&&tg.strokes)for(const s of tg.strokes)if(s.i===i)drawStroke(c,s,Wd);
   if(W.q===q&&W.showOld){c.save();c.globalAlpha=.28;for(const s of W.old)if(s.i===i)drawStroke(c,s,Wd);c.restore();}
   for(const s of (INKS[q]||[]))if(s.i===i)drawStroke(c,s,Wd);}
 const redrawQ=q=>(CVS[q]||[]).forEach(cv=>{if(cv.isConnected)redraw(cv);});
@@ -1666,11 +1682,11 @@ function pup(e,cv){if(DRAW.scroll&&DRAW.scroll.id===e.pointerId){DRAW.scroll=nul
   const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
   DRAW.cur=null;clearTimeout(DRAW.holdT);try{cv.releasePointerCapture(e.pointerId);}catch(x){}
   if(cur.erase){markDirty(cur.q);return;}
-  const s={i:cur.i,c:cur.c,w:+cur.w.toFixed(5),p:cur.p};if(cur.shape)s.k=1;else if(cur.qq&&cur.qq.some(v=>Math.abs(v-cur.qq[0])>0.05))s.q=cur.qq;
+  const s={i:cur.i,c:cur.c,w:+cur.w.toFixed(5),p:cur.p};if(cur.shape)s.k=1;else if(cur.qq&&cur.qq.some(v=>Math.abs(v-cur.qq[0])>0.05))s.q=cur.qq;if(annotLayer(cur.q))s.a=1;
   INKS[cur.q].push(s);DRAW.lastQ=cur.q;if(cur.i>=NB)refreshBlock(cur.q,cur.i-NB);else redrawQ(cur.q);markDirty(cur.q);}
-function eraseAt(x,y,q,i){const cv=(CVS[q]||[]).find(c=>c._ink.i===i&&c.isConnected);const Wd=cv?cv.getBoundingClientRect().width/zoomOf(cv):1000;const r=14/Wd;let hit=false;
-  INKS[q]=(INKS[q]||[]).filter(s=>{if(s.i!==i)return true;for(let k=0;k<s.p.length;k+=2){if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r*(s.f?2:1)){hit=true;return false;}}return true;});
-  if(hit){redrawQ(q);markDirty(q);}}
+function eraseAt(x,y,q,i){const cv=(CVS[q]||[]).find(c=>c._ink.i===i&&c.isConnected);const Wd=cv?cv.getBoundingClientRect().width/zoomOf(cv):1000;const r=14/Wd;let hit=false;const lock=annotLayer(q);let lockedHit=false;
+  INKS[q]=(INKS[q]||[]).filter(s=>{if(s.i!==i)return true;if(lock&&!s.a&&!s.f){if(!lockedHit)for(let k=0;k<s.p.length;k+=2)if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r){lockedHit=true;break;}return true;}for(let k=0;k<s.p.length;k+=2){if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r*(s.f?2:1)){hit=true;return false;}}return true;});
+  if(hit){redrawQ(q);markDirty(q);}else if(lockedHit&&!eraseAt._t){eraseAt._t=setTimeout(()=>eraseAt._t=null,2500);tip('已保存的答案不能擦，只能擦之后写的批注');}}
 /* ---- 图形识别（GoodNotes 式）：落笔后停住 HOLD_MS 不动，当前笔画变成直线 / 圆(椭圆) / 三角形 / 四边形 ---- */
 const HOLD_MS=1500;
 function dpSimplify(P,eps){if(P.length<3)return P.slice();const A=P[0],B=P[P.length-1];let idx=-1,maxd=0;const L=Math.hypot(B[0]-A[0],B[1]-A[1])||1e-6;
@@ -1716,8 +1732,8 @@ document.addEventListener('click',e=>{
   const w=e.target.closest('.wsz[data-w]');if(w){DRAW.width=+w.dataset.w;document.querySelectorAll('.wsz[data-w]').forEach(x=>x.setAttribute('aria-pressed',x===w||+x.dataset.w===DRAW.width));if(DRAW.tool!=='pen')setTool('pen');return;}
   const a=e.target.closest('[data-act]');if(!a)return;
   if(a.dataset.act==='finger'){DRAW.finger=!DRAW.finger;document.querySelectorAll('[data-act=finger]').forEach(x=>x.setAttribute('aria-pressed',DRAW.finger));tip(DRAW.finger?'手指书写已打开；要滚动请关闭它':'手指只滚动，Apple Pencil / 鼠标书写');}
-  if(a.dataset.act==='undo'){const q=W.q||DRAW.lastQ;if(!q||!INKS[q]||!INKS[q].length)return tip('没有可撤销的笔迹');const cvq=(CVS[q]||[])[0];if(cvq&&cvq._ink.locked()&&!INKS[q].some(s=>s.f))return tip('已提交的题不能再改');INKS[q].pop();redrawQ(q);markDirty(q);}
-  if(a.dataset.act==='clear'){const q=W.q;if(!q)return;if((CVS[q]||[]).some(cv=>cv._ink.locked()))return tip('已提交的题不能再改，要重来点「重做」');if(!(INKS[q]||[]).length||!confirm('清空本题的全部手写？'))return;INKS[q]=[];redrawQ(q);markDirty(q);}
+  if(a.dataset.act==='undo'){const q=W.q||DRAW.lastQ;if(!q||!INKS[q]||!INKS[q].length)return tip('没有可撤销的笔迹');const cvq=(CVS[q]||[])[0];const last=INKS[q][INKS[q].length-1];if(annotLayer(q)&&!last.a&&!last.f)return tip('已保存的答案不能再改，只能撤销之后写的批注');INKS[q].pop();redrawQ(q);markDirty(q);}
+  if(a.dataset.act==='clear'){const q=W.q;if(!q)return;if(annotLayer(q)){const keep=(INKS[q]||[]).filter(s=>!s.a&&!s.f);if(keep.length===(INKS[q]||[]).length)return tip('已保存的答案不能再改；要重来点「重做」');if(!confirm('清空本题的批注和标记？（原答案保留）'))return;INKS[q]=keep;}else{if(!(INKS[q]||[]).length||!confirm('清空本题的全部手写？'))return;INKS[q]=[];}redrawQ(q);markDirty(q);}
   if(a.dataset.act==='old'){W.showOld=!W.showOld;a.setAttribute('aria-pressed',W.showOld);redrawQ(W.q);}});
 
 /* ======================================================================
@@ -1737,6 +1753,7 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   const saved=await loadInk(q);if(W.q!==q)return;
   {const inner=$('#wInner');[...inner.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(nbHas(q,k))st.insertAdjacentHTML('afterend',nbHtml(q,k,true));});nbSlots();}
   W.prevSelf=selfOf(q);
+  if(grades[q])loadGrade(q).then(g=>{if(!g||W.q!==q)return;$('#wInner').insertAdjacentHTML('afterbegin',gradeHtml(g));redrawQ(q);wStatus();});
   if(W.redo){W.old=saved.slice();INKS[q]=[];tip('重做：这次不看上次写的，写完提交再自评一次');}else W.old=[];
   const ob=$('#wTools [data-act=old]');ob.hidden=!W.redo||!W.old.length;
   if(W.annot){setColor('#dc2626');if(!sessionStorage.getItem('annotTip')){sessionStorage.setItem('annotTip','1');tip('讲评批注：老师讲到哪就在题上写到哪');}}else if(!at.s)setColor(DRAW.color==='#dc2626'?'#1e232a':DRAW.color);
@@ -1803,6 +1820,7 @@ function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;con
   $('#wExpl').hidden=!(isP1&&submitted);
   $('#wAns').hidden=!(!isP1&&submitted&&!W.redo);
   $('#wStatus').textContent=phase==='annot'?(doSet&&isDone(doSet)?'已清零 · 可继续补充批注':`批注中 · ${nS} 笔`):phase==='saved'?(sm?(sm.full?`已保存 · 自评满分 ${sm.s}/${sm.t} ✓`:`已保存 · 自评 ${sm.s}/${sm.t}`):`已保存 · 未自评（选做）${last?' · 全套写完点「提交整套」':' · 对完答案直接点「下一题」'}`):phase==='redo'?`重做中 · ${nS} 笔`:`${nS} 笔 · 写完点「保存 · 看答案」`;
+  const gq=grades[W.q];if(gq&&gq.sc!=null&&phase!=='write')$('#wStatus').textContent+=` · 老师批改 ${gq.sc}/${gq.tt||'?'}`;
   if(!submitted){$('#wAnsBox').hidden=true;$('#wSelf').hidden=true;}wProg();}
 let wNoteT;
 $('#wSubmit').onclick=()=>{const at=attempts[W.q]||{};if(at.s&&!W.redo)return;
@@ -1878,7 +1896,7 @@ function renderAnnot(kind){const items=flaggedItems(kind);shown=items.slice().so
   let html=`<div class="n" style="margin-bottom:8px">你特意加过笔记区的题，按套题分组；绿色 = 这套已清零。点「继续批注」可以补写。</div>`;
   for(const sid of keys){const s=setOf(sid),rows=groups.get(sid),done=isDone(sid);
     html+=`<details class="acard" ${keys.indexOf(sid)<3?'open':''}><summary class="ah" style="cursor:pointer;list-style:none"><b style="color:${done?'var(--green)':'var(--crimson)'}">${s?setName(s):sid}</b><span class="tag ${done?'g':'a'}">${done?'已清零':'未清零'}</span><span class="n">${rows.length} 题</span><span class="grow"></span><button class="sm" data-go="${sid}">套题</button></summary>
-      ${rows.map(it=>{const at=attempts[it.id]||{};const res=it.p==='p1'&&at.s?(at.ok?'<span class="res ok">✓</span>':`<span class="res bad">✗ ${at.a?'选 '+at.a:'未作答'} · 答案 ${it.L}</span>`):(selfOf(it.id)?`<span class="tag ${selfOf(it.id).full?'g':''}">自评 ${selfOf(it.id).s}/${selfOf(it.id).t}</span>`:'');
+      ${rows.map(it=>{const at=attempts[it.id]||{};const res=it.p==='p1'&&at.s?(at.ok?'<span class="res ok">✓</span>':`<span class="res bad">✗ ${at.a?'选 '+at.a:'未作答'} · 答案 ${it.L}</span>`):(selfOf(it.id)?`<span class="tag ${selfOf(it.id).full?'g':''}">自评 ${selfOf(it.id).s}/${selfOf(it.id).t}</span>`:'')+(grades[it.id]?`<span class="tag t">${grades[it.id].sc!=null?`老师 ${grades[it.id].sc}/${grades[it.id].tt||'?'}`:'老师已批'}</span>`:'');
         const typed=notes[it.id]&&notes[it.id].b!==FLAG?`<div class="ah" style="border-top:1px solid var(--line);font-size:13px;white-space:pre-wrap">⌨️ ${esc(notes[it.id].b)}</div>`:'';
         return `<div class="ah" style="border-top:1px solid var(--line)"><span class="no">#${pad(it.n)}</span><span class="n">${esc(it.o)}${it.sy?` · 考纲 ${it.sy}`:''}</span>${res}<span class="grow"></span><button class="sm" data-annot="${it.id}">✎ 继续批注</button></div>
           <div class="astrips" data-q="${it.id}">${it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img loading="lazy" src="${IMG(src)}" alt=""><canvas></canvas></div>`).join('')}</div>${typed}`;}).join('')}</details>`;}
@@ -1887,10 +1905,10 @@ function renderAnnot(kind){const items=flaggedItems(kind);shown=items.slice().so
   document.querySelectorAll('.astrips').forEach(el=>io.observe(el));}
 async function paintAnnot(el){const q=el.dataset.q;let strokes=pending.ink[q]||inkCache[q];
   if(!strokes){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});strokes=(j.ok&&j.strokes)||[];inkCache[q]=strokes;}catch(e){strokes=[];}}
-  INKS[q]=INKS[q]||strokes.slice();
+  INKS[q]=INKS[q]||strokes.slice();const tg=grades[q]?await loadGrade(q):null;
   [...el.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(strokes.some(s=>s.i===NB+k)&&!(st.nextElementSibling&&st.nextElementSibling.classList.contains('nb')))st.insertAdjacentHTML('afterend',nbHtml(q,k,false));});
   const draw=()=>el.querySelectorAll('.strip').forEach(st=>{const bg=st.firstElementChild,cv=st.querySelector('canvas');const r=bg.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';
-    const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+st.dataset.i;for(const s of strokes)if(s.i===i)drawStroke(c,s,r.width);});
+    const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+st.dataset.i;for(const s of strokes)if(s.i===i)drawStroke(c,s,r.width);if(tg)for(const s of tg.strokes||[])if(s.i===i)drawStroke(c,s,r.width);});
   el.querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)draw();else im.onload=draw;});setTimeout(draw,200);}
 /* 复习模式（选择题） */
 let rvDeck=[],rvAt=0,rvShown=false;
