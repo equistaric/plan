@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260908235646"></script>
+<script src="config.js?v=20260911112851"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -178,7 +178,10 @@ canvas.fx{position:fixed;inset:0;pointer-events:none;z-index:90}
 .tb{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:15px;border-radius:9px}
 .tb[aria-pressed="true"]{background:var(--sat);border-color:var(--crimson);color:var(--crimson)}
 .tb.wide{width:auto;padding:0 8px;font-size:12px}
-.sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0}
+.sw{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;margin:0 1px}
+.swq{display:inline-flex;gap:3px;align-items:center}
+.tb.pal{font-size:16px}
+.strip,.strip canvas,.wbody,.inkwet{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .sw[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--card) inset}
 .wsz{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:9px}
 .wsz i{display:block;background:var(--ink);border-radius:99px}
@@ -1215,7 +1218,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260908235646';
+const BUILD='20260911112851';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1239,7 +1242,7 @@ const paperLabel=p=>(DATA.papers.find(x=>x.k===p)||{}).label||p;
 async function checkUpdate(){try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});const j=await r.json();
   if(j.build&&j.build!==BUILD&&!document.querySelector('dialog[open]')&&!$('#rv').classList.contains('on')&&!$('#writer').classList.contains('on')){toast('发现新版本，正在更新…');setTimeout(()=>location.reload(),1200);}}catch(e){}}
 setInterval(checkUpdate,5*60*1000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkUpdate();if(session)flush();}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){checkUpdate();if(session){flush();refreshGrades(false);}}});
 window.addEventListener('online',()=>{if(session)flush();});
 
 /* ---- Supabase RPC ---- */
@@ -1273,18 +1276,19 @@ let notes={};                             // qid -> {b,t}
 let inkIds={};                            // qid -> ms
 let subs={};                              // set_id -> {sc,tt,t}
 let grades={};                            // qid -> {sc,tt,t,c,set}  老师批改（摘要）
+let redoAt={};                            // qid -> ms  学生重做并重新保存的时间（老师批改早于它 = 批的是旧答案）
 const TG={};                              // qid -> {score,total,comment,strokes}  老师批改（详情，按需拉取）
 let xp=0,xpPushed=null;
 const inkCache={};
 const emptyPending=()=>({practice:{},wrong:{},attempts:{},notes:{},ink:{},subs:{},xp:null});
 let pending=emptyPending();
 const ukey=k=>`ial27w.${k}.${session.username}`;
-function loadCache(){practice={};ptime={};wrong=new Set();mastered=new Set();wtime={};attempts={};notes={};inkIds={};subs={};grades={};xp=0;pending=emptyPending();
+function loadCache(){practice={};ptime={};wrong=new Set();mastered=new Set();wtime={};attempts={};notes={};inkIds={};subs={};grades={};redoAt={};xp=0;pending=emptyPending();
   try{const c=JSON.parse(localStorage.getItem(ukey('cache'))||'null');if(c){practice=c.practice||{};ptime=c.ptime||{};wrong=new Set(c.wrong||[]);mastered=new Set(c.mastered||[]);wtime=c.wtime||{};
-    attempts=c.attempts||{};notes=c.notes||{};inkIds=c.inkIds||{};subs=c.subs||{};grades=c.grades||{};xp=c.xp||0;}}catch(e){}
+    attempts=c.attempts||{};notes=c.notes||{};inkIds=c.inkIds||{};subs=c.subs||{};grades=c.grades||{};redoAt=c.redoAt||{};xp=c.xp||0;}}catch(e){}
   try{const p=JSON.parse(localStorage.getItem(ukey('pending'))||'null');if(p)pending=Object.assign(emptyPending(),p);}catch(e){}}
 function saveCache(){if(!session)return;
-  try{localStorage.setItem(ukey('cache'),JSON.stringify({practice,ptime,wrong:[...wrong],mastered:[...mastered],wtime,attempts,notes,inkIds,subs,grades,xp}));
+  try{localStorage.setItem(ukey('cache'),JSON.stringify({practice,ptime,wrong:[...wrong],mastered:[...mastered],wtime,attempts,notes,inkIds,subs,grades,redoAt,xp}));
       localStorage.setItem(ukey('pending'),JSON.stringify(pending));}catch(e){}}
 function applyServer(j){
   profile=j.profile;session.display=profile.display;session.plan_type=profile.plan_type;session.role=profile.role;
@@ -1357,11 +1361,13 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();
     localStorage.setItem(SKEY,JSON.stringify(session));$('#inPass').value='';await boot();}
   catch(e){$('#loginErr').textContent=errMsg(e);}
   finally{$('#btnLogin').disabled=false;}});
-async function logout(expired){const s=session;session=null;localStorage.removeItem(SKEY);
+async function logout(expired){const s=session;flushInk();session=null;localStorage.removeItem(SKEY);resetInkState();
   if(s&&!expired){try{await rpc('logout',{p_token:s.token});}catch(e){}}
   showLogin();if(expired)$('#loginErr').textContent='登录已失效，请重新登录';}
+function resetInkState(){cancelStroke();for(const o of [INKS,inkCache,TG,CVS])for(const k of Object.keys(o))delete o[k];INKLOADED.clear();DRAW.dirty.clear();DRAW.lastQ=null;W.q=null;}
 async function boot(){
   if(!session){showLogin();return;}
+  if(boot._user&&boot._user!==session.username)resetInkState();boot._user=session.username;   // 换了账号：清掉上一个人的笔迹缓存
   loadCache();profile={username:session.username,display:session.display,role:session.role,plan_type:session.plan_type,xp};
   showApp();renderAll();
   try{const j=await rpc('me',{p_token:session.token});
@@ -1394,10 +1400,33 @@ const commit=()=>{recalcXp(true);saveCache();flushSoon();counts();};
 /* 结构题：自评 "得分/满分" 存在 attempts.a；ok=true 表示满分（攻克） */
 /* 老师批改：grades[q] 摘要来自 me()；详情（笔迹/评语）打开题目时按需拉取 */
 const gradeOf=q=>grades[q]||null;
-const gradeTag=q=>{const g=grades[q];if(!g)return '';return g.sc!=null?` · <b style="color:#4338ca">老师 ${g.sc}/${g.tt||'?'}</b>`:' · <b style="color:#4338ca">老师已批</b>';};
+const gradeStale=q=>!!(grades[q]&&redoAt[q]&&grades[q].t<redoAt[q]);   // 老师批的是重做之前的答案
+const gradeTag=q=>{const g=grades[q];if(!g)return attempts[q]&&attempts[q].s?' · <span style="color:#6366f1">待老师批改</span>':'';return g.sc!=null?` · <b style="color:#4338ca">老师 ${g.sc}/${g.tt||'?'}</b>`:' · <b style="color:#4338ca">老师已批</b>';};
 const setGrade=id=>{let n=0,sc=0,tt=0,has=false;for(const it of setItems(id)){const g=grades[it.id];if(!g)continue;n++;if(g.sc!=null&&g.tt){sc+=g.sc;tt+=g.tt;has=true;}}return{n,sc,tt:has?tt:0};};
-async function loadGrade(q){if(!grades[q])return null;if(TG[q])return TG[q];try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(j.ok&&j.grade){TG[q]=j.grade;return j.grade;}}catch(e){}return null;}
-const gradeHtml=g=>`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
+async function loadGrade(q,force){if(!grades[q]&&!force)return null;if(TG[q]&&!force)return TG[q];
+  try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(j.ok){if(j.grade){TG[q]=j.grade;const g=j.grade;const old=grades[q];grades[q]={sc:g.score,tt:g.total,t:(g.t||0)*1000,c:!!g.comment,set:old?old.set:null};return j.grade;}delete TG[q];if(grades[q]){delete grades[q];}}}catch(e){if(TG[q])return TG[q];}return null;}
+/* 老师是逐题批改的：页面可见时每 45 秒拉一次，只更新「老师批改」；有新的就提示并刷新相关界面 */
+async function refreshGrades(silent){if(!session)return;
+  try{const j=await rpc('me',{p_token:session.token});if(!j.ok)return;
+    const gr={};for(const [q,v] of Object.entries(j.grades||{}))gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};
+    const changed=Object.keys(gr).filter(q=>!grades[q]||grades[q].t!==gr[q].t),removed=Object.keys(grades).filter(q=>!gr[q]);
+    if(!changed.length&&!removed.length)return;
+    for(const q of changed.concat(removed))delete TG[q];grades=gr;saveCache();
+    if(!silent&&changed.length)toast(`👩‍🏫 老师批改了 ${changed.length} 题，打开题目就能看到红笔和评语`);
+    if($('#writer').classList.contains('on')&&W.q&&(changed.includes(W.q)||removed.includes(W.q)))showGradeBox(W.q);
+    if(!DRAW.cur&&FS.id==null){counts();renderHome();if(!(doSet&&doSet.startsWith('p1')))renderPlan();revRender();}}
+  catch(e){}}
+function putGradeBox(q,g){if(W.q!==q)return;if(DRAW.cur||PEN.down){W.pgq=q;return;}              // 正在写：抬笔后再放
+  const inner=$('#wInner'),old=inner.querySelector('.wans.tg'),h0=old?old.offsetHeight+8:0;
+  const html=g&&!W.redo?gradeHtml(g,q):'';if(old&&old.outerHTML===html)return;
+  if(old)old.remove();if(html)inner.insertAdjacentHTML('afterbegin',html);
+  const nb=inner.querySelector('.wans.tg'),h1=nb?nb.offsetHeight+8:0;
+  if(h1!==h0&&VZ.ty<-1){VZ.ty-=(h1-h0)*VZ.z;clampView();applyView();}                          // 往下看的时候插入：题目保持在原位
+  redrawQ(q);wStatus();}
+function showGradeBox(q){if(W.q!==q)return;const had=TG[q]?JSON.stringify(TG[q]):'';if(TG[q])putGradeBox(q,TG[q]);
+  loadGrade(q,true).then(g=>{if(W.q!==q)return;if((g?JSON.stringify(g):'')!==had||!TG[q])putGradeBox(q,g);});}
+setInterval(()=>{if(!document.hidden)refreshGrades(false);},60000);
+const gradeHtml=(g,q)=>gradeStale(q)?`<div class="wans tg"><b>👩‍🏫 老师批改的是你重做前的答案${g.score!=null?`（当时 ${g.score} / ${g.total||'?'}）`:''}</b><div class="n" style="margin-top:4px">新答案已经进老师的待批，批完这里会更新</div></div>`:`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
 /* 已保存（看过答案）的题：原答案锁定，之后写的都算批注层（a:1），只能撤销 / 擦除批注 */
 const annotLayer=q=>{const at=attempts[q]||{};return !!(at.s&&!(W.q===q&&W.redo));};
 const selfOf=q=>{const a=attempts[q];if(!a||!a.s||!a.a||!/^\d+\/\d+$/.test(a.a))return null;const [s,t]=a.a.split('/').map(Number);return{s,t,full:s>=t};};
@@ -1508,7 +1537,7 @@ function renderPlan(){if($('#viewPlan').hidden)return;renderTabs();$('#tabs').hi
       const stt=stg===3?'✓ 错题清零':stg===2?'对完答案 · 待清零':stg===1?'做完题 · 待对答案':a?`进行中 ${a}/${s.n}`:`${s.n} 题`;
       html+=`<div class="sc ${cls}" data-go="${s.id}"><b>${PLAN.setLabels[c]}</b><div class="d">${SETYS[c]}${sb&&sb.tt?` · ${sb.sc}/${sb.tt}`:''}</div><div class="s">${stt}</div></div>`;}
     html+='</div></div>';}
-  $('#planWrap').innerHTML=html;}
+  if(!DRAW.cur)wetFree();$('#planWrap').innerHTML=html;pruneCVS();}
 document.addEventListener('click',e=>{const t=e.target.closest('.tabs button');if(t){paper=t.dataset.p;localStorage.setItem('ial27w.plan.tab',paper);doSet=null;renderPlan();}});
 function pills(s){return `<div class="pills">${CHECKS.map(c=>`<div class="pill ${has(s.id,c)?'on':''}" data-id="${s.id}" data-c="${c}">${CHECK_LABEL[c]}</div>`).join('')}</div>`;}
 document.addEventListener('click',e=>{const p=e.target.closest('.pill');if(!p)return;
@@ -1523,9 +1552,10 @@ function confetti(){const cv=$('#fx');cv.hidden=false;cv.width=innerWidth;cv.hei
     x.save();x.globalAlpha=p.a;x.translate(p.x,p.y);x.rotate(p.rot);x.fillStyle=p.c;x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore();}
     if(alive&&t<160)requestAnimationFrame(f);else{x.clearRect(0,0,cv.width,cv.height);cv.hidden=true;}})();}
 /* ---- 工具条（套题页的批注条和手写页共用同一份工具状态 DRAW） ---- */
+const swqHtml=()=>{const list=DRAW.recent.includes(DRAW.color)?DRAW.recent:[DRAW.color].concat(DRAW.recent).slice(0,4);return list.map(c=>`<button class="sw" data-color="${c}" aria-pressed="${DRAW.color===c}" style="background:${c}" title="${inkColorName(c)}"></button>`).join('');};
 function toolbarHtml(){return `<button class="tb" data-tool="pen" aria-pressed="${DRAW.tool==='pen'}" title="画笔">✏️</button><button class="tb" data-tool="eraser" aria-pressed="${DRAW.tool==='eraser'}" title="橡皮（整笔擦除）">🧽</button>
-    <span style="width:4px"></span>${['#1e232a','#1d4ed8','#dc2626','#16a34a'].map(c=>`<button class="sw" data-color="${c}" aria-pressed="${DRAW.color===c}" style="background:${c}"></button>`).join('')}
-    <span style="width:4px"></span>${[[1.5,2],[2.5,3.5],[4.5,6]].map(([w,h])=>`<button class="wsz" data-w="${w}" aria-pressed="${DRAW.width===w}"><i style="width:14px;height:${h}px"></i></button>`).join('')}
+    <span style="width:4px"></span><span class="swq">${swqHtml()}</span><button class="tb pal" data-palette="1" title="全部 15 种颜色（多巴胺 / 莫兰迪）">🎨</button>
+    <span style="width:4px"></span>${PEN_SIZES.map(([w,h])=>`<button class="wsz" data-w="${w}" aria-pressed="${DRAW.width===w}" title="最粗 ${w}px（轻写更细）"><i style="width:14px;height:${h}px"></i></button>`).join('')}
     <span style="width:4px"></span><button class="tb" data-act="undo" title="撤销">↶</button><button class="tb wide" data-act="finger" aria-pressed="${DRAW.finger}" title="默认只有 Apple Pencil / 鼠标能写，手指用来滚动；没有笔时打开">☝️ 手指书写</button>`;}
 /* ---- 一套题 ---- */
 function renderSet(){const s=setOf(doSet);if(!s){doSet=null;renderPlan();return;}
@@ -1555,7 +1585,7 @@ function renderSet(){const s=setOf(doSet);if(!s){doSet=null;renderPlan();return;
         <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">重做</button>`:''}</div></div></div>`;}
     const sn=submittedN(doSet),gs=setGrade(doSet);
     html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${n}${gs.n?` · <span style="color:#4338ca">老师已批 <b>${gs.n}</b>/${n}${gs.tt?` · 得分 <b>${gs.sc}</b>/${gs.tt}`:''}</span>`:''}</span><span class="grow"></span>${sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a2">看批注</button>':`<button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
-  $('#planWrap').innerHTML=html;
+  if(!DRAW.cur)wetFree();$('#planWrap').innerHTML=html;pruneCVS();
   if(isP1&&sb)mountInline();}
 /* 套题页里的批注画布：懒加载笔迹、按需渲染 */
 function mountInline(){const cvs=[...document.querySelectorAll('#planWrap canvas[data-q]')];
@@ -1620,19 +1650,127 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-wgo]');if(
    ====================================================================== */
 const INKS={};                      // q -> strokes（内存里的当前笔迹）
 const CVS={};                       // q -> [canvas...]
-const DRAW={tool:'pen',color:'#dc2626',width:2.5,finger:false,cur:null,penSeen:false,penNear:0,penActive:false,scroll:null,lastQ:null,dirty:new Set(),saveT:null};
-async function loadInk(q){if(INKS[q])return INKS[q];let saved=pending.ink[q]||inkCache[q]||null;
-  if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(j.ok){saved=j.strokes||[];inkCache[q]=saved;}}catch(e){toast('手写内容加载失败：'+errMsg(e));}}}
-  if(!INKS[q])INKS[q]=saved.slice();return INKS[q];}
-function bindCanvas(cv,q,i,lockedFn,scrollerFn){cv._ink={q,i,locked:lockedFn,scroller:scrollerFn};(CVS[q]=CVS[q]||[]).push(cv);
+const PEN_SIZES=[[1.8,2],[2.8,3.5],[4.5,6]];
+const DRAW={tool:'pen',color:'#dc2626',width:2.8,finger:false,cur:null,lastQ:null,dirty:new Set(),saveT:null,recent:['#1e232a','#1d4ed8','#dc2626','#12b76a']};
+try{const pp=JSON.parse(localStorage.getItem('ial27w.pen')||'null');if(pp){if(PEN_SIZES.some(x=>x[0]===pp.w))DRAW.width=pp.w;if(Array.isArray(pp.r)&&pp.r.length)DRAW.recent=pp.r.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,4);}}catch(e){}
+const penSave=()=>{try{localStorage.setItem('ial27w.pen',JSON.stringify({w:DRAW.width,r:DRAW.recent}));}catch(e){}};
+const INKLOADED=new Set();          // 这题的已存笔迹已经取回并合并过
+async function loadInk(q){if(INKLOADED.has(q)&&INKS[q])return INKS[q];let saved=pending.ink[q]||inkCache[q]||null;
+  if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(!j.ok)throw new Error(j.error||'load');saved=j.strokes||[];inkCache[q]=saved;}
+    catch(e){toast('手写内容加载失败：'+errMsg(e));return INKS[q]||(INKS[q]=[]);}}}          // 没取到：先不算加载完，保存时不会覆盖服务器
+  if(INKLOADED.has(q)&&INKS[q])return INKS[q];
+  const early=INKS[q]&&INKS[q].length?INKS[q]:null;                         // 加载完成前就写下的笔画：接在已存笔迹后面，不覆盖
+  INKS[q]=saved.slice().concat(early||[]);INKLOADED.add(q);if(early){redrawQ(q);markDirty(q);}
+  return INKS[q];}
+function pruneCVS(q){const keys=q?[q]:Object.keys(CVS);for(const k of keys){const a=CVS[k];if(!a)continue;const live=a.filter(c=>{if(c.isConnected)return true;c.width=c.height=0;return false;});if(live.length)CVS[k]=live;else delete CVS[k];}}
+function bindCanvas(cv,q,i,lockedFn,scrollerFn){cv._ink={q,i,locked:lockedFn,scroller:scrollerFn};inkGuard(cv);pruneCVS(q);(CVS[q]=CVS[q]||[]).push(cv);
   cv.onpointerdown=e=>pdown(e,cv);cv.onpointermove=e=>pmove(e,cv);cv.onpointerup=cv.onpointercancel=cv.onpointerleave=e=>pup(e,cv);}
-function fitCanvas(cv){const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const z=zoomOf(cv),cw=r.width/z,ch=r.height/z,bs=(devicePixelRatio||1)*Math.min(z,2);cv.width=Math.round(cw*bs);cv.height=Math.round(ch*bs);cv.style.height=ch+'px';cv._bs=bs;redraw(cv);}
+function fitCanvas(cv){const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const z=zoomOf(cv),cw=r.width/z,ch=r.height/z,bs=inkBitmapScale(cw,ch,(devicePixelRatio||1)*Math.min(z,2));cv.width=Math.round(cw*bs);cv.height=Math.round(ch*bs);cv.style.height=ch+'px';cv._bs=bs;redraw(cv);wetResync(cv);}
 function ctxOf(cv){const c=cv.getContext('2d');const bs=cv._bs||(devicePixelRatio||1);c.setTransform(bs,0,0,bs,0,0);c.lineCap='round';c.lineJoin='round';return c;}
+/* ======================================================================
+   共享手写内核（学生端 index.html / 教师端 teacher.html 共用，构建时内联）
+   ----------------------------------------------------------------------
+   v2 笔迹 {i,c,w,p,q,v:2}
+     p = 已经稳定过的点（x,y 以题图宽度为 1 归一化），q = 每点的宽度系数（0..1，已平滑）
+     w = 选中的笔宽 / 题图宽度 —— 画出来的最粗处 = w，压力只会让它变细，永远不会超过选中的粗细
+   写的时候画在「湿墨层」上，抬笔后用同一个函数、同一组点画到底层 → 抬笔前后一个像素都不变。
+   旧笔迹（没有 v）仍用原来的算法画，已经写过的内容看起来和以前完全一样。
+   ====================================================================== */
+const INK={
+  // 压力 → 宽度（Safari 的 pressure = 力 / 4.17：轻写 ≈0.05–0.12，正常 ≈0.2–0.3，用力 ≥0.4）
+  fMin:0.35,         // 最轻 = 选中宽度 × 0.35
+  pLo:0.03,          // 低于这个压力按最细算
+  pHi:0.42,          // 到这里就是最粗 = 选中宽度（永远不会更粗）
+  gamma:0.85,        // 正常写字（0.24）≈ 73%
+  pressLen:3,        // 压力平滑：按移动距离（选中宽度的 3 倍）逐渐跟上，笔停住时不会晕开
+  noPress:0.82,      // 手指 / 鼠标没有压力：固定 0.82 倍
+  tau:5,             // 位置稳定（时间常数 ms）：60/120/240Hz 手感一致，几乎不拖尾（正常书写速度下偏差 ≈1px）
+  minDist:1.0,       // 两点最小间距（未缩放的 CSS px；放大时按倍数缩小，最小 0.6）；老 Safari 坐标是整数时 1.5
+  elbow:-0.2,        // 转角 > ~100°：在这里断开成两段各自圆头，尖角不起刺
+  cornerDot:0.3,     // 转角 > ~72°：拐点补一个圆，转角饱满
+};
+const INK_PALETTE=[
+  {g:'常用',c:[['#1e232a','墨黑'],['#1d4ed8','深蓝'],['#dc2626','批改红']]},
+  {g:'多巴胺',c:[['#ff3d8b','桃粉'],['#ff7a1a','活力橙'],['#f2b200','芒果黄'],['#12b76a','薄荷绿'],['#0ea5e9','天空蓝'],['#8b5cf6','电光紫']]},
+  {g:'莫兰迪',c:[['#7a8ea3','雾霾蓝'],['#b98583','豆沙粉'],['#879777','灰绿'],['#a58d73','奶茶'],['#8f81a3','烟紫'],['#66615c','岩灰']]},
+];
+const INK_COLORS=INK_PALETTE.flatMap(g=>g.c.map(x=>x[0]));
+const inkColorName=c=>{for(const g of INK_PALETTE)for(const [h,n] of g.c)if(h===c)return n;return '';};
+const r4=v=>Math.round(v*1e4)/1e4, r3=v=>Math.round(v*100)/100;   // 坐标 4 位小数，宽度系数 2 位
+const isIntEv=e=>Number.isInteger(e.clientX)&&Number.isInteger(e.clientY);
+/* 取一次 pointermove 的全部采样：iPadOS 18.2+ 有合并事件；过滤掉离父事件太远的（另一根手指串进来的）和完全重复的 */
+function inkSamples(e){let l=[];try{l=typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():[];}catch(x){}if(!l||!l.length)return[e];
+  const out=[];let lx=NaN,ly=NaN,lt=NaN;for(const s of l){if(Math.hypot(s.clientX-e.clientX,s.clientY-e.clientY)>80)continue;if(s.clientX===lx&&s.clientY===ly&&s.timeStamp===lt)continue;lx=s.clientX;ly=s.clientY;lt=s.timeStamp;out.push(s);}
+  return out.length?out:[e];}
+function inkFrac(p){const x=Math.min(1,Math.max(0,(p-INK.pLo)/(INK.pHi-INK.pLo)));return INK.fMin+(1-INK.fMin)*Math.pow(x,INK.gamma);}
+
+/* 一笔的输入：begin → add… → end。x,y = 归一化坐标（以题图宽度为 1）；Wd = 题图未缩放时的 CSS 宽度；
+   zoom = 当前放大倍数；t = 事件时间戳（ms）；isInt = 这个采样的 clientX/Y 是否是整数（老 Safari） */
+const tsOk=t=>t>0&&Math.abs(t-performance.now())<3000;           // iPadOS 26.0–26.2 有时间戳错误的版本
+function inkBegin(x,y,pressure,type,i,color,wNorm,zoom,t,isInt){
+  const pen=type==='pen',f=pen?inkFrac(0.24):INK.noPress,t0=tsOk(t)?t:performance.now();
+  // 落笔那一下的压力是系统的估计值（Safari 永远不会更正）：不用它，按「正常写字」起笔，等真实采样到了再回头统一
+  return {i,c:color,w:wNorm,type,z:zoom||1,p:[r4(x),r4(y)],q:[r3(f)],sx:x,sy:y,sf:f,lastP:0.24,p0:pressure,t0,lastT:t0,
+    tx:x,ty:y,travel:0,seedSum:0,seedN:0,intN:isInt?1:0,nS:1,coarse:false,n:1};
+}
+function inkAdd(st,x,y,pressure,Wd,t,isInt){
+  const pen=st.type==='pen';
+  if(st.nS<8){st.nS++;if(isInt)st.intN++;if(st.nS===8&&st.intN===8)st.coarse=true;}
+  const tt=tsOk(t)&&t>=st.lastT?t:st.lastT+4,dt=Math.min(50,Math.max(1,tt-st.lastT));st.lastT=tt;
+  const a=1-Math.exp(-dt/INK.tau);
+  const ox=st.sx,oy=st.sy;st.sx+=(x-st.sx)*a;st.sy+=(y-st.sy)*a;
+  st.tx=x;st.ty=y;                                                   // 最新的真实笔尖：每帧都画到这里，笔迹不拖尾
+  const Wpx=Math.max(0.5,st.w*Wd);
+  const step=Math.hypot((st.sx-ox)*Wd,(st.sy-oy)*Wd);st.travel+=step;
+  if(pen){const real=pressure>0&&!(tt-st.t0<60&&pressure===st.p0);    // 0 = 没数据；前 60ms 与落笔值相同 = 估计值
+    if(real)st.lastP=pressure;const f=inkFrac(st.lastP);
+    if(st.travel<3*Wpx){if(real){st.seedSum+=f;st.seedN++;}if(st.seedN){st.sf=st.seedSum/st.seedN;for(let k=0;k<st.q.length;k++)st.q[k]=r3(st.sf);}}   // 起笔段：用真实采样的平均值
+    else st.sf+=(f-st.sf)*(1-Math.exp(-step/(INK.pressLen*Wpx)));}
+  const L=st.p.length,md=st.coarse?Math.max(0.6,1.5/st.z):Math.max(0.6,INK.minDist/st.z);
+  if(Math.hypot((st.sx-st.p[L-2])*Wd,(st.sy-st.p[L-1])*Wd)<md)return true;   // 太近：不存点，但笔尖位置更新了
+  st.p.push(r4(st.sx),r4(st.sy));st.q.push(r3(st.sf));st.n++;return true;
+}
+/* 当前这一笔的完整数据（写的时候每帧、抬笔时都用它 —— 所以两者完全一致） */
+function inkEnd(st){
+  const p=st.p.slice(),q=st.q.slice(),L=p.length,tx=r4(st.tx),ty=r4(st.ty);
+  if(Math.hypot(tx-p[L-2],ty-p[L-1])>1e-4){p.push(tx,ty);q.push(r3(st.sf));}
+  const s={i:st.i,c:st.c,w:+st.w.toFixed(5),p,v:2};
+  if(st.type==='pen')s.q=q;
+  return s;
+}
+
+/* v2 轮廓：[1,2,1] 对称平滑 → 在急转弯处分段 → 每段一条左右偏移带（去掉内侧折回的点，二次曲线过中点）+ 两端圆头；
+   全部放进一个 Path2D，nonzero 一次填充 —— 边缘干净、没有空洞、尖角不起刺 */
+function inkPathV2(s,Wd){
+  const path=new Path2D(),raw=s.p,n=raw.length>>1,base=s.w*Wd/2;
+  const circle=(x,y,r)=>{path.moveTo(x+r,y);path.arc(x,y,r,0,Math.PI*2,true);};   // 逆时针，和偏移带同向
+  const R=k=>Math.max(0.3,base*Math.min(1,s.q?(s.q[k]==null?INK.noPress:s.q[k]):INK.noPress));
+  if(n===1){circle(raw[0]*Wd,raw[1]*Wd,Math.max(R(0),base*0.9));return path;}
+  const X=new Float64Array(n),Y=new Float64Array(n);
+  for(let k=0;k<n;k++){if(k===0||k===n-1){X[k]=raw[2*k]*Wd;Y[k]=raw[2*k+1]*Wd;}
+    else{X[k]=(raw[2*k-2]+2*raw[2*k]+raw[2*k+2])/4*Wd;Y[k]=(raw[2*k-1]+2*raw[2*k+1]+raw[2*k+3])/4*Wd;}}
+  const cosAt=k=>{const ax=X[k]-X[k-1],ay=Y[k]-Y[k-1],bx=X[k+1]-X[k],by=Y[k+1]-Y[k],la=Math.hypot(ax,ay),lb=Math.hypot(bx,by);return la>1e-6&&lb>1e-6?(ax*bx+ay*by)/(la*lb):1;};
+  const cuts=[0];for(let k=1;k<n-1;k++){const c=cosAt(k);if(c<INK.elbow)cuts.push(k);else if(c<INK.cornerDot)circle(X[k],Y[k],R(k));}cuts.push(n-1);
+  const band=(a,b)=>{if(b-a<1){circle(X[a],Y[a],R(a));return;}
+    const Lx=[],Ly=[],Rx=[],Ry=[];let lpx=NaN,lpy=NaN,rpx=NaN,rpy=NaN;
+    for(let k=a;k<=b;k++){const i0=Math.max(a,k-1),i1=Math.min(b,k+1);let dx=X[i1]-X[i0],dy=Y[i1]-Y[i0],len=Math.hypot(dx,dy);if(len<1e-6){dx=1;dy=0;len=1;}
+      const tx=dx/len,ty=dy/len,nx=-ty,ny=tx,r=R(k);
+      const lx=X[k]+nx*r,ly=Y[k]+ny*r,rx=X[k]-nx*r,ry=Y[k]-ny*r;
+      if(k===a||k===b||(lx-lpx)*tx+(ly-lpy)*ty>0){Lx.push(lx);Ly.push(ly);lpx=lx;lpy=ly;}     // 内侧折回的点不要
+      if(k===a||k===b||(rx-rpx)*tx+(ry-rpy)*ty>0){Rx.push(rx);Ry.push(ry);rpx=rx;rpy=ry;}}
+    const m=Lx.length,o=Rx.length;
+    path.moveTo(Lx[0],Ly[0]);for(let k=1;k<m-1;k++)path.quadraticCurveTo(Lx[k],Ly[k],(Lx[k]+Lx[k+1])/2,(Ly[k]+Ly[k+1])/2);path.lineTo(Lx[m-1],Ly[m-1]);
+    path.lineTo(Rx[o-1],Ry[o-1]);for(let k=o-2;k>0;k--)path.quadraticCurveTo(Rx[k],Ry[k],(Rx[k]+Rx[k-1])/2,(Ry[k]+Ry[k-1])/2);path.lineTo(Rx[0],Ry[0]);path.closePath();
+    circle(X[a],Y[a],R(a));circle(X[b],Y[b],R(b));};
+  for(let c=0;c<cuts.length-1;c++)band(cuts[c],cuts[c+1]);
+  return path;
+}
+
+/* ---- 旧笔迹（v1）的原算法：原样保留，保证以前写的内容外观不变 ---- */
 function smoothPts(pts){const P=[];for(let k=0;k<pts.length;k+=2)P.push([pts[k],pts[k+1]]);if(P.length<3)return P;
   const out=[P[0]];for(let i=1;i<P.length-1;i++)out.push([(P[i-1][0]+2*P[i][0]+P[i+1][0])/4,(P[i-1][1]+2*P[i][1]+P[i+1][1])/4]);out.push(P[P.length-1]);return out;}
 function curvePath(c,P,Wd){c.moveTo(P[0][0]*Wd,P[0][1]*Wd);for(let i=1;i<P.length-1;i++){const mx=(P[i][0]+P[i+1][0])/2*Wd,my=(P[i][1]+P[i+1][1])/2*Wd;c.quadraticCurveTo(P[i][0]*Wd,P[i][1]*Wd,mx,my);}const L=P[P.length-1];c.lineTo(L[0]*Wd,L[1]*Wd);}
-function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
-  if(s.k){c.strokeStyle=s.c;c.lineWidth=s.w*Wd;c.beginPath();for(let k=0;k<s.p.length;k+=2){k?c.lineTo(s.p[k]*Wd,s.p[k+1]*Wd):c.moveTo(s.p[k]*Wd,s.p[k+1]*Wd);}c.stroke();return;}
+function drawStrokeV1(c,s,Wd){
   const P=smoothPts(s.p),base=s.w*Wd;c.fillStyle=s.c;c.strokeStyle=s.c;
   if(P.length<2){c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,base/2,0,Math.PI*2);c.fill();return;}
   const q=s.q&&s.q.length===P.length?s.q:null;
@@ -1641,49 +1779,167 @@ function drawStroke(c,s,Wd){if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(1
   const L=[],R=[];for(let i=0;i<P.length;i++){const a=P[Math.max(0,i-1)],b=P[Math.min(P.length-1,i+1)];const dx=b[0]-a[0],dy=b[1]-a[1];const len=Math.hypot(dx,dy)||1e-6;const nx=-dy/len,ny=dx/len,h=ws[i]/2/Wd;L.push([P[i][0]+nx*h,P[i][1]+ny*h]);R.push([P[i][0]-nx*h,P[i][1]-ny*h]);}
   c.beginPath();curvePath(c,L,Wd);const Rr=R.slice().reverse();const E=P[P.length-1];c.lineTo(Rr[0][0]*Wd,Rr[0][1]*Wd);for(let i=1;i<Rr.length-1;i++){const mx=(Rr[i][0]+Rr[i+1][0])/2*Wd,my=(Rr[i][1]+Rr[i+1][1])/2*Wd;c.quadraticCurveTo(Rr[i][0]*Wd,Rr[i][1]*Wd,mx,my);}c.lineTo(Rr[Rr.length-1][0]*Wd,Rr[Rr.length-1][1]*Wd);c.closePath();c.fill();
   c.beginPath();c.arc(P[0][0]*Wd,P[0][1]*Wd,ws[0]/2,0,Math.PI*2);c.fill();c.beginPath();c.arc(E[0]*Wd,E[1]*Wd,ws[ws.length-1]/2,0,Math.PI*2);c.fill();}
+
+/* 统一入口：✗ 标记 / 几何图形 / v2 / 旧笔迹 */
+function drawStroke(c,s,Wd){
+  if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
+  if(s.k){c.strokeStyle=s.c;c.lineWidth=s.w*Wd;c.lineCap='round';c.lineJoin='round';c.beginPath();for(let k=0;k<s.p.length;k+=2){k?c.lineTo(s.p[k]*Wd,s.p[k+1]*Wd):c.moveTo(s.p[k]*Wd,s.p[k+1]*Wd);}c.stroke();return;}
+  if(s.v===2){c.fillStyle=s.c;c.fill(inkPathV2(s,Wd),'nonzero');return;}
+  drawStrokeV1(c,s,Wd);
+}
+
+/* ---- 湿墨层：整页只有一张，落笔时贴到当前画布上方，每帧重画「正在写的这一笔」 ---- */
+const WET={cv:null,host:null,scale:1,raf:0,fn:null};
+function wetAttach(cv,scale){
+  if(!WET.cv){WET.cv=document.createElement('canvas');WET.cv.className='inkwet';
+    WET.cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2;touch-action:none';}
+  const w=WET.cv;if(w.parentNode!==cv.parentNode)cv.parentNode.appendChild(w);
+  w.style.left='0';w.style.top='0';w.style.width='100%';w.style.height=cv.style.height||'100%';   // 与底层画布同一个 CSS 盒子（高度常是小数）
+  if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
+  WET.host=cv;WET.scale=scale;WET.lastBox=null;const c=w.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,w.width,w.height);
+}
+function wetResync(cv){if(!WET.cv||WET.host!==cv)return;const w=WET.cv;if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
+  w.style.height=cv.style.height||'100%';WET.scale=cv._bs||devicePixelRatio||1;WET.lastBox=null;if(WET.fn)wetRender(WET.fn,WET.box);}
+function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.scale,0,0,WET.scale,0,0);return c;}
+/* fn(ctx) 负责把当前这一笔画出来；多次调用会在下一帧合并成一次 */
+function inkBBox(s,Wd){const p=s.p;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<p.length;k+=2){const x=p[k]*Wd,y=p[k+1]*Wd;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}const m=s.w*Wd+3;return[x0-m,y0-m,x1+m,y1+m];}
+/* fn(ctx) 画当前这一笔；box = 这一笔的包围盒（CSS px）。每帧只清掉「上一帧 ∪ 这一帧」的包围盒，不整张清 */
+function wetRender(fn,box){WET.fn=fn;WET.box=box||null;if(WET.raf)return;WET.raf=requestAnimationFrame(()=>{WET.raf=0;if(!WET.cv||!WET.fn)return;
+  const c=WET.cv.getContext('2d'),k=WET.scale,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
+  if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*k),y0=Math.floor(Math.min(b[1],l[1])*k),x1=Math.ceil(Math.max(b[2],l[2])*k),y1=Math.ceil(Math.max(b[3],l[3])*k);c.clearRect(x0,y0,x1-x0,y1-y0);}
+  else c.clearRect(0,0,WET.cv.width,WET.cv.height);
+  WET.lastBox=b;c.setTransform(k,0,0,k,0,0);WET.fn(c);});}
+function wetFree(){wetClear();if(WET.cv){WET.cv.width=WET.cv.height=0;}WET.lastBox=null;}   // 换页 / 关手写页：释放湿墨层位图
+function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
+
+/* ---- 触控：笔优先的防误触 + 手指拖动惯性 ----
+   规则（每个触点落下时判定一次，整段生命周期不变）：
+   · 笔正在写 / 笔抬起 300ms 内落下的触点 = 手掌；
+   · 最近 10 秒用过笔、且接触面 ≥ 120px（约 23mm，手指平按也到不了）= 手掌；系统没报接触面大小就不用这条；
+   · 笔悬停（没接触屏幕）不算「用过笔」—— 否则拿着笔悬在屏幕上方时手指就划不动了。 */
+const PEN={down:false,upAt:0,seenAt:0};
+const PALM_W=120,PALM=new Set();
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen'){PEN.down=true;PEN.seenAt=Date.now();}},{capture:true,passive:true});
+document.addEventListener('pointermove',e=>{if(e.pointerType==='pen'&&e.buttons)PEN.seenAt=Date.now();},{capture:true,passive:true});
+['pointerup','pointercancel','lostpointercapture'].forEach(ev=>document.addEventListener(ev,e=>{if(e.pointerType==='pen'&&PEN.down&&ev!=='lostpointercapture'){PEN.down=false;PEN.upAt=Date.now();}},{capture:true,passive:true}));
+const touchSize=e=>(e.width>1||e.height>1)?Math.max(e.width||0,e.height||0):0;
+function touchPalmReason(e){if(e.pointerType!=='touch')return '';const t=Date.now();
+  if(PEN.down&&t-PEN.seenAt>8000)PEN.down=false;                 // 丢了 pointerup 的「笔还按着」：8 秒没动就当已抬起
+  if(PEN.down)return 'pen-down';if(t-PEN.upAt<300)return 'pen-just-up';
+  if(PEN.seenAt&&touchSize(e)>=PALM_W)return 'big';return '';}      // 用过笔之后，≥120px 的接触面一律当手掌（手指平按到不了）
+function touchIsPalm(e){if(e.pointerType!=='touch')return false;if(PALM.has(e.pointerId))return true;const r=touchPalmReason(e);if(r)PALM.add(e.pointerId);if(INKDBG.on)inkDbg(e,r||'finger');return !!r;}
+/* 触点刚落下 100ms 内接触面变大到手掌级 → 改判为手掌（手掌是慢慢压实的） */
+function touchGrewToPalm(e,t0){return e.pointerType==='touch'&&performance.now()-t0<100&&PEN.seenAt>0&&touchSize(e)>=PALM_W;}
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,e=>{if(e.pointerType==='touch'){if(INKDBG.on)inkDbg(e,ev);setTimeout(()=>PALM.delete(e.pointerId),0);}},{capture:true,passive:true}));
+['touchend','touchcancel'].forEach(ev=>document.addEventListener(ev,e=>{if(!e.touches.length){PALM.clear();if(PEN.down){PEN.down=false;PEN.upAt=Date.now();}}},{capture:true,passive:true}));
+addEventListener('blur',()=>{PALM.clear();PEN.down=false;});
+/* 惯性（iOS 手感）：最近 100ms、至少 3 个采样估速度；松手前停顿超过 45ms 就不滑；速度按每毫秒 0.997 衰减 */
+function momentum(){const S=[];return{
+  reset(){S.length=0;},
+  add(x,y){const t=performance.now();S.push([t,x,y]);while(S.length>3&&t-S[0][0]>100)S.shift();},
+  velocity(){const n=S.length;if(n<3)return[0,0];const b=S[n-1];if(performance.now()-b[0]>45)return[0,0];
+    let i=0;while(i<n-2&&b[0]-S[i][0]>100)i++;const a=S[i],dt=b[0]-a[0];if(dt<16)return[0,0];
+    let vx=(b[1]-a[1])/dt,vy=(b[2]-a[2])/dt;const m=Math.hypot(vx,vy),cap=5;if(m>cap){vx*=cap/m;vy*=cap/m;}return[vx,vy];},
+  fling(step){let [vx,vy]=this.velocity();if(Math.hypot(vx,vy)<0.05)return null;let last=performance.now(),id=0;
+    const f=()=>{const t=performance.now(),dt=Math.min(40,t-last);last=t;const k=Math.pow(0.997,dt);vx*=k;vy*=k;
+      if(step(vx*dt,vy*dt)===false||Math.hypot(vx,vy)<0.015){id=0;return;}id=requestAnimationFrame(f);};
+    id=requestAnimationFrame(f);return{stop(){if(id)cancelAnimationFrame(id);id=0;}};},
+};}
+/* ---- ?debug=1：屏幕左下角显示最近的触点（类型 / 接触面 / 压力 / 判定），方便在学生的 iPad 上调参数 ---- */
+const INKDBG={on:/[?&]debug=1/.test(location.search),log:[],el:null,cnt:{}};
+function inkDbg(e,what){if(!INKDBG.on)return;INKDBG.cnt[what]=(INKDBG.cnt[what]||0)+1;
+  INKDBG.log.unshift(`${e.type.replace('pointer','')} ${e.pointerType} #${e.pointerId}${e.isPrimary?'P':''} ${Math.round(e.width||0)}×${Math.round(e.height||0)} p${(e.pressure||0).toFixed(2)} → ${what}`);INKDBG.log.length=Math.min(INKDBG.log.length,14);
+  if(!INKDBG.el){INKDBG.el=document.createElement('pre');INKDBG.el.style.cssText='position:fixed;left:6px;bottom:6px;z-index:99;background:rgba(0,0,0,.78);color:#9ef;font:11px/1.35 ui-monospace,Menlo,monospace;padding:6px 8px;border-radius:8px;pointer-events:none;max-width:92vw;white-space:pre-wrap';document.body.appendChild(INKDBG.el);}
+  INKDBG.el.textContent=Object.entries(INKDBG.cnt).map(([k,v])=>k+':'+v).join('  ')+'\n'+INKDBG.log.join('\n');}
+if(INKDBG.on)document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen')inkDbg(e,'pen');},{capture:true,passive:true});
+/* 画布上：touchstart/touchmove 一律 preventDefault —— 挡住 iPadOS 随手写(Scribble)吞笔、双击放大镜、长按菜单（不影响按钮） */
+function inkGuard(cv){if(cv._guard)return;cv._guard=1;cv.classList.add('inkcv');const f=e=>{if(e.cancelable)e.preventDefault();};cv.addEventListener('touchstart',f,{passive:false});cv.addEventListener('touchmove',f,{passive:false});}   // 只挂在可书写的画布上
+/* 画布位图上限：iOS 单张画布超过 16.7M 像素会直接变白；这里每张最多 8M 像素 */
+function inkBitmapScale(cssW,cssH,want){return Math.max(1,Math.min(want,Math.sqrt(8e6/Math.max(1,cssW*cssH))));}
+
+/* ---- 调色板：常用 3 + 多巴胺 6 + 莫兰迪 6 = 15 色；工具栏只放最近用的 4 个，🎨 打开全部 ---- */
+function inkPaletteOpen(btn,cur,onPick){let el=document.getElementById('inkPal');
+  if(!el){el=document.createElement('div');el.id='inkPal';el.hidden=true;document.body.appendChild(el);
+    document.addEventListener('pointerdown',e=>{const p=document.getElementById('inkPal');if(p&&!p.hidden&&!p.contains(e.target)&&!e.target.closest('[data-palette]'))p.hidden=true;},{capture:true,passive:true});}
+  if(!el.hidden&&el._btn===btn){el.hidden=true;return;}
+  el._btn=btn;el.innerHTML=INK_PALETTE.map(g=>`<div class="pg"><b>${g.g}</b><div class="pr">${g.c.map(([c,nm])=>`<button type="button" class="psw" data-pcolor="${c}" aria-pressed="${cur===c}" title="${nm}"><i style="background:${c}"></i><small>${nm}</small></button>`).join('')}</div></div>`).join('');
+  el.onclick=e=>{const b=e.target.closest('[data-pcolor]');if(!b)return;el.hidden=true;onPick(b.dataset.pcolor);};
+  el.hidden=false;const r=btn.getBoundingClientRect(),w=el.offsetWidth,h=el.offsetHeight;
+  let x=Math.min(Math.max(8,r.left+r.width/2-w/2),innerWidth-w-8),y=r.bottom+8;if(y+h>innerHeight-8)y=Math.max(8,r.top-h-8);
+  el.style.left=x+'px';el.style.top=y+'px';}
+const INK_PAL_CSS=`#inkPal{position:fixed;z-index:95;background:#fff;border:1px solid #e3e0dc;border-radius:14px;box-shadow:0 14px 44px rgba(0,0,0,.24);padding:10px 12px 6px;width:min(94vw,372px)}
+#inkPal .pg{margin:2px 0 8px}#inkPal .pg b{font-size:12px;color:#6e7681;display:block;margin:0 0 5px 2px;font-weight:600}
+#inkPal .pr{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+#inkPal .psw{border:0;background:none;padding:3px 0;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#inkPal .psw i{width:32px;height:32px;border-radius:50%;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)}
+#inkPal .psw[aria-pressed="true"] i{box-shadow:0 0 0 2px #fff,0 0 0 4px #1e232a}
+#inkPal .psw small{font-size:10.5px;color:#6e7681;white-space:nowrap}`;
+(function(){const st=document.createElement('style');st.textContent=INK_PAL_CSS;document.head.appendChild(st);})();
+
+
 function redraw(cv){const {q,i}=cv._ink;const c=ctxOf(cv);const Wd=(cv.getBoundingClientRect().width||cv.width)/zoomOf(cv);c.clearRect(0,0,cv.width,cv.height);
-  const tg=TG[q];if(tg&&tg.strokes)for(const s of tg.strokes)if(s.i===i)drawStroke(c,s,Wd);
+  const tg=TG[q];if(tg&&tg.strokes&&!(W.q===q&&W.redo)&&!gradeStale(q))for(const s of tg.strokes)if(s.i===i)drawStroke(c,s,Wd);
   if(W.q===q&&W.showOld){c.save();c.globalAlpha=.28;for(const s of W.old)if(s.i===i)drawStroke(c,s,Wd);c.restore();}
   for(const s of (INKS[q]||[]))if(s.i===i)drawStroke(c,s,Wd);}
 const redrawQ=q=>(CVS[q]||[]).forEach(cv=>{if(cv.isConnected)redraw(cv);});
-function norm(e,cv){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.width];}
-const pressOf=e=>e.pointerType==='pen'?Math.max(0.05,Math.min(1,e.pressure||0.5)):0.5;
-/* 防误触：笔正在写 / 笔刚离开 1.2 s 内 / 接触面很大（手掌）的手指一律忽略；其余单指拖动 = 滚动 */
-const notePen=e=>{if(e.pointerType==='pen'){DRAW.penNear=Date.now();DRAW.penSeen=true;}};
-document.addEventListener('pointermove',e=>{if(e.pointerType==='pen')DRAW.penNear=Date.now();},{passive:true,capture:true});
-const isPalm=e=>e.pointerType==='touch'&&DRAW.penSeen&&((e.width||0)>=70||(e.height||0)>=70);
-const penBusy=()=>DRAW.penActive||Date.now()-DRAW.penNear<1200;
+function normR(e,r){return[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.width];}
+function norm(e,cv){return normR(e,cv.getBoundingClientRect());}
 function tip(m){const t=$('#wTip');if(!$('#writer').classList.contains('on'))return toast(m);t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,3200);}
+/* 手指在画布上拖 = 滚动所在页面（带惯性）；手写页的平移缩放在 #wBody 的手势层处理 */
+const FS={id:null,sc:null,y:0,top:0,yF:0,mo:momentum(),fl:null};
+const fsMax=sc=>sc===window?Math.max(0,document.documentElement.scrollHeight-innerHeight):Math.max(0,sc.scrollHeight-sc.clientHeight);
+const fsSet=(sc,v)=>{const y=Math.round(v);if(sc===window)scrollTo(scrollX,y);else sc.scrollTop=y;};
+function fsStart(e,cv){if(FS.fl){FS.fl.stop();FS.fl=null;}const sc=cv._ink.scroller();FS.id=e.pointerId;FS.sc=sc;FS.y=e.clientY;FS.top=FS.yF=sc===window?scrollY:sc.scrollTop;FS.mo.reset();FS.mo.add(0,e.clientY);try{cv.setPointerCapture(e.pointerId);}catch(x){}}
+function fsMove(e){FS.mo.add(0,e.clientY);FS.yF=Math.max(0,Math.min(fsMax(FS.sc),FS.top-(e.clientY-FS.y)));fsSet(FS.sc,FS.yF);}
+function fsEnd(e,cv){try{cv.releasePointerCapture(e.pointerId);}catch(x){}const sc=FS.sc;FS.id=null;if(e.type!=='pointerup')return;
+  FS.fl=FS.mo.fling((dx,dy)=>{const m=fsMax(sc),y0=FS.yF;FS.yF=Math.max(0,Math.min(m,FS.yF-dy));fsSet(sc,FS.yF);return FS.yF!==y0&&FS.yF>0&&FS.yF<m;});}
+addEventListener('touchstart',()=>{if(FS.fl){FS.fl.stop();FS.fl=null;}},{passive:true,capture:true});
+['touchend','touchcancel'].forEach(ev=>addEventListener(ev,e=>{if(!e.touches.length)FS.id=null;},{passive:true,capture:true}));   // 丢了 pointerup 也不会卡住
+/* 正在写的这一笔：v2 笔迹或识别出的几何图形 */
+const curStroke=cur=>cur.shape?{i:cur.i,c:cur.st.c,w:+cur.st.w.toFixed(5),p:cur.sp,k:1}:inkEnd(cur.st);
+function wetDrawCur(){const cur=DRAW.cur;if(!cur||cur.erase||!cur.st)return;const st=curStroke(cur),Wd=cur.Wd;wetRender(c=>drawStroke(c,st,Wd),inkBBox(st,Wd));}
+function cancelStroke(){if(DRAW.cur&&!DRAW.cur.erase){clearTimeout(DRAW.holdT);DRAW.cur=null;wetClear();}}
+/* 收尾一笔丢了 pointerup 的笔画：画布还在就照常落笔保存，不在就丢弃 */
+function abandonCur(){const cur=DRAW.cur;DRAW.cur=null;clearTimeout(DRAW.holdT);if(!cur){wetClear();return;}
+  if(!cur.erase&&cur.cv&&cur.cv.isConnected&&(cur.shape||cur.st.n>=3)){const s=curStroke(cur);if(annotLayer(cur.q))s.a=1;(INKS[cur.q]=INKS[cur.q]||[]).push(s);drawStroke(ctxOf(cur.cv),s,cur.Wd);markDirty(cur.q);}else if(cur.erase)markDirty(cur.q);wetClear();}
 function pdown(e,cv){const K=cv._ink;if(!K)return;if(e.pointerType==='mouse'&&e.button!==0)return;
-  notePen(e);
-  if(e.pointerType==='touch'){if(isPalm(e)||penBusy())return;
-    if(!DRAW.finger){const sc=K.scroller();DRAW.scroll={id:e.pointerId,y:e.clientY,top:sc===window?scrollY:sc.scrollTop,sc,cv};try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}}
-  if(e.pointerType==='pen'){DRAW.penActive=true;DRAW.scroll=null;}
+  if(e.pointerType==='touch'){if(e.isPrimary)FS.id=null;if(touchIsPalm(e)){e.preventDefault();return;}
+    if(!DRAW.finger){if(FS.id==null)fsStart(e,cv);
+      else if(FS.id!==e.pointerId){FS.id=e.pointerId;FS.sc=cv._ink.scroller();FS.y=e.clientY;FS.top=FS.yF;FS.mo.reset();FS.mo.add(0,e.clientY);try{cv.setPointerCapture(e.pointerId);}catch(x){}}   // 新落下的手指接管滚动（撑着的拇指不再挡住）
+      return;}}
+  if(e.pointerType==='pen'&&FS.id!=null)FS.id=null;                       // 笔落下：手指滚动让位
+  if(DRAW.cur&&DRAW.cur.id!==e.pointerId){if(e.isPrimary||!DRAW.cur.cv||!DRAW.cur.cv.isConnected)abandonCur();else return;}   // 上一笔丢了抬笔事件：先收尾，不让它卡住
   if(K.locked()&&DRAW.tool!=='marker'){tip('已提交的题不能再改笔迹；要重来点「重做」');return;}
-  e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}const [x,y]=norm(e,cv);const q=K.q,i=K.i;if(!INKS[q])INKS[q]=[];
-  if(DRAW.tool==='marker'){INKS[q].push({i,f:1,p:[+x.toFixed(4),+y.toFixed(4)]});redrawQ(q);markDirty(q);DRAW.cur=null;return;}
+  e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  const r=cv.getBoundingClientRect(),[x,y]=normR(e,r),q=K.q,i=K.i;if(!INKS[q])INKS[q]=[];
+  if(DRAW.tool==='marker'){INKS[q].push({i,f:1,p:[r4(x),r4(y)]});redrawQ(q);markDirty(q);DRAW.cur=null;return;}
   if(DRAW.tool==='eraser'){DRAW.cur={erase:true,cv,id:e.pointerId,q};eraseAt(x,y,q,i);return;}
-  const Wd=cv.getBoundingClientRect().width/zoomOf(cv),pr=pressOf(e);
-  DRAW.cur={q,i,c:DRAW.color,w:DRAW.width/Wd,p:[+x.toFixed(4),+y.toFixed(4)],qq:e.pointerType==='pen'?[+pr.toFixed(2)]:null,cv,lx:x,ly:y,mx:x,my:y,lw:DRAW.width*(e.pointerType==='pen'?(0.55+0.9*pr):1),id:e.pointerId,hx:x,hy:y};armHold();}
-function pmove(e,cv){notePen(e);
-  if(DRAW.scroll&&DRAW.scroll.id===e.pointerId){const d=e.clientY-DRAW.scroll.y;if(DRAW.scroll.sc===window)scrollTo(0,DRAW.scroll.top-d);else DRAW.scroll.sc.scrollTop=DRAW.scroll.top-d;return;}
-  const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;e.preventDefault();const Wd=cv.getBoundingClientRect().width/zoomOf(cv);
-  if(cur.erase){const [x,y]=norm(e,cv);eraseAt(x,y,cur.q,cv._ink.i);return;}
-  if(cur.shape){if(cur.shape==='line'){const [px,py]=norm(e,cv);let x1=cur.p[0],y1=cur.p[1],x2=px,y2=py;const ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;if(Math.abs(ang)<5||Math.abs(Math.abs(ang)-180)<5)y2=y1;else if(Math.abs(Math.abs(ang)-90)<5)x2=x1;cur.p=[x1,y1,+x2.toFixed(4),+y2.toFixed(4)];redraw(cv);drawStroke(ctxOf(cv),{i:cur.i,c:cur.c,w:cur.w,p:cur.p,k:1},Wd);}return;}
-  let evs=[];try{evs=e.getCoalescedEvents?e.getCoalescedEvents():[];}catch(x){}if(!evs.length)evs=[e];
-  const c=ctxOf(cv);c.strokeStyle=cur.c;
-  for(const ev of evs){const [px,py]=norm(ev,cv);if(Math.hypot((px-cur.lx)*Wd,(py-cur.ly)*Wd)<1.2)continue;
-    const pr=pressOf(ev);const tw=DRAW.width*(cur.qq?(0.55+0.9*pr):1);cur.lw=cur.lw*0.7+tw*0.3;
-    const nmx=(cur.lx+px)/2,nmy=(cur.ly+py)/2;c.lineWidth=cur.lw;c.beginPath();c.moveTo(cur.mx*Wd,cur.my*Wd);c.quadraticCurveTo(cur.lx*Wd,cur.ly*Wd,nmx*Wd,nmy*Wd);c.stroke();
-    cur.p.push(+px.toFixed(4),+py.toFixed(4));if(cur.qq)cur.qq.push(+pr.toFixed(2));cur.lx=px;cur.ly=py;cur.mx=nmx;cur.my=nmy;
-    if(Math.hypot((px-cur.hx)*Wd,(py-cur.hy)*Wd)>3){cur.hx=px;cur.hy=py;armHold();}}}
-function pup(e,cv){if(DRAW.scroll&&DRAW.scroll.id===e.pointerId){DRAW.scroll=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}return;}
-  if(e.pointerType==='pen'&&e.type!=='pointerleave')DRAW.penActive=false;
+  const Wd=r.width/zoomOf(cv);
+  DRAW.cur={q,i,cv,id:e.pointerId,Wd,hx:x,hy:y,shape:null,sp:null,st:inkBegin(x,y,e.pressure,e.pointerType==='pen'?'pen':'touch',i,DRAW.color,DRAW.width/Wd,zoomOf(cv),e.timeStamp,isIntEv(e))};
+  wetAttach(cv,cv._bs||(devicePixelRatio||1));wetDrawCur();armHold();}
+function pmove(e,cv){
+  if(FS.id===e.pointerId){fsMove(e);return;}
+  const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;e.preventDefault();const r=cv.getBoundingClientRect();
+  if(cur.erase){const [x,y]=normR(e,r);eraseAt(x,y,cur.q,cv._ink.i);return;}
+  if(cur.shape){if(cur.shape==='line'){const [px,py]=normR(e,r);const x1=cur.sp[0],y1=cur.sp[1];let x2=px,y2=py;const ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;if(Math.abs(ang)<5||Math.abs(Math.abs(ang)-180)<5)y2=y1;else if(Math.abs(Math.abs(ang)-90)<5)x2=x1;cur.sp=[x1,y1,r4(x2),r4(y2)];wetDrawCur();}return;}
+  for(const ev of inkSamples(e)){const [x,y]=normR(ev,r);inkAdd(cur.st,x,y,ev.pressure,cur.Wd,ev.timeStamp,isIntEv(ev));}
+  const L=cur.st.p.length,px=cur.st.p[L-2],py=cur.st.p[L-1];
+  if(Math.hypot((px-cur.hx)*cur.Wd,(py-cur.hy)*cur.Wd)>3){cur.hx=px;cur.hy=py;armHold();}
+  wetDrawCur();}
+function pup(e,cv){
+  if(FS.id===e.pointerId){if(e.type!=='pointerleave')fsEnd(e,cv);return;}
+  if(e.pointerType==='touch'&&PALM.has(e.pointerId)){if(DRAW.cur&&DRAW.cur.id===e.pointerId)cancelStroke();return;}
   const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
   DRAW.cur=null;clearTimeout(DRAW.holdT);try{cv.releasePointerCapture(e.pointerId);}catch(x){}
   if(cur.erase){markDirty(cur.q);return;}
-  const s={i:cur.i,c:cur.c,w:+cur.w.toFixed(5),p:cur.p};if(cur.shape)s.k=1;else if(cur.qq&&cur.qq.some(v=>Math.abs(v-cur.qq[0])>0.05))s.q=cur.qq;if(annotLayer(cur.q))s.a=1;
-  INKS[cur.q].push(s);DRAW.lastQ=cur.q;if(cur.i>=NB)refreshBlock(cur.q,cur.i-NB);else redrawQ(cur.q);markDirty(cur.q);}
+  if(e.type==='pointercancel'&&!cur.shape&&cur.st.n<3){wetClear();return;}   // 被系统打断的极短一笔：丢弃
+  const s=curStroke(cur);if(annotLayer(cur.q))s.a=1;
+  INKS[cur.q].push(s);DRAW.lastQ=cur.q;
+  drawStroke(ctxOf(cv),s,cur.Wd);wetClear();                                // 与湿墨层同一函数、同一组点：抬笔后不变
+  (CVS[cur.q]||[]).forEach(c=>{if(c!==cv&&c.isConnected&&c._ink.i===cur.i)redraw(c);});
+  if(cur.i>=NB)refreshBlock(cur.q,cur.i-NB);
+  markDirty(cur.q);
+  if(W.pgq){const q=W.pgq;W.pgq=null;showGradeBox(q);}}                    // 写字时到的老师批改：抬笔后再显示
 function eraseAt(x,y,q,i){const cv=(CVS[q]||[]).find(c=>c._ink.i===i&&c.isConnected);const Wd=cv?cv.getBoundingClientRect().width/zoomOf(cv):1000;const r=14/Wd;let hit=false;const lock=annotLayer(q);let lockedHit=false;
   INKS[q]=(INKS[q]||[]).filter(s=>{if(s.i!==i)return true;if(lock&&!s.a&&!s.f){if(!lockedHit)for(let k=0;k<s.p.length;k+=2)if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r){lockedHit=true;break;}return true;}for(let k=0;k<s.p.length;k+=2){if(Math.hypot(s.p[k]-x,s.p[k+1]-y)<r*(s.f?2:1)){hit=true;return false;}}return true;});
   if(hit){redrawQ(q);markDirty(q);}else if(lockedHit&&!eraseAt._t){eraseAt._t=setTimeout(()=>eraseAt._t=null,2500);tip('已保存的答案不能擦，只能擦之后写的批注');}}
@@ -1714,22 +1970,26 @@ function recognize(pts,Wd){const P=[];for(let k=0;k<pts.length;k+=2)P.push([pts[
   if(sd/mean<0.18&&uniq.length<3)return ell();
   return null;}
 function armHold(){clearTimeout(DRAW.holdT);DRAW.holdT=setTimeout(holdCheck,HOLD_MS);}
-function holdCheck(){const cur=DRAW.cur;if(!cur||cur.erase||cur.shape)return;const Wd=cur.cv.getBoundingClientRect().width/zoomOf(cur.cv);const sh=recognize(cur.p,Wd);if(!sh)return;
-  cur.shape=sh.kind;cur.p=sh.p;cur.qq=null;redraw(cur.cv);drawStroke(ctxOf(cur.cv),{i:cur.i,c:cur.c,w:cur.w,p:cur.p,k:1},Wd);
+function holdCheck(){const cur=DRAW.cur;if(!cur||cur.erase||cur.shape||!cur.st)return;const sh=recognize(cur.st.p,cur.Wd);if(!sh)return;
+  cur.shape=sh.kind;cur.sp=sh.p;wetDrawCur();
   if(navigator.vibrate){try{navigator.vibrate(12);}catch(x){}}}
 function markDirty(q){DRAW.dirty.add(q);if(W.q===q)wStatus();clearTimeout(DRAW.saveT);DRAW.saveT=setTimeout(flushInk,1200);
   const sb=document.querySelector('.dock2 .n');if(sb&&doSet&&doSet.startsWith('p1')&&subs[doSet]){const items=setItems(doSet);sb.innerHTML=`已批注 <b>${items.filter(i=>(INKS[i.id]&&INKS[i.id].length)||inkIds[i.id]).length}</b> / ${items.length}`;}}
 const FLAG='✎ 手写笔记';
 const flagged=q=>!!notes[q];
-function flushInk(){clearTimeout(DRAW.saveT);if(!DRAW.dirty.size)return;for(const q of DRAW.dirty){const s=(INKS[q]||[]).slice();inkCache[q]=s;if(s.length)inkIds[q]=Date.now();else delete inkIds[q];pending.ink[q]=s;
+function flushInk(){clearTimeout(DRAW.saveT);if(!DRAW.dirty.size)return;
+  for(const q of [...DRAW.dirty])if(!INKLOADED.has(q)&&inkIds[q]){DRAW.dirty.delete(q);setTimeout(()=>loadInk(q).then(()=>{if(INKLOADED.has(q)){DRAW.dirty.add(q);flushInk();}else{DRAW.dirty.add(q);DRAW.saveT=setTimeout(flushInk,5000);}}),0);}   // 已存笔迹还没取回：先取回合并，再保存
+  for(const q of DRAW.dirty){const s=(INKS[q]||[]).slice();inkCache[q]=s;if(s.length)inkIds[q]=Date.now();else delete inkIds[q];pending.ink[q]=s;
     const hasNB=s.some(x=>x.i>=NB);if(hasNB&&!notes[q])setNote(q,FLAG);else if(!hasNB&&notes[q]&&notes[q].b===FLAG)setNote(q,'');}DRAW.dirty.clear();commit();}
 function setTool(t){DRAW.tool=t;document.querySelectorAll('[data-tool]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tool===t));
   const wr=$('#writer');wr.classList.toggle('eraser',t==='eraser');wr.classList.toggle('marker',t==='marker');}
-function setColor(c){DRAW.color=c;document.querySelectorAll('.sw[data-color]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.color===c));}
+function setColor(c,remember){DRAW.color=c;if(remember){DRAW.recent=[c].concat(DRAW.recent.filter(x=>x!==c)).slice(0,4);penSave();document.querySelectorAll('.swq').forEach(x=>x.innerHTML=swqHtml());}
+  document.querySelectorAll('.sw[data-color]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.color===c));}
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-tool]');if(t){setTool(t.dataset.tool);if(t.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');return;}
+  const pb=e.target.closest('[data-palette]');if(pb){inkPaletteOpen(pb,DRAW.color,c=>{setColor(c,true);if(DRAW.tool!=='pen')setTool('pen');});return;}
   const c=e.target.closest('.sw[data-color]');if(c){setColor(c.dataset.color);if(DRAW.tool!=='pen')setTool('pen');return;}
-  const w=e.target.closest('.wsz[data-w]');if(w){DRAW.width=+w.dataset.w;document.querySelectorAll('.wsz[data-w]').forEach(x=>x.setAttribute('aria-pressed',x===w||+x.dataset.w===DRAW.width));if(DRAW.tool!=='pen')setTool('pen');return;}
+  const w=e.target.closest('.wsz[data-w]');if(w){DRAW.width=+w.dataset.w;penSave();document.querySelectorAll('.wsz[data-w]').forEach(x=>x.setAttribute('aria-pressed',x===w||+x.dataset.w===DRAW.width));if(DRAW.tool!=='pen')setTool('pen');return;}
   const a=e.target.closest('[data-act]');if(!a)return;
   if(a.dataset.act==='finger'){DRAW.finger=!DRAW.finger;document.querySelectorAll('[data-act=finger]').forEach(x=>x.setAttribute('aria-pressed',DRAW.finger));tip(DRAW.finger?'手指书写已打开；要滚动请关闭它':'手指只滚动，Apple Pencil / 鼠标书写');}
   if(a.dataset.act==='undo'){const q=W.q||DRAW.lastQ;if(!q||!INKS[q]||!INKS[q].length)return tip('没有可撤销的笔迹');const cvq=(CVS[q]||[])[0];const last=INKS[q][INKS[q].length-1];if(annotLayer(q)&&!last.a&&!last.f)return tip('已保存的答案不能再改，只能撤销之后写的批注');INKS[q].pop();redrawQ(q);markDirty(q);}
@@ -1747,13 +2007,13 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${it.ch}章${it.t?` · ${it.t} 分`:''}${it.p==='p1'&&at.s?(at.ok?' · ✓ 答对':` · ✗ ${at.a?'你选 '+at.a:'未作答'} · 答案 ${it.L}`):''}`;
   $('#wTools').innerHTML=toolbarHtml()+`<button class="tb" data-tool="marker" aria-pressed="false" title="标记错处：点一下做错的那一问">❌</button><button class="tb" data-act="clear" title="清空本题">🗑</button><button class="tb wide" data-act="old" hidden aria-pressed="false" title="重做时显示上次的笔迹（淡色）">👀 上次笔迹</button>`;
   resetView();
-  $('#wInner').innerHTML=it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
+  wetFree();cancelStroke();setTimeout(pruneCVS,0);$('#wInner').innerHTML=it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
   wProg();
   const i=W.list.indexOf(q);$('#wPrev').disabled=i<=0;$('#wNext').disabled=i<0||i>=W.list.length-1;
   const saved=await loadInk(q);if(W.q!==q)return;
   {const inner=$('#wInner');[...inner.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(nbHas(q,k))st.insertAdjacentHTML('afterend',nbHtml(q,k,true));});nbSlots();}
   W.prevSelf=selfOf(q);
-  if(grades[q])loadGrade(q).then(g=>{if(!g||W.q!==q)return;$('#wInner').insertAdjacentHTML('afterbegin',gradeHtml(g));redrawQ(q);wStatus();});
+  if(grades[q]||(attempts[q]&&attempts[q].s))showGradeBox(q);
   if(W.redo){W.old=saved.slice();INKS[q]=[];tip('重做：这次不看上次写的，写完提交再自评一次');}else W.old=[];
   const ob=$('#wTools [data-act=old]');ob.hidden=!W.redo||!W.old.length;
   if(W.annot){setColor('#dc2626');if(!sessionStorage.getItem('annotTip')){sessionStorage.setItem('annotTip','1');tip('讲评批注：老师讲到哪就在题上写到哪');}}else if(!at.s)setColor(DRAW.color==='#dc2626'?'#1e232a':DRAW.color);
@@ -1761,7 +2021,7 @@ async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)retu
   const locked=()=>false;
   document.querySelectorAll('#wInner canvas').forEach(cv=>{bindCanvas(cv,q,+cv.dataset.i,locked,()=>$('#wBody'));const img=cv.previousElementSibling;if(img.tagName!=='IMG'||(img.complete&&img.naturalWidth))fitCanvas(cv);else img.onload=()=>fitCanvas(cv);});
   wStatus();wProg();}
-addEventListener('resize',()=>{if($('#writer').classList.contains('on'))document.querySelectorAll('#wInner canvas').forEach(fitCanvas);});
+addEventListener('resize',()=>{if($('#writer').classList.contains('on'))document.querySelectorAll('#wInner canvas:not(.inkwet)').forEach(fitCanvas);});
 /* 视图层：内容用 transform 平移+缩放，视口本身不滚动 —— 放大到哪就停在哪。
    一指拖动 = 平移（带惯性），两指 = 以指间中点为锚缩放（1×–3×），滚轮/触控板 = 平移，⌘/Ctrl+滚轮 = 缩放 */
 const VZ={z:1,tx:0,ty:0};
@@ -1773,37 +2033,63 @@ function clampView(){const body=$('#wBody'),inner=$('#wInner');const vw=body.cli
 function zoomAt(z,mx,my){z=Math.max(1,Math.min(3,z));const k=z/VZ.z;VZ.tx=mx-(mx-VZ.tx)*k;VZ.ty=my-(my-VZ.ty)*k;VZ.z=z;clampView();applyView();}
 function panBy(dx,dy){VZ.tx+=dx;VZ.ty+=dy;clampView();applyView();}
 function panTo(el,pad){if(!el)return;VZ.ty=-(el.offsetTop*VZ.z-(pad==null?12:pad));clampView();applyView();}
-function resetView(){VZ.z=1;VZ.tx=0;VZ.ty=0;$('#wInner').style.width=wBaseW()+'px';clampView();applyView();}
-function fitAll(){document.querySelectorAll('#wInner canvas').forEach(fitCanvas);}
+function resetView(){if(window.writerStopFling)writerStopFling();VZ.z=1;VZ.tx=0;VZ.ty=0;$('#wInner').style.width=wBaseW()+'px';clampView();applyView();}
+function fitAll(){document.querySelectorAll('#wInner canvas:not(.inkwet)').forEach(fitCanvas);}
 let fitT;const fitSoon=()=>{clearTimeout(fitT);fitT=setTimeout(fitAll,250);};
 $('#wZoom').onclick=()=>{const b=$('#wBody');zoomAt(1,b.clientWidth/2,b.clientHeight/2);fitAll();};
 document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if(!z)return;const b=$('#wBody');zoomAt(z.dataset.zoom==='+'?VZ.z*1.25:VZ.z/1.25,b.clientWidth/2,b.clientHeight/2);fitAll();});
-(function(){const body=$('#wBody');const T=new Map();let PZ=null,PAN=null,inertia=null;
+(function(){const body=$('#wBody');const T=new Map(),REST=new Set();let PZ=null,PAN=null,fl=null;const mo=momentum();
   ['gesturestart','gesturechange','gestureend'].forEach(t=>body.addEventListener(t,e=>e.preventDefault()));
   body.addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
   const local=e=>{const r=body.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];};
-  const stopInertia=()=>{if(inertia){cancelAnimationFrame(inertia);inertia=null;}};
-  body.addEventListener('pointerdown',e=>{if(e.pointerType!=='touch')return;if(isPalm(e)){e.stopPropagation();return;}
-    stopInertia();T.set(e.pointerId,local(e));
-    if(T.size===2){const [a,b]=[...T.values()];PZ={d0:Math.hypot(a[0]-b[0],a[1]-b[1])||1,z0:VZ.z,mx:(a[0]+b[0])/2,my:(a[1]+b[1])/2};PAN=null;if(DRAW.cur){DRAW.cur=null;redrawQ(W.q);}e.stopPropagation();return;}
-    if(T.size>2){e.stopPropagation();return;}
-    if(DRAW.finger&&e.target.tagName==='CANVAS')return;                       // 手指书写模式：交给画布
-    if(penBusy()){e.stopPropagation();return;}
-    const [x,y]=local(e);PAN={id:e.pointerId,x,y,tx:VZ.tx,ty:VZ.ty,lx:x,ly:y,lt:performance.now(),vx:0,vy:0};e.stopPropagation();},{capture:true});
-  body.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')return;if(!T.has(e.pointerId)){if(!DRAW.finger)e.stopPropagation();return;}
-    T.set(e.pointerId,local(e));
-    if(PZ&&T.size>=2){const [a,b]=[...T.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]),mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
-      VZ.tx+=mx-PZ.mx;VZ.ty+=my-PZ.my;PZ.mx=mx;PZ.my=my;zoomAt(PZ.z0*d/PZ.d0,mx,my);e.stopPropagation();return;}
-    if(PAN&&PAN.id===e.pointerId){const [x,y]=local(e);const now=performance.now(),dt=Math.max(1,now-PAN.lt);PAN.vx=(x-PAN.lx)/dt;PAN.vy=(y-PAN.ly)/dt;PAN.lx=x;PAN.ly=y;PAN.lt=now;
-      VZ.tx=PAN.tx+(x-PAN.x);VZ.ty=PAN.ty+(y-PAN.y);clampView();applyView();e.stopPropagation();return;}
-    if(!DRAW.finger)e.stopPropagation();},{capture:true});
-  const end=e=>{if(e.pointerType!=='touch')return;const had=T.delete(e.pointerId);
-    if(PZ&&T.size<2){PZ=null;fitAll();e.stopPropagation();return;}
-    if(PAN&&PAN.id===e.pointerId){const vx=PAN.vx*16,vy=PAN.vy*16;PAN=null;
-      if(Math.hypot(vx,vy)>0.6){let cx=vx,cy=vy;const step=()=>{cx*=0.94;cy*=0.94;panBy(cx,cy);if(Math.hypot(cx,cy)>0.3)inertia=requestAnimationFrame(step);else inertia=null;};inertia=requestAnimationFrame(step);}
+  const stopFling=()=>{if(fl){fl.stop();fl=null;}};
+  const live=()=>[...T.entries()].filter(([id])=>!REST.has(id));
+  const startPan=id=>{const t=T.get(id);PAN={id,x:t.x,y:t.y,tx:VZ.tx,ty:VZ.ty,t0:performance.now(),moved:0};mo.reset();mo.add(t.x,t.y);};
+  /* 每当有效触点的集合变化就重新定基准：两指 = 捏合（带死区），一指 = 平移（从当前位置接着拖，不跳） */
+  const rebase=()=>{const L=live();PZ=null;PAN=null;
+    if(L.length>=2){const [[ia,a],[ib,b]]=L.slice(-2);PZ={ia,ib,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:VZ.z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,armed:false,ax:a.x,ay:a.y,bx:b.x,by:b.y};cancelStroke();}
+    else if(L.length===1&&!(DRAW.finger&&T.get(L[0][0]).cv))startPan(L[0][0]);};
+  window.writerStopFling=stopFling;
+  addEventListener('touchstart',stopFling,{passive:true,capture:true});                            // 任何新触点（含 Pencil）都停住惯性
+  body.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='pen'){stopFling();                                                         // 笔落下：之前的手指（多半是手掌）全部作废，刚才被它拖动的位移撤回
+      if(PAN&&performance.now()-PAN.t0<500){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}
+      for(const id of T.keys())PALM.add(id);T.clear();REST.clear();if(PZ&&PZ.armed)fitAll();PZ=null;PAN=null;return;}
+    if(e.pointerType!=='touch')return;
+    if(e.isPrimary&&T.size){T.clear();REST.clear();PZ=null;PAN=null;}                 // 新手势的第一指：之前记着的都是丢了 pointerup 的旧触点
+    if(touchIsPalm(e)){e.stopPropagation();e.preventDefault();return;}               // 手掌 / 正在写字时的手指：整段忽略
+    stopFling();const [x,y]=local(e);T.set(e.pointerId,{x,y,t0:performance.now(),cv:e.target.tagName==='CANVAS'});
+    if(T.size>=2){rebase();e.stopPropagation();return;}
+    if(DRAW.finger&&e.target.tagName==='CANVAS')return;                              // 手指书写：交给画布
+    startPan(e.pointerId);e.stopPropagation();},{capture:true});
+  body.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')return;
+    const t=T.get(e.pointerId);if(!t){if(!DRAW.finger||PALM.has(e.pointerId))e.stopPropagation();return;}
+    const [x,y]=local(e);t.x=x;t.y=y;
+    if(touchGrewToPalm(e,t.t0)){PALM.add(e.pointerId);T.delete(e.pointerId);REST.delete(e.pointerId);if(DRAW.cur&&DRAW.cur.id===e.pointerId)cancelStroke();
+      if(PAN&&PAN.id===e.pointerId){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}rebase();e.stopPropagation();return;}   // 刚落下就压实成手掌：撤回位移
+    if(PZ){const a=T.get(PZ.ia),b=T.get(PZ.ib);if(!a||!b){rebase();e.stopPropagation();return;}
+      if(!PZ.armed){const ma=Math.hypot(a.x-PZ.ax,a.y-PZ.ay),mb=Math.hypot(b.x-PZ.bx,b.y-PZ.by);
+        if((ma>10&&mb<3)||(mb>10&&ma<3)){REST.add(ma<3?PZ.ia:PZ.ib);rebase();e.stopPropagation();return;}}   // 一指不动 = 撑着屏幕的手指：按单指拖动（在缩放死区之前判定）
+      const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+      VZ.tx+=mx-PZ.mx;VZ.ty+=my-PZ.my;PZ.mx=mx;PZ.my=my;
+      if(!PZ.armed&&Math.abs(d-PZ.d0)>16){PZ.armed=true;PZ.d0=d;PZ.z0=VZ.z;}           // 缩放死区：两指平移不会误缩放
+      if(PZ.armed)zoomAt(PZ.z0*d/PZ.d0,mx,my);else{clampView();applyView();}
       e.stopPropagation();return;}
-    if(had&&!DRAW.finger)e.stopPropagation();};
+    if(PAN&&PAN.id===e.pointerId){mo.add(x,y);PAN.moved=Math.max(PAN.moved,Math.hypot(x-PAN.x,y-PAN.y));VZ.tx=PAN.tx+(x-PAN.x);VZ.ty=PAN.ty+(y-PAN.y);clampView();applyView();e.stopPropagation();return;}
+    if(!DRAW.finger)e.stopPropagation();},{capture:true});
+  const end=e=>{if(e.pointerType!=='touch')return;const had=T.delete(e.pointerId);REST.delete(e.pointerId);
+    if(!had){if(PALM.has(e.pointerId))e.stopPropagation();return;}
+    const wasPan=PAN&&PAN.id===e.pointerId;
+    if(wasPan&&e.type==='pointercancel'&&performance.now()-PAN.t0<300&&PAN.moved<40){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}   // 系统判成手掌取消的：撤回
+    if(PZ){const z=PZ.armed;if(z)fitAll();rebase();e.stopPropagation();return;}       // 捏合结束还剩一指：从当前位置接着拖
+    if(wasPan){PAN=null;if(e.type==='pointerup')fl=mo.fling((dx,dy)=>{const tx=VZ.tx,ty=VZ.ty;panBy(dx,dy);return VZ.tx!==tx||VZ.ty!==ty;});e.stopPropagation();return;}
+    if(!DRAW.finger)e.stopPropagation();};
   body.addEventListener('pointerup',end,{capture:true});body.addEventListener('pointercancel',end,{capture:true});
+  /* 兜底：用系统报告的真实触点数校正 —— 丢失的 pointerup 不会再让旧触点卡住 */
+  const prune=n=>{if(T.size<=n)return;const keep=[...T.entries()].slice(-n);T.clear();keep.forEach(([k,v])=>T.set(k,v));for(const id of [...REST])if(!T.has(id))REST.delete(id);if(PZ&&PZ.armed)fitAll();rebase();};
+  body.addEventListener('touchstart',e=>prune(e.touches.length),{passive:true});
+  ['touchend','touchcancel'].forEach(t=>body.addEventListener(t,e=>{if(!e.touches.length){T.clear();REST.clear();if(PZ){if(PZ.armed)fitAll();PZ=null;}PAN=null;}else prune(e.touches.length);},{passive:true}));
+  addEventListener('blur',()=>{T.clear();REST.clear();PZ=null;PAN=null;});
   body.addEventListener('wheel',e=>{e.preventDefault();const [mx,my]=local(e);if(e.ctrlKey||e.metaKey){zoomAt(VZ.z*Math.exp(-e.deltaY*0.01),mx,my);fitSoon();}else panBy(-e.deltaX,-e.deltaY);},{passive:false});
   addEventListener('resize',()=>{if($('#writer').classList.contains('on')){if(VZ.z===1)$('#wInner').style.width=wBaseW()+'px';clampView();applyView();fitSoon();}});})();
 /* 已保存（看过答案）或批注模式：每段题图后给一个「加笔记区」按钮；已有笔记区的段落不重复给 */
@@ -1825,6 +2111,7 @@ function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;con
 let wNoteT;
 $('#wSubmit').onclick=()=>{const at=attempts[W.q]||{};if(at.s&&!W.redo)return;
   if(!(INKS[W.q]||[]).filter(s=>!s.f).length&&!confirm('这题还没写任何内容，确定提交？'))return;
+  if(W.redo&&grades[W.q])redoAt[W.q]=Date.now();
   DRAW.dirty.add(W.q);flushInk();W.redo=false;W.old=[];W.showOld=false;const ob=$('#wTools [data-act=old]');if(ob)ob.hidden=true;setAttempt(W.q,null,null,true);commit();
   setColor('#dc2626');setTool('pen');wStatus();nbSlots();   // 保存后换红笔：对答案时的订正一眼能分清；同时给出加笔记区按钮
   $('#wAns').click();};
@@ -1854,7 +2141,7 @@ function renderSelf(){const it=byId.get(W.q),cur=selfOf(W.q),prev=W.prevSelf;con
     else{setTool('marker');tip('用 ❌ 点一下失分的那一问，再手写一句原因');}
     renderSelf();};
   paint();}
-function closeWriter(){flushInk();commit();$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;W.annot=false;W.redo=false;renderAll();setTimeout(checkUpdate,800);}
+function closeWriter(){if(window.writerStopFling)writerStopFling();cancelStroke();flushInk();commit();wetFree();setTimeout(pruneCVS,0);$('#writer').classList.remove('on');document.body.style.overflow='';W.q=null;W.annot=false;W.redo=false;renderAll();setTimeout(checkUpdate,800);}
 $('#wBack').onclick=closeWriter;
 const wStep=k=>{const i=W.list.indexOf(W.q);const j=i+k;if(j<0||j>=W.list.length)return;flushInk();commit();const nq=W.list[j];openWriter(nq,{annot:W.annot});};
 $('#wPrev').onclick=()=>wStep(-1);$('#wNext').onclick=()=>wStep(1);
@@ -1905,7 +2192,7 @@ function renderAnnot(kind){const items=flaggedItems(kind);shown=items.slice().so
   document.querySelectorAll('.astrips').forEach(el=>io.observe(el));}
 async function paintAnnot(el){const q=el.dataset.q;let strokes=pending.ink[q]||inkCache[q];
   if(!strokes){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});strokes=(j.ok&&j.strokes)||[];inkCache[q]=strokes;}catch(e){strokes=[];}}
-  INKS[q]=INKS[q]||strokes.slice();const tg=grades[q]?await loadGrade(q):null;
+  if(!INKS[q]){INKS[q]=strokes.slice();INKLOADED.add(q);}const tg=grades[q]&&!gradeStale(q)?await loadGrade(q):null;
   [...el.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(strokes.some(s=>s.i===NB+k)&&!(st.nextElementSibling&&st.nextElementSibling.classList.contains('nb')))st.insertAdjacentHTML('afterend',nbHtml(q,k,false));});
   const draw=()=>el.querySelectorAll('.strip').forEach(st=>{const bg=st.firstElementChild,cv=st.querySelector('canvas');const r=bg.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';
     const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+st.dataset.i;for(const s of strokes)if(s.i===i)drawStroke(c,s,r.width);if(tg)for(const s of tg.strokes||[])if(s.i===i)drawStroke(c,s,r.width);});
