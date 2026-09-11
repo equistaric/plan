@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260911113226"></script>
+<script src="config.js?v=20260911162708"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1028,7 +1028,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260911113226';
+const BUILD='20260911162708';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const PAPERS=['p1','p2','p4'],SETCODES=PLAN.setOrder;
@@ -1384,25 +1384,25 @@ function drawStroke(c,s,Wd){
 
 /* ---- 湿墨层：整页只有一张，落笔时贴到当前画布上方，每帧重画「正在写的这一笔」 ---- */
 const WET={cv:null,host:null,scale:1,raf:0,fn:null};
-function wetAttach(cv,scale){
+function wetAttach(cv,scale,scaleY){
   if(!WET.cv){WET.cv=document.createElement('canvas');WET.cv.className='inkwet';
     WET.cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2;touch-action:none';}
   const w=WET.cv;if(w.parentNode!==cv.parentNode)cv.parentNode.appendChild(w);
   w.style.left='0';w.style.top='0';w.style.width='100%';w.style.height=cv.style.height||'100%';   // 与底层画布同一个 CSS 盒子（高度常是小数）
   if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
-  WET.host=cv;WET.scale=scale;WET.lastBox=null;const c=w.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,w.width,w.height);
+  WET.host=cv;WET.scale=scale;WET.sx=scale;WET.sy=scaleY==null?scale:scaleY;WET.lastBox=null;const c=w.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,w.width,w.height);
 }
 function wetResync(cv){if(!WET.cv||WET.host!==cv)return;const w=WET.cv;if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
-  w.style.height=cv.style.height||'100%';WET.scale=cv._bs||devicePixelRatio||1;WET.lastBox=null;if(WET.fn)wetRender(WET.fn,WET.box);}
-function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.scale,0,0,WET.scale,0,0);return c;}
+  w.style.height=cv.style.height||'100%';WET.scale=WET.sx=cv._sx||cv._bs||devicePixelRatio||1;WET.sy=cv._sy||WET.sx;WET.lastBox=null;if(WET.fn)wetRender(WET.fn,WET.box);}
+function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.sx||WET.scale,0,0,WET.sy||WET.scale,0,0);return c;}
 /* fn(ctx) 负责把当前这一笔画出来；多次调用会在下一帧合并成一次 */
 function inkBBox(s,Wd){const p=s.p;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<p.length;k+=2){const x=p[k]*Wd,y=p[k+1]*Wd;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}const m=s.w*Wd+3;return[x0-m,y0-m,x1+m,y1+m];}
 /* fn(ctx) 画当前这一笔；box = 这一笔的包围盒（CSS px）。每帧只清掉「上一帧 ∪ 这一帧」的包围盒，不整张清 */
 function wetRender(fn,box){WET.fn=fn;WET.box=box||null;if(WET.raf)return;WET.raf=requestAnimationFrame(()=>{WET.raf=0;if(!WET.cv||!WET.fn)return;
-  const c=WET.cv.getContext('2d'),k=WET.scale,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
-  if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*k),y0=Math.floor(Math.min(b[1],l[1])*k),x1=Math.ceil(Math.max(b[2],l[2])*k),y1=Math.ceil(Math.max(b[3],l[3])*k);c.clearRect(x0,y0,x1-x0,y1-y0);}
+  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
+  if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*kx),y0=Math.floor(Math.min(b[1],l[1])*ky),x1=Math.ceil(Math.max(b[2],l[2])*kx),y1=Math.ceil(Math.max(b[3],l[3])*ky);c.clearRect(x0,y0,x1-x0,y1-y0);}
   else c.clearRect(0,0,WET.cv.width,WET.cv.height);
-  WET.lastBox=b;c.setTransform(k,0,0,k,0,0);WET.fn(c);});}
+  WET.lastBox=b;c.setTransform(kx,0,0,ky,0,0);WET.fn(c);});}
 function wetFree(){wetClear();if(WET.cv){WET.cv.width=WET.cv.height=0;}WET.lastBox=null;}   // 换页 / 关手写页：释放湿墨层位图
 function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
 
@@ -1420,7 +1420,7 @@ const touchSize=e=>(e.width>1||e.height>1)?Math.max(e.width||0,e.height||0):0;
 function touchPalmReason(e){if(e.pointerType!=='touch')return '';const t=Date.now();
   if(PEN.down&&t-PEN.seenAt>8000)PEN.down=false;                 // 丢了 pointerup 的「笔还按着」：8 秒没动就当已抬起
   if(PEN.down)return 'pen-down';if(t-PEN.upAt<300)return 'pen-just-up';
-  if(PEN.seenAt&&touchSize(e)>=PALM_W)return 'big';return '';}      // 用过笔之后，≥120px 的接触面一律当手掌（手指平按到不了）
+  if(touchSize(e)>=PALM_W)return 'big';return '';}      // 用过笔之后，≥120px 的接触面一律当手掌（手指平按到不了）
 function touchIsPalm(e){if(e.pointerType!=='touch')return false;if(PALM.has(e.pointerId))return true;const r=touchPalmReason(e);if(r)PALM.add(e.pointerId);if(INKDBG.on)inkDbg(e,r||'finger');return !!r;}
 /* 触点刚落下 100ms 内接触面变大到手掌级 → 改判为手掌（手掌是慢慢压实的） */
 function touchGrewToPalm(e,t0){return e.pointerType==='touch'&&performance.now()-t0<100&&PEN.seenAt>0&&touchSize(e)>=PALM_W;}
@@ -1762,8 +1762,8 @@ async function gLoad(){const q=G.q,u=G.u,k=gk(u,q),it=byId.get(q);if(!it)return;
   const tot=$('#gTot');if(tot)tot.onchange=()=>{gr.total=+tot.value||null;$('#gVal').textContent=`${gr.score==null?'—':gr.score} / ${gr.total||'?'}`;if(gr.score!=null)gMark();};
   $('#gCom').oninput=()=>{gr.comment=$('#gCom').value;gMark();};          // 立刻记在这一题名下，900ms 后保存
   $('#gBody').scrollTop=0;}
-function gFit(cv){const bg=cv.previousElementSibling;const r=bg.getBoundingClientRect();if(!r.width)return;const bs=inkBitmapScale(r.width,r.height,devicePixelRatio||1);cv.width=Math.round(r.width*bs);cv.height=Math.round(r.height*bs);cv.style.height=r.height+'px';cv._bs=bs;gRedraw(cv);wetResync(cv);}
-function gCtx(cv){const c=cv.getContext('2d');const bs=cv._bs||devicePixelRatio||1;c.setTransform(bs,0,0,bs,0,0);c.lineCap='round';c.lineJoin='round';return c;}
+function gFit(cv){const bg=cv.previousElementSibling;const r=bg.getBoundingClientRect();if(!r.width)return;const bs=inkBitmapScale(r.width,r.height,devicePixelRatio||1);cv.width=Math.round(r.width*bs);cv.height=Math.round(r.height*bs);cv.style.height=r.height+'px';cv._bs=bs;cv._sx=cv.width/r.width;cv._sy=cv.height/r.height;gRedraw(cv);wetResync(cv);}
+function gCtx(cv){const c=cv.getContext('2d');const bs=cv._bs||devicePixelRatio||1;c.setTransform(cv._sx||bs,0,0,cv._sy||cv._sx||bs,0,0);c.lineCap='round';c.lineJoin='round';return c;}
 /* 当前正在写的笔迹数组：批改模式 = 该生该题的批改；讲题模式 = 老师自己的板书 */
 const gTarget=()=>{if(G.mode==='lecture')return L.ink[G.q]=L.ink[G.q]||[];const gr=G.grade[gk(G.u,G.q)];if(!gr)return null;return gr.strokes=gr.strokes||[];};
 const gChanged=()=>G.mode==='lecture'?lMark():gMark();
@@ -1784,12 +1784,12 @@ function gDown(e,cv){if(e.pointerType==='mouse'&&e.button!==0)return;
     if(!G.finger){if(GFS.id==null){if(GFS.fl){GFS.fl.stop();GFS.fl=null;}const sc=gScroller();Object.assign(GFS,{id:e.pointerId,sc,y:e.clientY,top:sc.scrollTop,yF:sc.scrollTop});GFS.mo.reset();GFS.mo.add(0,e.clientY);try{cv.setPointerCapture(e.pointerId);}catch(x){}}
       else if(GFS.id!==e.pointerId){GFS.id=e.pointerId;GFS.y=e.clientY;GFS.top=GFS.yF;GFS.mo.reset();GFS.mo.add(0,e.clientY);try{cv.setPointerCapture(e.pointerId);}catch(x){}}   // 新手指接管
       return;}}
-  if(e.pointerType==='pen'&&GFS.id!=null)GFS.id=null;
+  if(e.pointerType==='pen'){if(GFS.fl){GFS.fl.stop();GFS.fl=null;}GFS.id=null;}
   if(G.cur&&G.cur.id!==e.pointerId){if(e.isPrimary||!G.cur.cv||!G.cur.cv.isConnected){const c0=G.cur;G.cur=null;if(!c0.erase&&c0.cv&&c0.cv.isConnected&&c0.st&&c0.st.n>=3){const s0=inkEnd(c0.st);const arr=gTarget();if(arr){arr.push(s0);drawStroke(gCtx(c0.cv),s0,c0.Wd);gChanged();}}wetClear();}else return;}
   e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}const r=cv.getBoundingClientRect(),[x,y]=gNormR(e,r);const i=+cv.dataset.i;
   if(G.tool==='eraser'){G.cur={erase:true,cv,id:e.pointerId};gErase(x,y,i,cv);return;}
   const Wd=r.width;G.cur={cv,id:e.pointerId,i,Wd,st:inkBegin(x,y,e.pressure,e.pointerType==='pen'?'pen':'touch',i,G.color,G.width/Wd,1,e.timeStamp,isIntEv(e))};
-  wetAttach(cv,cv._bs||devicePixelRatio||1);gWet();}
+  wetAttach(cv,cv._sx||cv._bs||devicePixelRatio||1,cv._sy||cv._sx||cv._bs||devicePixelRatio||1);gWet();}
 function gMove(e,cv){if(GFS.id===e.pointerId){GFS.mo.add(0,e.clientY);const sc=GFS.sc;GFS.yF=Math.max(0,Math.min(sc.scrollHeight-sc.clientHeight,GFS.top-(e.clientY-GFS.y)));sc.scrollTop=Math.round(GFS.yF);return;}
   const cur=G.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;e.preventDefault();const r=cv.getBoundingClientRect();
   if(cur.erase){const [x,y]=gNormR(e,r);gErase(x,y,+cv.dataset.i,cv);return;}

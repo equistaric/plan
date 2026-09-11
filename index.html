@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20260911113226"></script>
+<script src="config.js?v=20260911162708"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1218,7 +1218,7 @@ const SYL=({
   ]
  }
 })||{};
-const BUILD='20260911113226';
+const BUILD='20260911162708';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1316,6 +1316,8 @@ function migrateLegacy(){
       if(b&&!(practice[id]|0)){practice[id]=b;ptime[id]=Math.max(o.a||0,o.b||0,o.c||0)||Date.now();pending.practice[id]=b;n++;}}}catch(e){}
   try{const ow=JSON.parse(localStorage.getItem('cie9702.wrongbook.v1')||'[]'),om=new Set(JSON.parse(localStorage.getItem('cie9702.wrongbook.mastered')||'[]'));
     for(const q of ow){if(!byId.has(q)||wrong.has(q))continue;wrong.add(q);if(om.has(q))mastered.add(q);wtime[q]=Date.now();pending.wrong[q]={on:true,m:om.has(q)};n++;}}catch(e){}
+  const LK=['ial27w.plan.v1','cie9702.wrongbook.v1','cie9702.wrongbook.mastered'];               // 本机旧版数据只并入第一个登录的账号，之后移到备份里
+  if(LK.some(k=>localStorage.getItem(k)!=null)){try{const bak={by:session.username,at:Date.now()};for(const k of LK)bak[k]=localStorage.getItem(k);localStorage.setItem('ial27w.legacy.bak',JSON.stringify(bak));}catch(e){}for(const k of LK)localStorage.removeItem(k);}
   localStorage.setItem(mk,'1');return n;
 }
 let flushing=false,flushT,retryT;
@@ -1329,23 +1331,25 @@ async function flush(){
   if(flushing||!session)return;
   if(!npend()){setSync('ok');return;}
   flushing=true;setSync('busy');
+  const s0=session,tok=s0.token,pend=pending;
+  const call=async(fn,args)=>{const j=await rpc(fn,Object.assign({p_token:tok},args));if(session!==s0)throw new Error('SWITCHED');return j;};   // 换了账号：立刻停，不把上一个人的数据发到下一个人名下
   const chk=j=>{if(!j.ok)throw new Error(j.error||'save');};
   try{
-    if(Object.keys(pending.practice).length){const snap={...pending.practice};chk(await rpc('save_practice',{p_token:session.token,p_items:snap}));
-      for(const [k,v] of Object.entries(snap))if(pending.practice[k]===v)delete pending.practice[k];}
-    if(Object.keys(pending.wrong).length){const snap={...pending.wrong};
-      chk(await rpc('save_wrong',{p_token:session.token,p_items:Object.entries(snap).map(([q,o])=>({q,on:!!o.on,m:!!o.m}))}));
-      for(const [k,v] of Object.entries(snap))if(pending.wrong[k]===v)delete pending.wrong[k];}
-    if(Object.keys(pending.attempts).length){const snap={...pending.attempts};
-      chk(await rpc('save_attempts',{p_token:session.token,p_items:Object.entries(snap).map(([q,o])=>({q,a:o.a==null?null:o.a,ok:o.ok==null?null:!!o.ok,s:!!o.s}))}));
-      for(const [k,v] of Object.entries(snap))if(pending.attempts[k]===v)delete pending.attempts[k];}
-    for(const [q,b] of Object.entries({...pending.notes})){chk(await rpc('save_note',{p_token:session.token,p_qid:q,p_body:b||''}));if(pending.notes[q]===b)delete pending.notes[q];}
-    for(const [q,s] of Object.entries({...pending.ink})){chk(await rpc('save_ink',{p_token:session.token,p_qid:q,p_strokes:s}));if(pending.ink[q]===s)delete pending.ink[q];}
-    for(const [s,o] of Object.entries({...pending.subs})){chk(await rpc('save_submission',{p_token:session.token,p_set:s,p_score:o.sc==null?null:o.sc,p_total:o.tt==null?null:o.tt}));if(pending.subs[s]===o)delete pending.subs[s];}
-    if(pending.xp!=null){const v=pending.xp;chk(await rpc('set_xp',{p_token:session.token,p_xp:v}));if(pending.xp===v)pending.xp=null;xpPushed=v;}
+    if(Object.keys(pend.practice).length){const snap={...pend.practice};chk(await call('save_practice',{p_items:snap}));
+      for(const [k,v] of Object.entries(snap))if(pend.practice[k]===v)delete pend.practice[k];}
+    if(Object.keys(pend.wrong).length){const snap={...pend.wrong};
+      chk(await call('save_wrong',{p_items:Object.entries(snap).map(([q,o])=>({q,on:!!o.on,m:!!o.m}))}));
+      for(const [k,v] of Object.entries(snap))if(pend.wrong[k]===v)delete pend.wrong[k];}
+    if(Object.keys(pend.attempts).length){const snap={...pend.attempts};
+      chk(await call('save_attempts',{p_items:Object.entries(snap).map(([q,o])=>({q,a:o.a==null?null:o.a,ok:o.ok==null?null:!!o.ok,s:!!o.s}))}));
+      for(const [k,v] of Object.entries(snap))if(pend.attempts[k]===v)delete pend.attempts[k];}
+    for(const [q,b] of Object.entries({...pend.notes})){chk(await call('save_note',{p_qid:q,p_body:b||''}));if(pend.notes[q]===b)delete pend.notes[q];}
+    for(const [q,s] of Object.entries({...pend.ink})){chk(await call('save_ink',{p_qid:q,p_strokes:s}));if(pend.ink[q]===s)delete pend.ink[q];}
+    for(const [s,o] of Object.entries({...pend.subs})){chk(await call('save_submission',{p_set:s,p_score:o.sc==null?null:o.sc,p_total:o.tt==null?null:o.tt}));if(pend.subs[s]===o)delete pend.subs[s];}
+    if(pend.xp!=null){const v=pend.xp;chk(await call('set_xp',{p_xp:v}));if(pend.xp===v)pend.xp=null;xpPushed=v;}
     saveCache();setSync('ok');
-  }catch(e){if(e.message==='auth'){flushing=false;logout(true);return;}setSync('fail',errMsg(e));}
-  finally{flushing=false;clearTimeout(retryT);if(npend())retryT=setTimeout(flush,15000);}
+  }catch(e){if(e.message==='SWITCHED')return;if(e.message==='auth'){flushing=false;logout(true);return;}setSync('fail',errMsg(e));}
+  finally{flushing=false;clearTimeout(retryT);if(session===s0&&npend())retryT=setTimeout(flush,15000);}
 }
 
 /* ---- 登录 / 启动 / 导航 ---- */
@@ -1364,7 +1368,8 @@ $('#loginForm').addEventListener('submit',async e=>{e.preventDefault();
 async function logout(expired){const s=session;flushInk();session=null;localStorage.removeItem(SKEY);resetInkState();
   if(s&&!expired){try{await rpc('logout',{p_token:s.token});}catch(e){}}
   showLogin();if(expired)$('#loginErr').textContent='登录已失效，请重新登录';}
-function resetInkState(){cancelStroke();for(const o of [INKS,inkCache,TG,CVS])for(const k of Object.keys(o))delete o[k];INKLOADED.clear();DRAW.dirty.clear();DRAW.lastQ=null;W.q=null;}
+let SGEN=0;                                        // 账号代数：退出 / 换人时 +1，之前发出的请求回来一律作废
+function resetInkState(){SGEN++;try{boardCache=null;boardAt=0;}catch(e){}cancelStroke();for(const o of [INKS,inkCache,TG,CVS])for(const k of Object.keys(o))delete o[k];INKLOADED.clear();DRAW.dirty.clear();DRAW.lastQ=null;W.q=null;}
 async function boot(){
   if(!session){showLogin();return;}
   if(boot._user&&boot._user!==session.username)resetInkState();boot._user=session.username;   // 换了账号：清掉上一个人的笔迹缓存
@@ -1403,11 +1408,11 @@ const gradeOf=q=>grades[q]||null;
 const gradeStale=q=>!!(grades[q]&&redoAt[q]&&grades[q].t<redoAt[q]);   // 老师批的是重做之前的答案
 const gradeTag=q=>{const g=grades[q];if(!g)return attempts[q]&&attempts[q].s?' · <span style="color:#6366f1">待老师批改</span>':'';return g.sc!=null?` · <b style="color:#4338ca">老师 ${g.sc}/${g.tt||'?'}</b>`:' · <b style="color:#4338ca">老师已批</b>';};
 const setGrade=id=>{let n=0,sc=0,tt=0,has=false;for(const it of setItems(id)){const g=grades[it.id];if(!g)continue;n++;if(g.sc!=null&&g.tt){sc+=g.sc;tt+=g.tt;has=true;}}return{n,sc,tt:has?tt:0};};
-async function loadGrade(q,force){if(!grades[q]&&!force)return null;if(TG[q]&&!force)return TG[q];
-  try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(j.ok){if(j.grade){TG[q]=j.grade;const g=j.grade;const old=grades[q];grades[q]={sc:g.score,tt:g.total,t:(g.t||0)*1000,c:!!g.comment,set:old?old.set:null};return j.grade;}delete TG[q];if(grades[q]){delete grades[q];}}}catch(e){if(TG[q])return TG[q];}return null;}
+async function loadGrade(q,force){if(!grades[q]&&!force)return null;if(TG[q]&&!force)return TG[q];const g0=SGEN;
+  try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(g0!==SGEN)return null;if(j.ok){if(j.grade){TG[q]=j.grade;const g=j.grade;const old=grades[q];grades[q]={sc:g.score,tt:g.total,t:(g.t||0)*1000,c:!!g.comment,set:old?old.set:null};return j.grade;}delete TG[q];if(grades[q]){delete grades[q];}}}catch(e){if(TG[q])return TG[q];}return null;}
 /* 老师是逐题批改的：页面可见时每 45 秒拉一次，只更新「老师批改」；有新的就提示并刷新相关界面 */
-async function refreshGrades(silent){if(!session)return;
-  try{const j=await rpc('me',{p_token:session.token});if(!j.ok)return;
+async function refreshGrades(silent){if(!session)return;const g0=SGEN;
+  try{const j=await rpc('me',{p_token:session.token});if(g0!==SGEN||!j.ok)return;
     const gr={};for(const [q,v] of Object.entries(j.grades||{}))gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};
     const changed=Object.keys(gr).filter(q=>!grades[q]||grades[q].t!==gr[q].t),removed=Object.keys(grades).filter(q=>!gr[q]);
     if(!changed.length&&!removed.length)return;
@@ -1416,16 +1421,17 @@ async function refreshGrades(silent){if(!session)return;
     if($('#writer').classList.contains('on')&&W.q&&(changed.includes(W.q)||removed.includes(W.q)))showGradeBox(W.q);
     if(!DRAW.cur&&FS.id==null){counts();renderHome();if(!(doSet&&doSet.startsWith('p1')))renderPlan();revRender();}}
   catch(e){}}
-function putGradeBox(q,g){if(W.q!==q)return;if(DRAW.cur||PEN.down){W.pgq=q;return;}              // 正在写：抬笔后再放
+function putGradeBox(q,g){if(W.q!==q)return;if(DRAW.cur||PEN.down||(window.writerBusy&&window.writerBusy())){W.pgq=q;return;}              // 正在写：抬笔后再放
   const inner=$('#wInner'),old=inner.querySelector('.wans.tg'),h0=old?old.offsetHeight+8:0;
   const html=g&&!W.redo?gradeHtml(g,q):'';if(old&&old.outerHTML===html)return;
   if(old)old.remove();if(html)inner.insertAdjacentHTML('afterbegin',html);
   const nb=inner.querySelector('.wans.tg'),h1=nb?nb.offsetHeight+8:0;
-  if(h1!==h0&&VZ.ty<-1){VZ.ty-=(h1-h0)*VZ.z;clampView();applyView();}                          // 往下看的时候插入：题目保持在原位
+  if(h1!==h0&&(VZ.ty<-1||Date.now()-(W.act||0)<10000)){VZ.ty-=(h1-h0)*VZ.z;clampView();applyView();}   // 正在做这题时插入：题目停在原位                          // 往下看的时候插入：题目保持在原位
   redrawQ(q);wStatus();}
 function showGradeBox(q){if(W.q!==q)return;const had=TG[q]?JSON.stringify(TG[q]):'';if(TG[q])putGradeBox(q,TG[q]);
   loadGrade(q,true).then(g=>{if(W.q!==q)return;if((g?JSON.stringify(g):'')!==had||!TG[q])putGradeBox(q,g);});}
 setInterval(()=>{if(!document.hidden)refreshGrades(false);},60000);
+setInterval(()=>{if(W.pgq&&!DRAW.cur&&!PEN.down&&!(window.writerBusy&&window.writerBusy())){const q=W.pgq;W.pgq=null;showGradeBox(q);}},1200);   // 延后的老师批改：手势一停就放上去
 const gradeHtml=(g,q)=>gradeStale(q)?`<div class="wans tg"><b>👩‍🏫 老师批改的是你重做前的答案${g.score!=null?`（当时 ${g.score} / ${g.total||'?'}）`:''}</b><div class="n" style="margin-top:4px">新答案已经进老师的待批，批完这里会更新</div></div>`:`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
 /* 已保存（看过答案）的题：原答案锁定，之后写的都算批注层（a:1），只能撤销 / 擦除批注 */
 const annotLayer=q=>{const at=attempts[q]||{};return !!(at.s&&!(W.q===q&&W.redo));};
@@ -1655,9 +1661,9 @@ const DRAW={tool:'pen',color:'#dc2626',width:2.8,finger:false,cur:null,lastQ:nul
 try{const pp=JSON.parse(localStorage.getItem('ial27w.pen')||'null');if(pp){if(PEN_SIZES.some(x=>x[0]===pp.w))DRAW.width=pp.w;if(Array.isArray(pp.r)&&pp.r.length)DRAW.recent=pp.r.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,4);}}catch(e){}
 const penSave=()=>{try{localStorage.setItem('ial27w.pen',JSON.stringify({w:DRAW.width,r:DRAW.recent}));}catch(e){}};
 const INKLOADED=new Set();          // 这题的已存笔迹已经取回并合并过
-async function loadInk(q){if(INKLOADED.has(q)&&INKS[q])return INKS[q];let saved=pending.ink[q]||inkCache[q]||null;
-  if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(!j.ok)throw new Error(j.error||'load');saved=j.strokes||[];inkCache[q]=saved;}
-    catch(e){toast('手写内容加载失败：'+errMsg(e));return INKS[q]||(INKS[q]=[]);}}}          // 没取到：先不算加载完，保存时不会覆盖服务器
+async function loadInk(q){if(INKLOADED.has(q)&&INKS[q])return INKS[q];let saved=pending.ink[q]||inkCache[q]||null;const g0=SGEN;
+  if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(g0!==SGEN)return [];if(!j.ok)throw new Error(j.error||'load');saved=j.strokes||[];inkCache[q]=saved;}
+    catch(e){if(g0!==SGEN)return [];toast('手写内容加载失败：'+errMsg(e));return INKS[q]||(INKS[q]=[]);}}}          // 没取到：先不算加载完，保存时不会覆盖服务器
   if(INKLOADED.has(q)&&INKS[q])return INKS[q];
   const early=INKS[q]&&INKS[q].length?INKS[q]:null;                         // 加载完成前就写下的笔画：接在已存笔迹后面，不覆盖
   INKS[q]=saved.slice().concat(early||[]);INKLOADED.add(q);if(early){redrawQ(q);markDirty(q);}
@@ -1665,8 +1671,8 @@ async function loadInk(q){if(INKLOADED.has(q)&&INKS[q])return INKS[q];let saved=
 function pruneCVS(q){const keys=q?[q]:Object.keys(CVS);for(const k of keys){const a=CVS[k];if(!a)continue;const live=a.filter(c=>{if(c.isConnected)return true;c.width=c.height=0;return false;});if(live.length)CVS[k]=live;else delete CVS[k];}}
 function bindCanvas(cv,q,i,lockedFn,scrollerFn){cv._ink={q,i,locked:lockedFn,scroller:scrollerFn};inkGuard(cv);pruneCVS(q);(CVS[q]=CVS[q]||[]).push(cv);
   cv.onpointerdown=e=>pdown(e,cv);cv.onpointermove=e=>pmove(e,cv);cv.onpointerup=cv.onpointercancel=cv.onpointerleave=e=>pup(e,cv);}
-function fitCanvas(cv){const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const z=zoomOf(cv),cw=r.width/z,ch=r.height/z,bs=inkBitmapScale(cw,ch,(devicePixelRatio||1)*Math.min(z,2));cv.width=Math.round(cw*bs);cv.height=Math.round(ch*bs);cv.style.height=ch+'px';cv._bs=bs;redraw(cv);wetResync(cv);}
-function ctxOf(cv){const c=cv.getContext('2d');const bs=cv._bs||(devicePixelRatio||1);c.setTransform(bs,0,0,bs,0,0);c.lineCap='round';c.lineJoin='round';return c;}
+function fitCanvas(cv){const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const z=zoomOf(cv),cw=r.width/z,ch=r.height/z,bs=inkBitmapScale(cw,ch,(devicePixelRatio||1)*Math.min(z,2));cv.width=Math.round(cw*bs);cv.height=Math.round(ch*bs);cv.style.height=ch+'px';cv._bs=bs;cv._sx=cv.width/cw;cv._sy=cv.height/ch;redraw(cv);wetResync(cv);}
+function ctxOf(cv){const c=cv.getContext('2d');const bs=cv._bs||(devicePixelRatio||1);c.setTransform(cv._sx||bs,0,0,cv._sy||cv._sx||bs,0,0);c.lineCap='round';c.lineJoin='round';return c;}
 /* ======================================================================
    共享手写内核（学生端 index.html / 教师端 teacher.html 共用，构建时内联）
    ----------------------------------------------------------------------
@@ -1790,25 +1796,25 @@ function drawStroke(c,s,Wd){
 
 /* ---- 湿墨层：整页只有一张，落笔时贴到当前画布上方，每帧重画「正在写的这一笔」 ---- */
 const WET={cv:null,host:null,scale:1,raf:0,fn:null};
-function wetAttach(cv,scale){
+function wetAttach(cv,scale,scaleY){
   if(!WET.cv){WET.cv=document.createElement('canvas');WET.cv.className='inkwet';
     WET.cv.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:2;touch-action:none';}
   const w=WET.cv;if(w.parentNode!==cv.parentNode)cv.parentNode.appendChild(w);
   w.style.left='0';w.style.top='0';w.style.width='100%';w.style.height=cv.style.height||'100%';   // 与底层画布同一个 CSS 盒子（高度常是小数）
   if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
-  WET.host=cv;WET.scale=scale;WET.lastBox=null;const c=w.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,w.width,w.height);
+  WET.host=cv;WET.scale=scale;WET.sx=scale;WET.sy=scaleY==null?scale:scaleY;WET.lastBox=null;const c=w.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,w.width,w.height);
 }
 function wetResync(cv){if(!WET.cv||WET.host!==cv)return;const w=WET.cv;if(w.width!==cv.width||w.height!==cv.height){w.width=cv.width;w.height=cv.height;}
-  w.style.height=cv.style.height||'100%';WET.scale=cv._bs||devicePixelRatio||1;WET.lastBox=null;if(WET.fn)wetRender(WET.fn,WET.box);}
-function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.scale,0,0,WET.scale,0,0);return c;}
+  w.style.height=cv.style.height||'100%';WET.scale=WET.sx=cv._sx||cv._bs||devicePixelRatio||1;WET.sy=cv._sy||WET.sx;WET.lastBox=null;if(WET.fn)wetRender(WET.fn,WET.box);}
+function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.sx||WET.scale,0,0,WET.sy||WET.scale,0,0);return c;}
 /* fn(ctx) 负责把当前这一笔画出来；多次调用会在下一帧合并成一次 */
 function inkBBox(s,Wd){const p=s.p;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<p.length;k+=2){const x=p[k]*Wd,y=p[k+1]*Wd;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}const m=s.w*Wd+3;return[x0-m,y0-m,x1+m,y1+m];}
 /* fn(ctx) 画当前这一笔；box = 这一笔的包围盒（CSS px）。每帧只清掉「上一帧 ∪ 这一帧」的包围盒，不整张清 */
 function wetRender(fn,box){WET.fn=fn;WET.box=box||null;if(WET.raf)return;WET.raf=requestAnimationFrame(()=>{WET.raf=0;if(!WET.cv||!WET.fn)return;
-  const c=WET.cv.getContext('2d'),k=WET.scale,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
-  if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*k),y0=Math.floor(Math.min(b[1],l[1])*k),x1=Math.ceil(Math.max(b[2],l[2])*k),y1=Math.ceil(Math.max(b[3],l[3])*k);c.clearRect(x0,y0,x1-x0,y1-y0);}
+  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
+  if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*kx),y0=Math.floor(Math.min(b[1],l[1])*ky),x1=Math.ceil(Math.max(b[2],l[2])*kx),y1=Math.ceil(Math.max(b[3],l[3])*ky);c.clearRect(x0,y0,x1-x0,y1-y0);}
   else c.clearRect(0,0,WET.cv.width,WET.cv.height);
-  WET.lastBox=b;c.setTransform(k,0,0,k,0,0);WET.fn(c);});}
+  WET.lastBox=b;c.setTransform(kx,0,0,ky,0,0);WET.fn(c);});}
 function wetFree(){wetClear();if(WET.cv){WET.cv.width=WET.cv.height=0;}WET.lastBox=null;}   // 换页 / 关手写页：释放湿墨层位图
 function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
 
@@ -1826,7 +1832,7 @@ const touchSize=e=>(e.width>1||e.height>1)?Math.max(e.width||0,e.height||0):0;
 function touchPalmReason(e){if(e.pointerType!=='touch')return '';const t=Date.now();
   if(PEN.down&&t-PEN.seenAt>8000)PEN.down=false;                 // 丢了 pointerup 的「笔还按着」：8 秒没动就当已抬起
   if(PEN.down)return 'pen-down';if(t-PEN.upAt<300)return 'pen-just-up';
-  if(PEN.seenAt&&touchSize(e)>=PALM_W)return 'big';return '';}      // 用过笔之后，≥120px 的接触面一律当手掌（手指平按到不了）
+  if(touchSize(e)>=PALM_W)return 'big';return '';}      // 用过笔之后，≥120px 的接触面一律当手掌（手指平按到不了）
 function touchIsPalm(e){if(e.pointerType!=='touch')return false;if(PALM.has(e.pointerId))return true;const r=touchPalmReason(e);if(r)PALM.add(e.pointerId);if(INKDBG.on)inkDbg(e,r||'finger');return !!r;}
 /* 触点刚落下 100ms 内接触面变大到手掌级 → 改判为手掌（手掌是慢慢压实的） */
 function touchGrewToPalm(e,t0){return e.pointerType==='touch'&&performance.now()-t0<100&&PEN.seenAt>0&&touchSize(e)>=PALM_W;}
@@ -1907,7 +1913,7 @@ function pdown(e,cv){const K=cv._ink;if(!K)return;if(e.pointerType==='mouse'&&e.
     if(!DRAW.finger){if(FS.id==null)fsStart(e,cv);
       else if(FS.id!==e.pointerId){FS.id=e.pointerId;FS.sc=cv._ink.scroller();FS.y=e.clientY;FS.top=FS.yF;FS.mo.reset();FS.mo.add(0,e.clientY);try{cv.setPointerCapture(e.pointerId);}catch(x){}}   // 新落下的手指接管滚动（撑着的拇指不再挡住）
       return;}}
-  if(e.pointerType==='pen'&&FS.id!=null)FS.id=null;                       // 笔落下：手指滚动让位
+  if(e.pointerType==='pen'){if(FS.fl){FS.fl.stop();FS.fl=null;}FS.id=null;}W.act=Date.now();                       // 笔落下：手指滚动让位
   if(DRAW.cur&&DRAW.cur.id!==e.pointerId){if(e.isPrimary||!DRAW.cur.cv||!DRAW.cur.cv.isConnected)abandonCur();else return;}   // 上一笔丢了抬笔事件：先收尾，不让它卡住
   if(K.locked()&&DRAW.tool!=='marker'){tip('已提交的题不能再改笔迹；要重来点「重做」');return;}
   e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}
@@ -1916,7 +1922,7 @@ function pdown(e,cv){const K=cv._ink;if(!K)return;if(e.pointerType==='mouse'&&e.
   if(DRAW.tool==='eraser'){DRAW.cur={erase:true,cv,id:e.pointerId,q};eraseAt(x,y,q,i);return;}
   const Wd=r.width/zoomOf(cv);
   DRAW.cur={q,i,cv,id:e.pointerId,Wd,hx:x,hy:y,shape:null,sp:null,st:inkBegin(x,y,e.pressure,e.pointerType==='pen'?'pen':'touch',i,DRAW.color,DRAW.width/Wd,zoomOf(cv),e.timeStamp,isIntEv(e))};
-  wetAttach(cv,cv._bs||(devicePixelRatio||1));wetDrawCur();armHold();}
+  wetAttach(cv,cv._sx||cv._bs||(devicePixelRatio||1),cv._sy||cv._sx||cv._bs||(devicePixelRatio||1));wetDrawCur();armHold();}
 function pmove(e,cv){
   if(FS.id===e.pointerId){fsMove(e);return;}
   const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;e.preventDefault();const r=cv.getBoundingClientRect();
@@ -2047,18 +2053,18 @@ document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if
   const startPan=id=>{const t=T.get(id);PAN={id,x:t.x,y:t.y,tx:VZ.tx,ty:VZ.ty,t0:performance.now(),moved:0};mo.reset();mo.add(t.x,t.y);};
   /* 每当有效触点的集合变化就重新定基准：两指 = 捏合（带死区），一指 = 平移（从当前位置接着拖，不跳） */
   const rebase=()=>{const L=live();PZ=null;PAN=null;
-    if(L.length>=2){const [[ia,a],[ib,b]]=L.slice(-2);PZ={ia,ib,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:VZ.z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,armed:false,ax:a.x,ay:a.y,bx:b.x,by:b.y};cancelStroke();}
+    if(L.length>=2){const [[ia,a],[ib,b]]=L.slice(-2);PZ={ia,ib,d0:Math.hypot(a.x-b.x,a.y-b.y)||1,z0:VZ.z,mx:(a.x+b.x)/2,my:(a.y+b.y)/2,armed:false,ax:a.x,ay:a.y,bx:b.x,by:b.y,t0:performance.now()};cancelStroke();}
     else if(L.length===1&&!(DRAW.finger&&T.get(L[0][0]).cv))startPan(L[0][0]);};
-  window.writerStopFling=stopFling;
+  window.writerStopFling=stopFling;window.writerBusy=()=>!!(PAN||PZ||fl);
   addEventListener('touchstart',stopFling,{passive:true,capture:true});                            // 任何新触点（含 Pencil）都停住惯性
   body.addEventListener('pointerdown',e=>{
     if(e.pointerType==='pen'){stopFling();                                                         // 笔落下：之前的手指（多半是手掌）全部作废，刚才被它拖动的位移撤回
-      if(PAN&&performance.now()-PAN.t0<500){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}
+      if(PAN&&(performance.now()-PAN.t0<500||PAN.moved<120)){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}
       for(const id of T.keys())PALM.add(id);T.clear();REST.clear();if(PZ&&PZ.armed)fitAll();PZ=null;PAN=null;return;}
     if(e.pointerType!=='touch')return;
     if(e.isPrimary&&T.size){T.clear();REST.clear();PZ=null;PAN=null;}                 // 新手势的第一指：之前记着的都是丢了 pointerup 的旧触点
     if(touchIsPalm(e)){e.stopPropagation();e.preventDefault();return;}               // 手掌 / 正在写字时的手指：整段忽略
-    stopFling();const [x,y]=local(e);T.set(e.pointerId,{x,y,t0:performance.now(),cv:e.target.tagName==='CANVAS'});
+    stopFling();W.act=Date.now();const [x,y]=local(e);T.set(e.pointerId,{x,y,t0:performance.now(),cv:e.target.tagName==='CANVAS'});
     if(T.size>=2){rebase();e.stopPropagation();return;}
     if(DRAW.finger&&e.target.tagName==='CANVAS')return;                              // 手指书写：交给画布
     startPan(e.pointerId);e.stopPropagation();},{capture:true});
@@ -2067,12 +2073,13 @@ document.addEventListener('click',e=>{const z=e.target.closest('[data-zoom]');if
     const [x,y]=local(e);t.x=x;t.y=y;
     if(touchGrewToPalm(e,t.t0)){PALM.add(e.pointerId);T.delete(e.pointerId);REST.delete(e.pointerId);if(DRAW.cur&&DRAW.cur.id===e.pointerId)cancelStroke();
       if(PAN&&PAN.id===e.pointerId){VZ.tx=PAN.tx;VZ.ty=PAN.ty;clampView();applyView();}rebase();e.stopPropagation();return;}   // 刚落下就压实成手掌：撤回位移
+    if(REST.has(e.pointerId)){if(t.rx!=null&&Math.hypot(x-t.rx,y-t.ry)>10){REST.delete(e.pointerId);rebase();}e.stopPropagation();return;}   // 撑着的手指动起来了：重新算作捏合
     if(PZ){const a=T.get(PZ.ia),b=T.get(PZ.ib);if(!a||!b){rebase();e.stopPropagation();return;}
       if(!PZ.armed){const ma=Math.hypot(a.x-PZ.ax,a.y-PZ.ay),mb=Math.hypot(b.x-PZ.bx,b.y-PZ.by);
-        if((ma>10&&mb<3)||(mb>10&&ma<3)){REST.add(ma<3?PZ.ia:PZ.ib);rebase();e.stopPropagation();return;}}   // 一指不动 = 撑着屏幕的手指：按单指拖动（在缩放死区之前判定）
+        if(performance.now()-PZ.t0>=40&&((ma>10&&mb<3&&mb<0.25*ma)||(mb>10&&ma<3&&ma<0.25*mb))){const rid=ma<3?PZ.ia:PZ.ib,rt=T.get(rid);if(rt){rt.rx=rt.x;rt.ry=rt.y;}REST.add(rid);rebase();e.stopPropagation();return;}}   // 一指不动 = 撑着屏幕的手指：按单指拖动（在缩放死区之前判定）
       const d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
       VZ.tx+=mx-PZ.mx;VZ.ty+=my-PZ.my;PZ.mx=mx;PZ.my=my;
-      if(!PZ.armed&&Math.abs(d-PZ.d0)>16){PZ.armed=true;PZ.d0=d;PZ.z0=VZ.z;}           // 缩放死区：两指平移不会误缩放
+      if(!PZ.armed&&Math.abs(d-PZ.d0)>16&&(performance.now()-PZ.t0>=40||(Math.hypot(a.x-PZ.ax,a.y-PZ.ay)>2&&Math.hypot(b.x-PZ.bx,b.y-PZ.by)>2))){PZ.armed=true;PZ.d0=d;PZ.z0=VZ.z;}   // 两指都动了（或过了 40ms 判定期）才开始缩放           // 缩放死区：两指平移不会误缩放
       if(PZ.armed)zoomAt(PZ.z0*d/PZ.d0,mx,my);else{clampView();applyView();}
       e.stopPropagation();return;}
     if(PAN&&PAN.id===e.pointerId){mo.add(x,y);PAN.moved=Math.max(PAN.moved,Math.hypot(x-PAN.x,y-PAN.y));VZ.tx=PAN.tx+(x-PAN.x);VZ.ty=PAN.ty+(y-PAN.y);clampView();applyView();e.stopPropagation();return;}
@@ -2190,8 +2197,8 @@ function renderAnnot(kind){const items=flaggedItems(kind);shown=items.slice().so
   $('#body').innerHTML=html;
   const io=new IntersectionObserver(ents=>{for(const en of ents){if(!en.isIntersecting)continue;io.unobserve(en.target);paintAnnot(en.target);}},{rootMargin:'300px'});
   document.querySelectorAll('.astrips').forEach(el=>io.observe(el));}
-async function paintAnnot(el){const q=el.dataset.q;let strokes=pending.ink[q]||inkCache[q];
-  if(!strokes){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});strokes=(j.ok&&j.strokes)||[];inkCache[q]=strokes;}catch(e){strokes=[];}}
+async function paintAnnot(el){const q=el.dataset.q;let strokes=pending.ink[q]||inkCache[q];const g0=SGEN;
+  if(!strokes){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(g0!==SGEN)return;strokes=(j.ok&&j.strokes)||[];inkCache[q]=strokes;}catch(e){strokes=[];}}
   if(!INKS[q]){INKS[q]=strokes.slice();INKLOADED.add(q);}const tg=grades[q]&&!gradeStale(q)?await loadGrade(q):null;
   [...el.querySelectorAll('.strip:not(.nb)')].forEach((st,k)=>{if(strokes.some(s=>s.i===NB+k)&&!(st.nextElementSibling&&st.nextElementSibling.classList.contains('nb')))st.insertAdjacentHTML('afterend',nbHtml(q,k,false));});
   const draw=()=>el.querySelectorAll('.strip').forEach(st=>{const bg=st.firstElementChild,cv=st.querySelector('canvas');const r=bg.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);cv.style.height=r.height+'px';
@@ -2259,7 +2266,7 @@ document.addEventListener('keydown',e=>{if(!$('#dlg').open)return;
    我的：等级 · 成就 · 班级榜 · 账号
    ====================================================================== */
 let boardCache=null,boardAt=0;
-async function loadBoard(){if(boardCache&&Date.now()-boardAt<5*60*1000)return boardCache;try{const j=await rpc('board',{p_token:session.token});if(j.ok){boardCache=j.board||[];boardAt=Date.now();}}catch(e){}return boardCache||[];}
+async function loadBoard(){if(boardCache&&Date.now()-boardAt<5*60*1000)return boardCache;const g0=SGEN;try{const j=await rpc('board',{p_token:session.token});if(g0!==SGEN)return [];if(j.ok){boardCache=j.board||[];boardAt=Date.now();}}catch(e){}return boardCache||[];}
 function renderMe(){if($('#viewMe').hidden)return;const st=xpStats(),lv=lvlOf(xp),base=lvlBase(lv),next=lvlBase(lv+1),sk=streak(),T=ptype();
   let html=`<div class="card"><div class="hero2"><div class="lvl" style="--deg:${Math.round((xp-base)/(next-base)*360)}deg"><div>Lv.${lv}<small>${xp} XP</small></div></div>
     <div style="flex:1;min-width:200px"><div class="hi">${esc(profile.display||profile.username)}</div><div class="n" style="font-size:12px">${esc(profile.username)} · ${T.label}计划${profile.klass?` · ${esc(profile.klass)} 班`:''}</div>
