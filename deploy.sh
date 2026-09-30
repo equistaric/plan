@@ -5,14 +5,14 @@
 # 题库重建（新切片 / 新分类）请先运行 build_wrongbook.py，再跑本脚本。
 set -e
 SRC="$(cd "$(dirname "$0")" && pwd)"
-STATE="/Users/franking/Desktop/物理资源claude/CIE/专题练习/真题原文件/Topical/_state"
+STATE="$SRC/_源码"                      # 页面模板 + 构建脚本（2026-09-24 从 CIE/专题练习/…/_state 搬到这里）
 python3 "$STATE/build_plan_site.py" "$SRC"
 # 这个文件夹在 iCloud 里，6000+ 张题图会把 git 拖到超时；所以先镜像到 ~/Sites 再推。
 # 线上仓库是 equistaric/plan；equistaric/physics 是旧错题本站，不再更新。
 DST="$HOME/Sites/learn"
 mkdir -p "$HOME/Sites"
 [ -d "$DST/.git" ] || git clone -q https://github.com/equistaric/plan.git "$DST"
-rsync -a --delete --exclude .DS_Store --exclude '._*' --exclude .git --exclude _private "$SRC/" "$DST/"
+rsync -a --delete --exclude .DS_Store --exclude '._*' --exclude .git --exclude _private --exclude _源码 --exclude '*.xlsx' "$SRC/" "$DST/"
 cd "$DST"
 git add -A
 if git diff --cached --quiet; then echo "没有改动，无需部署。"; exit 0; fi

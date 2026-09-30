@@ -5,13 +5,14 @@
 - **学生端：https://equistaric.github.io/plan/**
 - **教师端：https://equistaric.github.io/plan/teacher.html**
 
-这个文件夹（`CIE/学习系统/`）就是整个网站：页面 + 题库（`data.json`、`expl.json`、`img/`、`ans/`）。
+这个文件夹（`物理资源claude/学习系统/`，2026-09-24 起放在根目录，原来在 `CIE/` 里）就是整个网站：页面 + 题库（`data.json`、`expl.json`、`img/`、`ans/`），
+页面的源码和构建脚本在 `_源码/`，账号密码（`账号密码.xlsx`）和数据库脚本在 `_private/`（这两个文件夹都不会上传）。
 改动后双击 `deploy.sh`（或终端 `./deploy.sh "说明"`）即可上线，1–3 分钟生效，网址永远不变。
 
 > **2026-09-16 起：一个网站、两套课程。** 同一个网址、同一个登录框，账号属于哪套课程（`accounts.curr` = `cie` / `edx`）
 > 登录后就看到哪套题库：CIE 9702（Paper 1 / 2 / 4，每章四套）或 **Edexcel IAL**（Unit 1 / 2 / 4 / 5，每章「选择题 / 大题」
 > 各按年份 **2022 / 2023 / 2024 / 2025 / 早年 19–21** 分格）。原来的爱德思站 `/edx/` 只保留题图并跳转到这里，账号密码不变。
-> 教师端顶部「课程」按钮切换 CIE / 爱德思，各看各的学生。两套题库都内嵌在页面里（构建脚本同时读 `CIE/学习系统/data.json`
+> 教师端顶部「课程」按钮切换 CIE / 爱德思，各看各的学生。两套题库都内嵌在页面里（构建脚本同时读本文件夹的 `data.json`
 > 和 `EDX/学习系统/data.json`；爱德思题图仍从 `/edx/img/`、`/edx/ans/` 取）。
 
 ## 第一次使用：初始化数据库（已完成 2026-09-04）
@@ -21,7 +22,7 @@
 `accounts.curr` 课程字段；把爱德思系统的账号和全部记录（打勾、作答、手写、笔记、提交、批改、XP）并入同一套表
 （`edx_*` 表原样保留；已存在的同名账号跳过；套题 id 从「章·类型」换成「章·类型·年份」，原来一套的进度复制到它的每个年份子集，
 选择题子集按已有作答重新算分）；`assignments` 表 + 布置作业函数；`me()` 带作业与课程；`teacher_ink_all` 每人附批改；
-`upsert_student` 多一个课程参数（旧签名保留）。`gen_update4.py`（在 `_state/`）可以重新生成这个脚本。
+`upsert_student` 多一个课程参数（旧签名保留）。`_源码/gen_update4.py` 可以重新生成这个脚本。
 初始账号密码在 `_private/账号密码.txt`（`_private/` 已被 .gitignore 排除，不会上传）。
 
 前端只能通过数据库函数读写（登录、保存打勾、保存错题、教师总览……），四张表对匿名 key 完全关闭，
@@ -43,7 +44,7 @@
 排期规则：9 月 4 日开始，截止 = 考试前 3 天（P2 **10/11**、P1 **11/7**），周末量 = 平日量 × 2，
 按题数估时（P1 每题 3–4 min，P2 每题 16–20 min，加 25% 对答案与错题时间）。
 估算负荷（9 月两卷并行）：标准 ≈ 平日 2 h / 周末 4 h；全套 ≈ 平日 2.9 h / 周末 5.7 h。
-想改节奏，改 `专题练习/真题原文件/Topical/_state/build_plan_site.py` 顶部的 `START / EXAMS / BUFFER / RATE / TYPES`，再跑 `deploy.sh`。
+想改节奏，改 `_源码/build_plan_site.py` 顶部的 `START / EXAMS / BUFFER / RATE / TYPES`，再跑 `deploy.sh`。
 
 ## 学生怎么用
 
@@ -70,7 +71,7 @@
    - **📚 老师布置的作业**（2026-09-16）：老师在教师端挑题布置后，「今天」页出现作业卡（题数、截止、完成 x/n）。点进去：
      选择题当场选、「提交判分」；大题进手写页「保存 · 看答案」。做过的题记在题本身上——同一道题在章节套题里也算做过；
      一套题的题全部做完，那套自动打「做完题 · 对完答案」。大题保存后照常进老师的「批作业」。
-     **笔迹引擎（2026-09-11 重写，学生端 / 教师端共用 `_state/ink_core.js`）**：
+     **笔迹引擎（2026-09-11 重写，学生端 / 教师端共用 `_源码/ink_core.js`）**：
      - 写的时候画在一层「湿墨」上，抬笔后用同一个函数、同一组点落到纸上 —— 抬笔前后一个像素都不变（不会再变粗、变形）。
      - 压力：轻写细（约所选笔宽的 35%），正常写约 70%，用力到 100%；**最粗永远不超过所选的那一档**（1.8 / 2.8 / 4.5 px，默认 2.8）。
        Safari 报的压力 = 力 / 4.17，正常写字只有 0.2–0.3，参数按这个标定；起笔几个采样的压力不可靠，用平均值起笔；压力按移动距离平滑，笔停住不会晕开。
@@ -140,11 +141,13 @@ XP 规则：作答 1 题 +1，选择题答对再 +1，手写提交 1 题 +5，�
 
 | 文件 | 来源 |
 |---|---|
-| `index.html`、`teacher.html` | `_state/build_plan_site.py` 用模板 `_state/learn_student.html`、`_state/learn_teacher.html` 生成（题库数据内嵌） |
-| `data.json`、`expl.json`、`img/`、`ans/`、`syllabus.json` | `_state/build_wrongbook.py <本文件夹>`（切片库有更新时才需要重跑） |
+| `index.html`、`teacher.html` | `_源码/build_plan_site.py` 用模板 `_源码/learn_student.html`、`_源码/learn_teacher.html`、`_源码/ink_core.js` 生成（CIE + 爱德思两套题库数据内嵌；`deploy.sh` 自动跑） |
+| `_源码/strip_pad.json` | `_源码/gen_strip_pad.py`：哪些结构题小题在空白处作答、图下补书写空白（重切 CIE 结构题后重跑） |
+| `data.json`、`expl.json`、`img/`、`ans/`、`syllabus.json` | CIE 题库流水线 `CIE/专题练习/真题原文件/Topical/_state/build_wrongbook.py <本文件夹>`（切片库有更新时才需要重跑）；爱德思题库在 `EDX/学习系统/`（`EDX/_state/build_bank.py`） |
 | `config.js` | Supabase 的 URL 和 anon key |
 | `version.json` | 构建号；学生端每 5 分钟检查，有新版自动刷新 |
-| `_private/` | 数据库脚本与账号密码，不上传 |
+| `_private/` | 账号密码（`账号密码.xlsx`、`账号密码.txt`）与数据库脚本，不上传 |
+| `_源码/` | 页面模板 + 构建脚本，不上传 |
 
 `deploy.sh` 会把本文件夹镜像到 `~/Sites/learn`（iCloud 之外）再用 git 推送到 `equistaric/plan` ——
 本文件夹里没有 `.git`，也请不要在这里跑 git（6000 多张题图会让 iCloud 里的 git 卡死）。
