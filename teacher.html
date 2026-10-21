@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261021092709"></script>
+<script src="config.js?v=20261021093722"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -727,6 +727,9 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .lright .lbar {position:sticky;top:0;z-index:3;background:var(--bg);padding:4px 0 8px}
 .pknav .tabs {min-width:0;overflow:visible}
 .pknav .tabs button {width:100%;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere}
+/* Width/height attributes reserve MC images before lazy decoding. Keep the
+   natural ratio responsive; scratch-space padding remains part of the image. */
+.student-app .qimg img {height:auto}
 @media(max-width:1100px){
   .wh>.ttl,.gh>.ttl {flex:1;max-width:none}
   .wh>.tools,.gh>.gtools {flex:1 1 100%;width:100%}
@@ -859,7 +862,7 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
   window.physicsLayoutRefresh=refresh;refresh();
 })();
 
-const BUILD='20261021092709';
+const BUILD='20261021093722';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -1294,8 +1297,11 @@ function inkDbg(e,what){if(!INKDBG.on)return;INKDBG.cnt[what]=(INKDBG.cnt[what]|
   if(!INKDBG.el){INKDBG.el=document.createElement('pre');INKDBG.el.style.cssText='position:fixed;left:6px;bottom:6px;z-index:99;background:rgba(0,0,0,.78);color:#9ef;font:11px/1.35 ui-monospace,Menlo,monospace;padding:6px 8px;border-radius:8px;pointer-events:none;max-width:92vw;white-space:pre-wrap';document.body.appendChild(INKDBG.el);}
   INKDBG.el.textContent=Object.entries(INKDBG.cnt).map(([k,v])=>k+':'+v).join('  ')+'\n'+INKDBG.log.join('\n');}
 if(INKDBG.on)document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen')inkDbg(e,'pen');},{capture:true,passive:true});
-/* 画布上：touchstart/touchmove 一律 preventDefault —— 挡住 iPadOS 随手写(Scribble)吞笔、双击放大镜、长按菜单（不影响按钮） */
-function inkGuard(cv){if(cv._guard)return;cv._guard=1;cv.classList.add('inkcv');const f=e=>{if(e.cancelable)e.preventDefault();};cv.addEventListener('touchstart',f,{passive:false});cv.addEventListener('touchmove',f,{passive:false});}   // 只挂在可书写的画布上
+/* Inline MC pages use native finger scrolling. Keep Safari's stylus / palm
+   guard for Pencil and explicit finger drawing; full-screen workspaces keep
+   their own pan/zoom manager. Canceling pointerdown alone cannot stop panning. */
+function inkNativeTouch(e,enabled){return !!(enabled&&enabled()&&!PEN.down&&Date.now()-PEN.upAt>=300&&![...e.touches].some(t=>t.touchType==='stylus'));}
+function inkGuard(cv,nativeScroll){if(cv._guard)return;cv._guard=1;cv.classList.add('inkcv');const f=e=>{if(!inkNativeTouch(e,nativeScroll)&&e.cancelable)e.preventDefault();};cv.addEventListener('touchstart',f,{passive:false});cv.addEventListener('touchmove',f,{passive:false});}   // 只挂在可书写的画布上
 /* 画布位图上限：iOS 单张画布超过 16.7M 像素会直接变白；这里每张最多 4M 像素 */
 function inkBitmapScale(cssW,cssH,want){return Math.max(.1,Math.min(want,Math.sqrt(4e6/Math.max(1,cssW*cssH))));}
 /* Only allocate nearby paper surfaces. Normalized stroke coordinates never change.
