@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261021093722"></script>
+<script src="config.js?v=20261021093801"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1056,7 +1056,7 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};
   window.physicsLayoutRefresh=refresh;refresh();
 })();
 
-const BUILD='20261021093722';
+const BUILD='20261021093801';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1828,7 +1828,9 @@ if(INKDBG.on)document.addEventListener('pointerdown',e=>{if(e.pointerType==='pen
 /* Inline MC pages use native finger scrolling. Keep Safari's stylus / palm
    guard for Pencil and explicit finger drawing; full-screen workspaces keep
    their own pan/zoom manager. Canceling pointerdown alone cannot stop panning. */
-function inkNativeTouch(e,enabled){return !!(enabled&&enabled()&&!PEN.down&&Date.now()-PEN.upAt>=300&&![...e.touches].some(t=>t.touchType==='stylus'));}
+function inkNativeTouch(e,enabled){if(!enabled||!enabled()||PEN.down||Date.now()-PEN.upAt<300)return false;
+  const recentPen=PEN.seenAt>0&&Date.now()-PEN.seenAt<10000;
+  return !Array.from(e.touches).some(t=>t.touchType==='stylus'||(recentPen&&2*Math.max(t.radiusX||0,t.radiusY||0)>=PALM_W));}
 function inkGuard(cv,nativeScroll){if(cv._guard)return;cv._guard=1;cv.classList.add('inkcv');const f=e=>{if(!inkNativeTouch(e,nativeScroll)&&e.cancelable)e.preventDefault();};cv.addEventListener('touchstart',f,{passive:false});cv.addEventListener('touchmove',f,{passive:false});}   // 只挂在可书写的画布上
 /* 画布位图上限：iOS 单张画布超过 16.7M 像素会直接变白；这里每张最多 4M 像素 */
 function inkBitmapScale(cssW,cssH,want){return Math.max(.1,Math.min(want,Math.sqrt(4e6/Math.max(1,cssW*cssH))));}
