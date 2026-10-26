@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261026114457"></script>
+<script src="config.js?v=20261026124432"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -783,6 +783,114 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .student-app #wInner .paper-note-rail.foot {bottom:calc(4px / var(--paper-zoom,1));transform-origin:bottom left}
 .student-app #wInner .paper-note-rail button {position:static;flex:none;pointer-events:auto;min-height:30px;margin-left:auto;font-size:12px;line-height:1.2;padding:5px 10px;white-space:nowrap}
 .student-app #wInner .paper-note-rail .nbl {position:static;font-size:11px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Notebook workspace: the supplied Goodnotes layout with Harvard crimson
+   document/tool bars. Native controls and their event delegation are retained. */
+.ink-workspace {--ink-bar:#a51c30;--ink-doc:#741526;--ink-blue:#397fb1;--ink-active:#1e232a;background:#f0f1f3;color-scheme:light}
+.ink-workspace .ink-document-bar {display:flex;align-items:center;gap:6px;flex:none;min-width:0;min-height:32px;padding:0 8px;padding-top:env(safe-area-inset-top);background:var(--ink-doc);color:#f8e9ec}
+.ink-document-bar>button {display:flex;align-items:center;justify-content:center;width:34px;height:30px;min-height:30px!important;flex:none;padding:2px!important;background:none;border:0;border-radius:6px;color:#f8e9ec;box-shadow:none}
+.ink-document-bar .ink-document-title {display:block;min-width:0;max-width:none!important;flex:1;font-size:12px!important;line-height:30px;color:#f5e7eb!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.ink-document-bar:has(#wSetTabs:not([hidden])) .ink-document-title {display:none}
+.student-app .ink-document-bar #wSetTabs {flex:1;min-width:0;align-self:stretch;align-items:stretch;background:none;border:0;padding:0;gap:2px}
+.student-app .ink-document-bar #wSetTabs .stab {display:flex;align-items:center;max-width:260px;font-size:11px;line-height:20px;padding:3px 9px;border:0;border-radius:7px 7px 0 0;background:none;color:#cda7ae;margin:0}
+.student-app .ink-document-bar #wSetTabs .stab.on {background:var(--ink-bar);color:#fff;padding-bottom:3px}
+.ink-document-bar .stab .x {color:inherit}
+.ink-document-bar .modetag {font-size:10px;background:rgba(255,255,255,.14);color:#fff;border:0}
+.student-app .ink-workspace .ink-main-bar,.teacher-app .ink-workspace .ink-main-bar {position:relative;z-index:12;display:block;flex:none;padding:0!important;min-height:42px;max-width:100%;border:0;background:var(--ink-bar);box-shadow:none}
+.ink-main-bar>.grow {display:none}
+.student-app .ink-workspace .ink-main-bar>#wTools,.teacher-app .ink-main-bar>#gTools,.teacher-app .ink-main-bar>#lTools {width:100%;max-width:100%;min-width:0;flex:none;padding:0;overflow:visible}
+.ink-tools {position:relative;display:block;height:42px;isolation:isolate;--ink-active:#1e232a;touch-action:manipulation}
+.ink-tools .ink-icon,.ink-document-bar .ink-icon {width:27px;height:27px;display:block;flex:none;pointer-events:none}
+.ink-toolstrip {display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;height:42px;padding:0 56px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+.ink-toolstrip::-webkit-scrollbar {display:none}
+.ink-tools .ink-toolstrip .tb {width:40px;height:36px;min-width:40px;flex:none;padding:4px;border:0;background:none;color:#f9e8ec;border-radius:10px;box-shadow:none;transition:background .1s,color .1s}
+.ink-tools .ink-toolstrip .tb[aria-pressed="true"] {background:#eef3f5;color:#18282b;box-shadow:none;border:0}
+.ink-tools .ink-toolstrip [data-tool="pen"][aria-pressed="true"] .ink-nib,.ink-tools .ink-toolstrip [data-gtool="pen"][aria-pressed="true"] .ink-nib {fill:var(--ink-active);stroke:var(--ink-active)}
+.ink-toolstrip .tb:hover {background:rgba(255,255,255,.12)}
+.ink-undo {display:flex;align-items:center;position:absolute;left:10px;top:calc(100% + 20px);height:42px;padding:2px 3px;background:rgba(250,250,251,.97);border:1px solid #dedfe3;border-radius:13px;box-shadow:0 2px 5px rgba(30,35,40,.08);z-index:4}
+.ink-tools .ink-undo .tb {display:flex;align-items:center;justify-content:center;width:35px;height:36px;padding:4px;border:0;background:none;box-shadow:none;border-radius:8px;color:#6b747b}
+.ink-undo .ink-icon {width:24px;height:24px}
+.ink-options {position:absolute;top:calc(100% + 20px);left:max(102px,calc(50% - 260px));right:10px;max-width:520px;z-index:4;padding:3px 7px;background:rgba(250,250,251,.98);border:1px solid #dedfe3;border-radius:14px;box-shadow:0 3px 8px rgba(30,35,40,.11);color:#222b32;min-height:42px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+.ink-options::-webkit-scrollbar {display:none}
+.ink-options .penopt,.ink-options .gpen,.ink-options .eraopt,.ink-options .gera {display:flex;align-items:center;gap:6px;min-height:34px;flex-wrap:nowrap;width:max-content;margin:auto}
+.ink-options .ink-colors,.ink-options .swq {display:inline-flex;align-items:center;gap:7px;flex:none}
+.ink-options .ink-colors {margin-left:10px}
+.ink-tools .ink-options .sw {position:relative;flex:none;width:23px;height:23px;min-width:23px;padding:0;margin:0;border:0;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.06);overflow:visible}
+.ink-tools .ink-options .sw[aria-pressed="true"] {box-shadow:0 0 0 4px #e0e1e4,0 0 0 5px #cdd0d3}
+.ink-tools .ink-options .sw[aria-pressed="true"]::after {content:'⌄';position:absolute;inset:0;display:grid;place-items:center;color:white;font-size:15px;line-height:18px;text-shadow:0 1px 2px #333}
+.ink-tools .ink-options .wsz {display:flex;align-items:center;justify-content:center;width:35px;height:34px;flex:none;padding:0;border:0;border-radius:10px;background:none;box-shadow:none;color:#23282d}
+.ink-tools .ink-options .wsz i {display:block;width:18px!important;max-height:5px;background:#555e64;transform:scaleY(.65);border-radius:5px}
+.ink-tools .ink-options .wsz[aria-pressed="true"] {background:#e4e5e8}
+.ink-tools .ink-options .tb[data-palette] {display:flex;align-items:center;justify-content:center;width:31px;height:34px;padding:2px;margin-left:4px;flex:none;color:#727b82;background:none;border:0;box-shadow:none}
+.ink-options [data-palette] .ink-icon {width:23px;height:23px}
+.ink-tools .ink-options .esz {width:45px;height:34px;padding:0;flex:none;background:none;border:0;box-shadow:none;border-radius:10px}
+.ink-tools .ink-options .esz i {background:repeating-conic-gradient(#d4d7db 0% 25%,#f4f5f6 0% 50%) 50% / 5px 5px;border:1px solid #b8bec4;max-height:27px;max-width:27px}
+.ink-tools .ink-options .esz[aria-pressed="true"] i {outline:2px solid #397fb1;outline-offset:3px;background:white}
+.ink-tools .ink-options [data-act="ewhole"],.ink-tools .ink-options [data-gact="ewhole"] {height:31px;min-width:80px;padding:3px 10px;margin-right:5px;font-size:12px;color:#283139;border:0;background:white;border-radius:10px;box-shadow:0 1px 3px #00000010}
+.ink-tools .ink-mode-source {display:none!important}
+.ink-erase-mode {position:relative;flex:none;color:#283139}
+.ink-erase-mode>summary {display:flex;align-items:center;justify-content:center;gap:7px;height:31px;min-width:80px;padding:3px 10px;margin-right:5px;font-size:12px;list-style:none;background:white;border-radius:10px;cursor:pointer;box-shadow:0 1px 3px #00000010}
+.ink-erase-mode>summary::-webkit-details-marker {display:none}
+.ink-options:has(.ink-erase-mode[open]) {overflow:visible}
+.ink-erase-menu {position:absolute;left:0;top:40px;min-width:160px;padding:5px;background:#fff;border:1px solid #dce0e4;border-radius:12px;box-shadow:0 6px 20px #202b3820}
+.ink-tools .ink-erase-menu button {display:block;width:100%;padding:9px 12px;border:0;border-radius:7px;text-align:left;font-size:12px;color:#283139;background:none;box-shadow:none}
+.ink-tools .ink-erase-menu button[aria-pressed="true"] {background:#edf1f4;color:#253d50}
+.ink-tools[data-ink-tool="eraser"] .ink-options {left:max(102px,calc(50% - 145px));right:auto;width:290px;max-width:calc(100% - 112px)}
+.ink-toolbar-inline[data-ink-tool="eraser"] .ink-options {left:max(60px,calc(50% - 145px));max-width:calc(100% - 70px)}
+.ink-tools[data-ink-tool="laser"] .ink-options,.ink-tools[data-ink-tool="marker"] .ink-options {display:none}
+.ink-more {position:absolute;right:10px;top:3px;z-index:7}
+.ink-more>summary {display:flex;align-items:center;justify-content:center;list-style:none;width:36px;height:36px;border-radius:9px;color:#faedf0;cursor:pointer}
+.ink-more>summary::-webkit-details-marker {display:none}
+.ink-more[open]>summary {background:rgba(255,255,255,.15)}
+.ink-more-panel {position:absolute;right:0;top:44px;display:flex;flex-direction:column;gap:3px;min-width:195px;padding:7px;background:#fbfbfc;border:1px solid #dddfe3;border-radius:13px;box-shadow:0 8px 25px #1f293729;color:#283039}
+.ink-tools .ink-more-panel .ink-more-item {display:flex;align-items:center;gap:12px;width:100%;height:38px;min-width:0;padding:5px 10px;border:0;border-radius:8px;background:none;color:#29333c;box-shadow:none;font-size:13px;white-space:nowrap;justify-content:flex-start}
+.ink-more-panel .ink-more-item[aria-pressed="true"] {background:#ece2e5!important;color:#8b1b2e!important}
+.ink-more-panel .ink-icon {width:23px;height:23px}
+.ink-tools button:focus-visible,.ink-more>summary:focus-visible {outline:2px solid #80b6df;outline-offset:2px}
+.student-app .ink-workspace #wMeta {min-height:16px;height:16px;padding:0 10px;background:var(--ink-bar);border:0;margin-bottom:52px}
+.student-app .ink-workspace #wMeta #wProg {color:#f0cdd3;overflow:visible}
+.ink-workspace .wprog i,.ink-workspace .gprog i {position:relative;height:3px!important;background:#ffffff40;border:0}
+.ink-workspace .wprog i::after,.ink-workspace .gprog i::after {content:'';position:absolute;inset:-6px 0}
+.ink-workspace .wprog i.s,.ink-workspace .gprog i.s {background:#cee1d9}
+.ink-workspace .wprog i.cur,.ink-workspace .gprog i.cur {box-shadow:0 0 0 1px #ffecf0;background:#f8e5e9}
+.ink-workspace .wprog span,.ink-workspace .gprog span {color:#f3d4da;font-size:10px;line-height:16px}
+.ink-workspace>.gprog {height:16px;min-height:16px;padding:0 10px;background:var(--ink-bar);border:0;overflow:visible;margin-bottom:52px}
+.ink-workspace .wbody,.ink-workspace .gbody,.ink-workspace .lleft {background:#f0f1f3}
+.ink-workspace .wbody .inner>.strip,.ink-workspace .gstrip {border-color:#e0e2e5;box-shadow:0 2px 2px #2532400b}
+.ink-workspace .wf,.ink-workspace .gf {padding-top:6px;padding-bottom:calc(6px + env(safe-area-inset-bottom));background:#fafbfc;border-color:#e0e3e7;box-shadow:none}
+.ink-workspace .wf button,.ink-workspace .gf button {font-size:12px;padding:6px 10px;border-radius:9px}
+.ink-workspace .wf button.primary,.ink-workspace .gf button.primary {background:#a51c30;color:white;border-color:#a51c30}
+/* Inline MC keeps its native page scrolling and uses the same real controls. */
+.student-app.is-solving #annotbar:has(.ink-tools) {z-index:28;border:0;background:linear-gradient(#a51c30 0 42px,#f0f1f3 42px);color:white;padding:0 4px 52px;min-height:94px;align-items:flex-start;overflow:visible}
+.student-app #annotbar:has(.ink-tools)>b {display:flex;align-items:center;min-height:42px;color:#f9e8ed!important;font-size:11px;padding-left:5px}
+.student-app #annotbar:has(.ink-tools)>.n {display:none}
+.student-app #annotbar .ink-tools {overflow:visible;flex:1;min-width:0;max-width:none;margin:0}
+.ink-toolbar-inline .ink-toolstrip {justify-content:center}
+.ink-toolbar-inline .ink-undo {left:-40px;top:calc(100% + 5px)}
+.ink-toolbar-inline .ink-options {top:calc(100% + 5px);left:max(60px,calc(50% - 260px))}
+.ink-options .swq {display:contents}
+.ink-colors [data-color="#dc2626"],.ink-colors [data-gcolor="#dc2626"] {order:1}
+.ink-colors [data-color="#1d4ed8"],.ink-colors [data-gcolor="#1d4ed8"] {order:2}
+.ink-colors [data-color="#1e232a"],.ink-colors [data-gcolor="#1e232a"] {order:3}
+.ink-colors [data-color="#ff7a1a"],.ink-colors [data-gcolor="#ff7a1a"] {order:4}
+.ink-colors [data-color="#8b5cf6"],.ink-colors [data-gcolor="#8b5cf6"] {order:5}
+.ink-colors [data-color="#12b76a"],.ink-colors [data-gcolor="#12b76a"] {order:6}
+.ink-colors [data-color="#0ea5e9"],.ink-colors [data-gcolor="#0ea5e9"] {order:7}
+.ink-workspace:has(.ink-tools[data-ink-tool="laser"]) canvas:not(.inkwet) {cursor:none}
+@media(max-width:600px){
+  .ink-toolstrip {gap:3px;padding:0 45px 0 8px;justify-content:center}
+  .ink-tools .ink-toolstrip .tb {width:37px;min-width:37px;height:36px}
+  .ink-options {left:96px;right:6px;padding:3px 5px}
+  .ink-options .ink-colors,.ink-options .swq {gap:6px}
+  .ink-options .ink-colors {margin-left:5px}
+  .ink-tools .ink-options .wsz {width:30px}
+  .ink-tools .ink-options .sw {width:22px;height:22px;min-width:22px}
+  .ink-document-bar .ink-document-title {font-size:11px!important}
+  .ink-toolbar-inline .ink-undo {left:-35px}
+  .ink-toolbar-inline .ink-toolstrip {padding-left:0;padding-right:34px;gap:1px}
+  .ink-toolbar-inline .ink-toolstrip .tb {width:33px;min-width:33px}
+  .ink-toolbar-inline .ink-more {right:0}
+}
 </style>
 </head>
 <body class="teacher-app">
@@ -901,13 +1009,117 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
   window.physicsLayoutRefresh=refresh;refresh();
 })();
 
+/* Familiar notebook tool layout, based on the supplied 2026-10-26 recording.
+   Move the ORIGINAL controls inside their original delegation root; teacher
+   gToolbar() may replace that root's children after every tool change. */
+(function(){
+  const paths={
+    pen:'<path d="m5 23 3-12L20 3l5 5-8 12-12 3Z"/><path d="m5 23 9-9m-6-3 9 9M17 5l6 6"/><circle cx="14" cy="14" r="1.5" class="ink-nib"/>',
+    eraser:'<path d="m4 17 11-12a2 2 0 0 1 3 0l6 6a2 2 0 0 1 0 3l-9 10H10l-6-6Z"/><path d="m10 11 9 9M8 24h18"/>',
+    lasso:'<path d="M20 18c-1.5 2-5 3-8 3-5 0-9-3-9-7S7 5 13 5s11 3 11 7c0 2-1 3-2 4" stroke-dasharray="2.4 3"/><path d="m17 15 1 10 3-4 5-1-9-5Z"/>',
+    laser:'<path d="m5 23 13-13 5 5-13 13-5-5Z"/><path d="m9 19 5 5M19 4V1m5 5 3-2m-3 7h4M14 5l-2-2"/><circle cx="20" cy="12" r="1"/>',
+    undo:'<path d="M10 7 4 12l6 5M5 12h12a7 7 0 0 1 0 14" transform="translate(0 -3)"/>',
+    redo:'<path d="m18 7 6 5-6 5m5-5H11a7 7 0 0 0 0 14" transform="translate(0 -3)"/>',
+    shapes:'<circle cx="8" cy="8" r="4"/><path d="m20 3 6 10H14l6-10Z"/><rect x="4" y="17" width="9" height="9" rx="1"/><path d="m18 18 7 7m0-7-7 7"/>',
+    finger:'<path d="M11 15V5a2 2 0 0 1 4 0v8-2a2 2 0 0 1 4 0v3-1a2 2 0 0 1 4 0v6c0 5-3 7-7 7-3 0-5-2-7-4l-5-6a2 2 0 0 1 3-3l4 4"/>',
+    clear:'<path d="M5 7h18M11 3h6l1 4H10l1-4ZM8 7l1 18h10l1-18M12 11v10m4-10v10"/>',
+    marker:'<circle cx="14" cy="14" r="11"/><path d="m10 10 8 8m0-8-8 8"/>',
+    old:'<path d="M2 14s4-8 12-8 12 8 12 8-4 8-12 8S2 14 2 14Z"/><circle cx="14" cy="14" r="4"/>',
+    ann:'<rect x="4" y="3" width="16" height="19" rx="2"/><path d="M9 26h14a2 2 0 0 0 2-2V9M8 9h8m-8 5h6"/>',
+    back:'<path d="m17 5-9 9 9 9"/>',
+    more:'<circle cx="14" cy="14" r="11"/><circle cx="8" cy="14" r=".8"/><circle cx="14" cy="14" r=".8"/><circle cx="20" cy="14" r=".8"/>',
+    palette:'<circle cx="14" cy="14" r="10"/><circle cx="10" cy="9" r="2" fill="#dc2626" stroke="none"/><circle cx="18" cy="10" r="2" fill="#0ea5e9" stroke="none"/><circle cx="18" cy="18" r="2" fill="#12b76a" stroke="none"/><circle cx="10" cy="18" r="2" fill="#8b5cf6" stroke="none"/>'
+  };
+  const svg=name=>'<svg class="ink-icon" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||'')+'</svg>';
+  const icon=(button,name,label)=>{if(!button)return;
+    if(button.dataset.inkIcon!==name){button.innerHTML=svg(name);button.dataset.inkIcon=name;}
+    if(label&&button.getAttribute('aria-label')!==label)button.setAttribute('aria-label',label);
+  };
+  const workspaces=[['writer','wTools','wTitle','wBack'],['grader','gTools','gTitle','gBack'],['lecture','lTools','lTitle','lBack']];
+  for(const [id,tid,titleId,backId] of workspaces){
+    const ws=document.getElementById(id),tools=document.getElementById(tid);if(!ws||!tools)continue;
+    ws.classList.add('ink-workspace');const head=tools.closest('.wh,.gh');head.classList.add('ink-main-bar');
+    const doc=document.createElement('div');doc.className='ink-document-bar';ws.prepend(doc);
+    const back=document.getElementById(backId);icon(back,'back',id==='lecture'?'结束讲题':'返回');doc.append(back);
+    const tabs=id==='writer'&&document.getElementById('wSetTabs');if(tabs)doc.append(tabs);
+    const title=document.getElementById(titleId);title.classList.add('ink-document-title');doc.append(title);
+    const mode=id==='writer'&&document.getElementById('wMode');if(mode)doc.append(mode);
+    tools.classList.add('ink-tools');
+  }
+  const roots=()=>Array.from(document.querySelectorAll('#wTools,#gTools,#lTools,#annotbar .tools'));
+  const extraColors=[['#dc2626','批改红'],['#1d4ed8','深蓝'],['#1e232a','墨黑'],['#ff7a1a','橙色'],['#8b5cf6','紫色'],['#12b76a','薄荷绿'],['#0ea5e9','天蓝色']];
+  const build=root=>{
+    if(root.querySelector(':scope > .ink-toolstrip'))return;
+    root.classList.add('ink-tools');if(root.closest('#annotbar'))root.classList.add('ink-toolbar-inline');
+    const g=root.id==='gTools'||root.id==='lTools',act=g?'data-gact':'data-act',tool=g?'data-gtool':'data-tool';
+    const take=(attr,val)=>root.querySelector('['+attr+'="'+val+'"]');
+    const undo=document.createElement('div');undo.className='ink-undo';undo.setAttribute('aria-label','撤销和恢复');
+    for(const a of ['undo','redo']){const b=take(act,a);if(b){icon(b,a,a==='undo'?'撤销':'恢复');undo.append(b);}}
+    const main=document.createElement('div');main.className='ink-toolstrip';main.setAttribute('role','toolbar');main.setAttribute('aria-label','书写工具');
+    for(const name of ['lasso','pen','eraser']){const b=take(tool,name);if(b){icon(b,name,{lasso:'套索',pen:'钢笔',eraser:'橡皮'}[name]);main.append(b);}}
+    const shapes=take(act,'shapes');if(shapes){icon(shapes,'shapes','图形识别');main.append(shapes);}
+    const laser=take(tool,'laser');if(laser){icon(laser,'laser','激光笔');main.append(laser);}
+    const options=document.createElement('div');options.className='ink-options';options.setAttribute('aria-label','当前工具设置');
+    for(const selector of g?['.gpen','.gera']:['.penopt','.eraopt']){const group=root.querySelector(selector);if(group)options.append(group);}
+    const pen=options.querySelector('.penopt,.gpen');if(pen){
+      const widths=Array.from(pen.querySelectorAll('.wsz'));const palette=pen.querySelector('[data-palette]');
+      const colors=document.createElement('span');colors.className='ink-colors';
+      const quick=pen.querySelector('.swq');if(quick)colors.append(quick);else for(const color of pen.querySelectorAll('.sw'))colors.append(color);
+      pen.replaceChildren(...widths,colors);if(palette){icon(palette,'palette','更多颜色');pen.append(palette);}
+    }
+    const eraser=options.querySelector('.eraopt,.gera');if(eraser){const whole=eraser.querySelector('['+act+'="ewhole"]');const sizes=Array.from(eraser.querySelectorAll('.esz'));
+      if(whole){const mode=document.createElement('details');mode.className='ink-erase-mode';
+        const toggle=document.createElement('summary');toggle.setAttribute('aria-label','选择擦除方式');mode.append(toggle);
+        const menu=document.createElement('div');menu.className='ink-erase-menu';
+        for(const [value,label] of [['partial','局部擦除'],['whole','整笔擦除']]){const item=document.createElement('button');item.type='button';item.dataset.uiEraseMode=value;item.textContent=label;menu.append(item);}
+        mode.append(menu);whole.classList.add('ink-mode-source');whole.tabIndex=-1;whole.setAttribute('aria-hidden','true');eraser.replaceChildren(mode,whole,...sizes);
+      }else eraser.replaceChildren(...sizes);
+    }
+    const more=document.createElement('details');more.className='ink-more';
+    const summary=document.createElement('summary');summary.innerHTML=svg('more');summary.setAttribute('aria-label','更多工具');summary.title='更多工具';
+    const panel=document.createElement('div');panel.className='ink-more-panel';
+    const labels={finger:'手指书写',marker:'标记错处',clear:'清空笔迹',old:'显示上次笔迹',ann:'学生批注'};
+    for(const [name,label] of Object.entries(labels)){const b=take(name==='marker'?tool:act,name);if(!b)continue;
+      icon(b,name,label);const text=document.createElement('span');text.textContent=label;b.append(text);b.classList.add('ink-more-item');panel.append(b);}
+    for(const b of root.querySelectorAll('button')){b.classList.add('ink-more-item');panel.append(b);}
+    more.append(summary,panel);
+    // Only presentation spacers remain at root; all original controls were moved.
+    root.replaceChildren(undo,main,options,more);
+  };
+  const update=root=>{
+    const g=root.id==='gTools'||root.id==='lTools',colorAttr=g?'data-gcolor':'data-color',toolAttr=g?'data-gtool':'data-tool',act=g?'data-gact':'data-act';
+    const selected=root.querySelector('['+toolAttr+'][aria-pressed="true"]'),name=selected?selected.getAttribute(toolAttr):'pen';
+    if(root.dataset.inkTool!==name)root.dataset.inkTool=name;
+    const colors=root.querySelector('.ink-colors');if(colors){
+      const current=colors.querySelector('[aria-pressed="true"]'),color=current&&current.getAttribute(colorAttr);
+      if(color)root.style.setProperty('--ink-active',color);
+      for(const [hex,label] of extraColors){const extra=colors.querySelector('[data-ink-extra="'+hex+'"]');if(extra&&colors.querySelector('.swq ['+colorAttr+'="'+hex+'"]'))extra.remove();
+        if(!colors.querySelector('['+colorAttr+'="'+hex+'"]')){const b=document.createElement('button');b.type='button';b.className='sw';b.dataset.inkExtra=hex;b.setAttribute(colorAttr,hex);b.setAttribute('aria-pressed','false');b.style.background=hex;b.title=label;colors.append(b);}}
+      for(const b of colors.querySelectorAll('.sw')){const label=b.title||'颜色';if(b.getAttribute('aria-label')!==label)b.setAttribute('aria-label',label);}
+    }
+    const whole=root.querySelector('['+act+'="ewhole"]');if(whole){const on=whole.getAttribute('aria-pressed')==='true',label=(on?'整笔':'局部')+'⌄',toggle=root.querySelector('.ink-erase-mode>summary');if(toggle&&toggle.textContent!==label)toggle.textContent=label;
+      root.querySelectorAll('[data-ui-erase-mode]').forEach(b=>{const selected=(b.dataset.uiEraseMode==='whole')===on;if(b.getAttribute('aria-pressed')!==String(selected))b.setAttribute('aria-pressed',String(selected));});}
+  };
+  let frame=0;
+  const refresh=()=>{frame=0;for(const root of roots()){build(root);update(root);}};
+  const schedule=()=>{if(!frame)frame=requestAnimationFrame(refresh);};
+  for(const selector of ['#wTools','#gTools','#lTools','#planWrap']){const el=document.querySelector(selector);if(el)new MutationObserver(schedule).observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-pressed','hidden']});}
+  document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ink-more'))document.querySelectorAll('.ink-more[open]').forEach(m=>m.open=false);},{passive:true,capture:true});
+  document.addEventListener('click',e=>{if(e.target.closest('.ink-more-item'))document.querySelectorAll('.ink-more[open]').forEach(m=>m.open=false);});
+  document.addEventListener('click',e=>{const item=e.target.closest('[data-ui-erase-mode]');if(!item)return;const box=item.closest('.ink-options'),source=box.querySelector('[data-act="ewhole"],[data-gact="ewhole"]'),on=source.getAttribute('aria-pressed')==='true';
+    if(on!==(item.dataset.uiEraseMode==='whole'))source.click();const menu=item.closest('.ink-erase-mode');if(menu)menu.open=false;});
+  document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ink-erase-mode'))document.querySelectorAll('.ink-erase-mode[open]').forEach(m=>m.open=false);},{passive:true,capture:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.ink-more[open],.ink-erase-mode[open]').forEach(m=>m.open=false);});
+  schedule();
+})();
+
 /* Student chrome stays outside paper scaling. Existing IDs, buttons and
    delegated note handlers stay in place; no stroke or question data changes. */
 (function(){
   const writer=document.querySelector('#writer'),inner=document.querySelector('#wInner'),body=document.querySelector('#wBody');
   if(!writer||!inner||!body)return;
   const title=document.querySelector('#wTitle'),progress=document.querySelector('#wProg'),head=writer.querySelector('.wh');
-  const meta=document.createElement('div');meta.id='wMeta';head.after(meta);meta.append(title,progress);
+  const meta=document.createElement('div');meta.id='wMeta';head.after(meta);meta.append(progress);if(!title.closest('.ink-document-bar'))meta.prepend(title);
   let raf=0;
   const style=(el,key,value)=>{if(el.style[key]!==value)el.style[key]=value;};
   const wrap=(host,selector,kind)=>{
@@ -939,7 +1151,7 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261026114457';
+const BUILD='20261026124432';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
