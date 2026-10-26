@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261026090846"></script>
+<script src="config.js?v=20261026114457"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -745,6 +745,44 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
   .wf button,.gf button {font-size:12px;padding:7px 9px}
   .wf>span:first-child,.gf>span:first-child {font-size:10px}
 }
+
+/* Compact student practice chrome, 2026-10-26. Keep the writing targets
+   usable; reclaim height by removing duplicate rows rather than tiny icons. */
+.student-app.is-solving header .hin {display:none}
+.student-app.is-solving .mainnav {margin:0;padding:3px 8px;gap:4px}
+.student-app.is-solving .mainnav button {padding:7px 12px;font-size:12px;min-height:34px;border-radius:8px}
+.student-app.is-solving .mainnav .ui-icon {width:16px;height:16px}
+.student-app.is-solving .stabs,.student-app #wSetTabs {padding:3px 6px 0;min-height:0}
+.student-app #wSetTabs {padding-top:calc(3px + env(safe-area-inset-top))}
+.student-app.is-solving .stab,.student-app #wSetTabs .stab {font-size:11px;padding:4px 6px 5px 8px;border-radius:7px 7px 0 0;max-width:230px}
+.student-app.is-solving .stab.on,.student-app #wSetTabs .stab.on {padding-bottom:6px}
+.student-app.is-solving .setbar {padding:4px 8px;gap:6px}
+.student-app.is-solving .setbar h2 {font-size:12px}
+.student-app.is-solving .setbar button {font-size:11px;padding:5px 8px}
+.student-app.is-solving .annotbar {padding:3px 6px;gap:6px;border-radius:8px}
+.student-app.is-solving .annotbar .tools {padding:0}
+.student-app .writer .wh {flex-wrap:nowrap;gap:6px;padding:4px 8px;padding-top:calc(4px + env(safe-area-inset-top))}
+.student-app .writer.hastabs .wh {padding-top:4px}
+.student-app .writer .wh>.grow {display:none}
+.student-app #wBack {flex:none;font-size:12px;min-height:34px;padding:5px 8px}
+.student-app .writer .wh>#wTools {flex:1 1 0%;width:0;padding:0;scrollbar-width:none}
+.student-app #wTools::-webkit-scrollbar {display:none}
+.student-app #wMeta {display:flex;align-items:center;gap:12px;min-width:0;flex:none;min-height:24px;padding:2px 10px;background:var(--card);border-bottom:1px solid var(--line)}
+.student-app #wMeta #wTitle {font-size:11px;line-height:18px;min-width:0;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.student-app #wMeta #wProg {flex:1;min-width:0;padding:0;border:0;background:none;gap:2px}
+.student-app #wMeta #wProg i {height:3px;min-width:1px}
+.student-app #wMeta #wProg span {font-size:10px;margin-left:5px}
+.student-app #wMeta:has(#wProg[hidden]) #wTitle {max-width:100%}
+
+/* Counter-scale only note controls. The paper, note canvas, padding and
+   normalized ink coordinates keep their existing dimensions and behavior. */
+.student-app #wInner .nbslot {position:relative;padding:0;height:calc(42px / var(--paper-zoom,1));border-top-width:calc(1px / var(--paper-zoom,1))}
+.student-app #wInner .paper-note-host {position:relative;height:calc(42px / var(--paper-zoom,1))}
+.student-app #wInner .paper-note-rail {position:absolute;display:flex;align-items:center;gap:8px;height:34px;line-height:1.2;transform-origin:top left;z-index:3;pointer-events:none;box-sizing:border-box}
+.student-app #wInner .paper-note-rail.slot,.student-app #wInner .paper-note-rail.head {top:calc(4px / var(--paper-zoom,1))}
+.student-app #wInner .paper-note-rail.foot {bottom:calc(4px / var(--paper-zoom,1));transform-origin:bottom left}
+.student-app #wInner .paper-note-rail button {position:static;flex:none;pointer-events:auto;min-height:30px;margin-left:auto;font-size:12px;line-height:1.2;padding:5px 10px;white-space:nowrap}
+.student-app #wInner .paper-note-rail .nbl {position:static;font-size:11px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body class="teacher-app">
@@ -848,6 +886,7 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
   const set=(name,n)=>{const v=n.toFixed(2)+'px';if(root.style.getPropertyValue(name)!==v)root.style.setProperty(name,v);};
   const refresh=()=>{
     const tabs=document.querySelector('#setTabs'),bar=plan&&plan.querySelector('.setbar'),tools=plan&&plan.querySelector('#annotbar');
+    document.body.classList.toggle('is-solving',visible(plan)&&!!bar);
     const nodes=[header,tabs,bar,tools].filter(Boolean);
     if(ro&&(nodes.length!==observed.length||nodes.some((n,i)=>n!==observed[i]))){ro.disconnect();nodes.forEach(n=>ro.observe(n));observed=nodes;}
     const hh=height(header),th=visible(plan)?height(tabs):0,sh=visible(plan)?height(bar):0,ah=visible(plan)?height(tools):0;
@@ -862,7 +901,45 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
   window.physicsLayoutRefresh=refresh;refresh();
 })();
 
-const BUILD='20261026090846';
+/* Student chrome stays outside paper scaling. Existing IDs, buttons and
+   delegated note handlers stay in place; no stroke or question data changes. */
+(function(){
+  const writer=document.querySelector('#writer'),inner=document.querySelector('#wInner'),body=document.querySelector('#wBody');
+  if(!writer||!inner||!body)return;
+  const title=document.querySelector('#wTitle'),progress=document.querySelector('#wProg'),head=writer.querySelector('.wh');
+  const meta=document.createElement('div');meta.id='wMeta';head.after(meta);meta.append(title,progress);
+  let raf=0;
+  const style=(el,key,value)=>{if(el.style[key]!==value)el.style[key]=value;};
+  const wrap=(host,selector,kind)=>{
+    const controls=Array.from(host.children).filter(el=>el.matches(selector));if(!controls.length)return;
+    const rail=document.createElement('div');rail.className='paper-note-rail '+kind;rail.append(...controls);host.append(rail);
+  };
+  const refresh=()=>{raf=0;if(!writer.classList.contains('on'))return;
+    const match=inner.style.transform.match(/scale\(([\d.e+-]+)\)/),z=match?Math.max(1,+match[1]||1):1;
+    const zoom=String(z);if(writer.style.getPropertyValue('--paper-zoom')!==zoom)writer.style.setProperty('--paper-zoom',zoom);
+    inner.querySelectorAll('.nbslot').forEach(slot=>wrap(slot,'button','slot'));
+    inner.querySelectorAll('.strip.nb').forEach(nb=>{wrap(nb,'.nbl,.nbdel','head');wrap(nb,'.nbx','foot');});
+    inner.querySelectorAll('[data-nbtop]').forEach(button=>{
+      const host=button.parentElement;if(host.classList.contains('paper-note-rail'))return;
+      host.classList.add('paper-note-host');wrap(host,'*','slot');
+    });
+    const viewport=body.getBoundingClientRect();
+    inner.querySelectorAll('.paper-note-rail').forEach(rail=>{
+      const host=rail.parentElement,r=host.getBoundingClientRect();
+      const left=Math.max(r.left,viewport.left+8),right=Math.min(r.right,viewport.right-8);
+      style(rail,'left',((left-r.left)/z-host.clientLeft)+'px');style(rail,'width',Math.max(0,right-left)+'px');
+      style(rail,'transform','scale('+(1/z)+')');
+    });
+  };
+  const schedule=()=>{if(!raf)raf=requestAnimationFrame(refresh);};
+  new MutationObserver(schedule).observe(inner,{attributes:true,attributeFilter:['style']});
+  new MutationObserver(schedule).observe(inner,{childList:true,subtree:true});
+  new MutationObserver(schedule).observe(writer,{attributes:true,attributeFilter:['class']});
+  if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(schedule);ro.observe(body);ro.observe(inner);}
+  addEventListener('resize',schedule);schedule();
+})();
+
+const BUILD='20261026114457';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
