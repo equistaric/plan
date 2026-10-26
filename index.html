@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261026124432"></script>
+<script src="config.js?v=20261026144123"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1345,7 +1345,7 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261026124432';
+const BUILD='20261026144123';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -2254,7 +2254,7 @@ function inkViewport(o){
   if(typeof ResizeObserver!=='undefined'){const ro=new ResizeObserver(scheduleResize);ro.observe(body);ro.observe(inner);}
   const suspend=()=>{stopFling();clearTimeout(fitT);fitT=0;if(visibleRaf)cancelAnimationFrame(visibleRaf);visibleRaf=0;if(resizeRaf)cancelAnimationFrame(resizeRaf);resizeRaf=0;
     T.clear();REST.clear();PZ=null;PAN=null;body.scrollLeft=body.scrollTop=0;inner.querySelectorAll('canvas').forEach(c=>{c.width=c.height=0;});};
-  return{VZ,applyView,clampView,zoomAt,panBy,panTo,resetView,stopFling,fitSoon,zoomStep,onResize,suspend,busy:()=>!!(PAN||PZ||(fl&&fl.active))};
+  return{body,inner,VZ,applyView,clampView,zoomAt,panBy,panTo,resetView,stopFling,fitSoon,zoomStep,onResize,suspend,busy:()=>!!(PAN||PZ||(fl&&fl.active))};
 }
 
 /* ---- 橡皮命中：点到笔画各线段的距离。识别出的直线 / 三角形 / 四边形只存了端点，按点距只擦得到端点，中段擦不掉 ---- */
@@ -2315,12 +2315,18 @@ const inkPadDecl=(it,k)=>{const p=inkPad(it,k);return p?`;padding-bottom:${(p*10
    页面给 surface：{key, box, host, zoom(), canvases(), idx(cv), strokes(), canMove(s), stamp(s), commit(arr,touchedIdx), redraw(), tip(m)}
    box = 这道题所有条带的容器（坐标原点），host = 叠加层挂在哪（滚动视口；document.body = 固定在屏幕上） ---- */
 const LASSO={S:null,mode:null,path:null,sel:null,moving:false,dx:0,dy:0,k:1,start:null,k0:1,cv:null,menu:null,raf:0,sig:'',dirty:false,dpr:1,hist:{}};
+/* Use the overlay's actual client rectangle, including Safari/ancestor scaling
+   and host borders. Pointer input and drawing must share this same origin. */
+function inkOverlayFrame(cv){const r=cv.getBoundingClientRect(),w=parseFloat(cv.style.width)||cv.clientWidth||r.width,h=parseFloat(cv.style.height)||cv.clientHeight||r.height;
+  return{left:r.left,top:r.top,sx:r.width/w||1,sy:r.height/h||1,w,h};}
+function inkOverlaySamples(e){const samples=inkSamples(e),last=samples[samples.length-1];if(last.clientX!==e.clientX||last.clientY!==e.clientY)samples.push(e);return samples;}
+function lassoZoom(S){const r=S.box.getBoundingClientRect();return r.width/(S.box.offsetWidth||r.width/(S.zoom()||1))||1;}
 function inPoly(x,y,P){let c=false;for(let i=0,j=P.length-2;i<P.length;j=i,i+=2){const xi=P[i],yi=P[i+1],xj=P[j],yj=P[j+1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c;}return c;}
-function lassoStrips(S){const b=S.box.getBoundingClientRect(),z=S.zoom()||1,out=[];
+function lassoStrips(S){const b=S.box.getBoundingClientRect(),z=lassoZoom(S),out=[];
   for(const cv of S.canvases()){if(!cv.isConnected)continue;const r=cv.getBoundingClientRect();if(!r.width)continue;
     out.push({i:S.idx(cv),ox:(r.left-b.left)/z,oy:(r.top-b.top)/z,W:r.width/z,H:r.height/z});}
   return out;}
-function lassoPt(S,e){const b=S.box.getBoundingClientRect(),z=S.zoom()||1;return[(e.clientX-b.left)/z,(e.clientY-b.top)/z];}
+function lassoPt(S,e){const b=S.box.getBoundingClientRect(),z=lassoZoom(S);return[(e.clientX-b.left)/z,(e.clientY-b.top)/z];}
 function lassoPick(S,poly){const byI=new Map(lassoStrips(S).map(z=>[z.i,z]));let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   for(let k=0;k<poly.length;k+=2){x0=Math.min(x0,poly[k]);x1=Math.max(x1,poly[k]);y0=Math.min(y0,poly[k+1]);y1=Math.max(y1,poly[k+1]);}
   const items=[];let locked=0;
@@ -2346,16 +2352,16 @@ function lassoAttach(S){
   if(LASSO.cv.width!==Math.round(w*dpr)||LASSO.cv.height!==Math.round(h*dpr)){LASSO.cv.width=Math.round(w*dpr);LASSO.cv.height=Math.round(h*dpr);}
   st.width=w+'px';st.height=h+'px';LASSO.dpr=dpr;}
 /* 容器坐标 → 叠加层（host）坐标 */
-function lassoXf(){const S=LASSO.S,fixed=S.host===document.body,b=S.box.getBoundingClientRect(),hr=fixed?{left:0,top:0}:S.host.getBoundingClientRect();return{bx:b.left-hr.left,by:b.top-hr.top,z:S.zoom()||1};}
-function lassoScreenBox(){const sel=LASSO.sel,{bx,by,z}=lassoXf(),[x0,y0,x1,y1]=sel.box,{dx,dy,k}=LASSO,ax=x0,ay=y0;
-  return[bx+(ax+dx)*z,by+(ay+dy)*z,bx+(ax+(x1-ax)*k+dx)*z,by+(ay+(y1-ay)*k+dy)*z];}
+function lassoXf(){const S=LASSO.S,b=S.box.getBoundingClientRect(),o=inkOverlayFrame(LASSO.cv),z=lassoZoom(S);return{bx:(b.left-o.left)/o.sx,by:(b.top-o.top)/o.sy,zx:z/o.sx,zy:z/o.sy};}
+function lassoScreenBox(){const sel=LASSO.sel,{bx,by,zx,zy}=lassoXf(),[x0,y0,x1,y1]=sel.box,{dx,dy,k}=LASSO,ax=x0,ay=y0;
+  return[bx+(ax+dx)*zx,by+(ay+dy)*zy,bx+(ax+(x1-ax)*k+dx)*zx,by+(ay+(y1-ay)*k+dy)*zy];}
 function lassoDraw(){const S=LASSO.S,cv=LASSO.cv;if(!S||!cv)return;const c=cv.getContext('2d'),dpr=LASSO.dpr;c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cv.width,cv.height);
-  const {bx,by,z}=lassoXf();
-  if(LASSO.mode==='lasso'&&LASSO.path&&LASSO.path.length>=4){const P=LASSO.path;c.setTransform(dpr,0,0,dpr,0,0);c.beginPath();c.moveTo(bx+P[0]*z,by+P[1]*z);
-    for(let k=2;k<P.length;k+=2)c.lineTo(bx+P[k]*z,by+P[k+1]*z);c.setLineDash([5,4]);c.lineWidth=1.6;c.strokeStyle='#3b82f6';c.stroke();c.setLineDash([]);c.fillStyle='rgba(59,130,246,.06)';c.fill();}
+  const {bx,by,zx,zy}=lassoXf();
+  if(LASSO.mode==='lasso'&&LASSO.path&&LASSO.path.length>=4){const P=LASSO.path;c.setTransform(dpr,0,0,dpr,0,0);c.beginPath();c.moveTo(bx+P[0]*zx,by+P[1]*zy);
+    for(let k=2;k<P.length;k+=2)c.lineTo(bx+P[k]*zx,by+P[k+1]*zy);c.setLineDash([5,4]);c.lineWidth=1.6;c.strokeStyle='#3b82f6';c.stroke();c.setLineDash([]);c.fillStyle='rgba(59,130,246,.06)';c.fill();}
   const sel=LASSO.sel;if(!sel)return;const {dx,dy,k}=LASSO,ax=sel.box[0],ay=sel.box[1];
-  if(LASSO.moving)for(const {s,st} of sel.items){const tx=bx+(ax+(st.ox-ax)*k+dx)*z,ty=by+(ay+(st.oy-ay)*k+dy)*z,sc=k*z;
-    c.setTransform(dpr*sc,0,0,dpr*sc,dpr*tx,dpr*ty);c.lineCap='round';c.lineJoin='round';inkDraw(c,s,st.W);}
+  if(LASSO.moving)for(const {s,st} of sel.items){const tx=bx+(ax+(st.ox-ax)*k+dx)*zx,ty=by+(ay+(st.oy-ay)*k+dy)*zy;
+    c.setTransform(dpr*k*zx,0,0,dpr*k*zy,dpr*tx,dpr*ty);c.lineCap='round';c.lineJoin='round';inkDraw(c,s,st.W);}
   const [sx0,sy0,sx1,sy1]=lassoScreenBox();c.setTransform(dpr,0,0,dpr,0,0);
   c.fillStyle='rgba(59,130,246,.07)';c.fillRect(sx0,sy0,sx1-sx0,sy1-sy0);c.setLineDash([6,4]);c.lineWidth=1.4;c.strokeStyle='#3b82f6';c.strokeRect(sx0,sy0,sx1-sx0,sy1-sy0);c.setLineDash([]);
   c.beginPath();c.arc(sx1,sy1,7,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.lineWidth=2;c.stroke();}
@@ -2371,21 +2377,23 @@ function lassoMenuPos(){const m=LASSO.menu,S=LASSO.S,sel=LASSO.sel;if(!m)return;
 function lassoLoop(){if(LASSO.raf)return;const f=()=>{LASSO.raf=0;const S=LASSO.S;if(!S||(!LASSO.sel&&LASSO.mode!=='lasso'))return;
     if(!S.box.isConnected){lassoClear();return;}
     const b=S.box.getBoundingClientRect(),fixed=S.host===document.body,hw=fixed?innerWidth:S.host.clientWidth,hh=fixed?innerHeight:S.host.clientHeight;
-    const sig=[b.left,b.top,b.width,S.zoom(),hw,hh].map(v=>Math.round(v*10)).join(',');
+    const base=S.box.offsetWidth||b.width/(S.zoom()||1);
+    if(LASSO.sel&&LASSO.baseW&&Math.abs(base-LASSO.baseW)>.5){lassoCancelGesture();lassoSelect(S,LASSO.sel.items);}LASSO.baseW=base;
+    const o=inkOverlayFrame(LASSO.cv),sig=[b.left,b.top,b.width,o.left,o.top,o.sx,o.sy,hw,hh].map(v=>Math.round(v*100)).join(',');
     if(sig!==LASSO.sig||LASSO.dirty){LASSO.sig=sig;LASSO.dirty=false;lassoAttach(S);lassoDraw();lassoMenuPos();}
     LASSO.raf=requestAnimationFrame(f);};LASSO.raf=requestAnimationFrame(f);}
 function lassoHide(on){const sel=LASSO.sel;if(!sel)return;for(const it of sel.items)on?INK_HIDE.add(it.s):INK_HIDE.delete(it.s);LASSO.moving=on;LASSO.S.redraw();LASSO.dirty=true;}
 function lassoDown(S,e){const [X,Y]=lassoPt(S,e);LASSO.start=[X,Y];
-  if(LASSO.sel&&LASSO.S&&LASSO.S.key===S.key&&LASSO.S.box===S.box){const z=S.zoom()||1,[x0,y0,x1,y1]=LASSO.sel.box,m=10/z;
+  if(LASSO.sel&&LASSO.S&&LASSO.S.key===S.key&&LASSO.S.box===S.box){lassoSelect(S,LASSO.sel.items);const z=lassoZoom(S),[x0,y0,x1,y1]=LASSO.sel.box,m=10/z;
     if(Math.hypot(X-x1,Y-y1)<=16/z){LASSO.mode='scale';const vx=x1-x0,vy=y1-y0;LASSO.k0=((X-x0)*vx+(Y-y0)*vy)/((vx*vx+vy*vy)||1)||1;lassoHide(true);return;}   // 右下角圆点：缩放
     if(X>=x0-m&&X<=x1+m&&Y>=y0-m&&Y<=y1+m){LASSO.mode='move';lassoHide(true);return;}}                                      // 框里：拖动
-  lassoClear();LASSO.S=S;LASSO.mode='lasso';LASSO.path=[X,Y];lassoAttach(S);LASSO.dirty=true;lassoLoop();}                    // 框外：重新圈
-function lassoMove(e){const S=LASSO.S;if(!S||!LASSO.mode)return;const z=S.zoom()||1;
-  if(LASSO.mode==='lasso'){for(const ev of inkSamples(e)){const [X,Y]=lassoPt(S,ev),P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=3/z)P.push(X,Y);}LASSO.dirty=true;return;}
+  lassoClear();LASSO.S=S;LASSO.baseW=S.box.offsetWidth;LASSO.mode='lasso';LASSO.path=[X,Y];lassoAttach(S);LASSO.dirty=true;lassoLoop();}                    // 框外：重新圈
+function lassoMove(e){const S=LASSO.S;if(!S||!LASSO.mode)return;const z=lassoZoom(S);
+  if(LASSO.mode==='lasso'){for(const ev of inkOverlaySamples(e)){const [X,Y]=lassoPt(S,ev),P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=.1/z)P.push(X,Y);}LASSO.dirty=true;return;}
   const [X,Y]=lassoPt(S,e),[sx,sy]=LASSO.start;
   if(LASSO.mode==='move'){LASSO.dx=X-sx;LASSO.dy=Y-sy;LASSO.dirty=true;return;}
   if(LASSO.mode==='scale'){const [x0,y0,x1,y1]=LASSO.sel.box,vx=x1-x0,vy=y1-y0,t=((X-x0)*vx+(Y-y0)*vy)/((vx*vx+vy*vy)||1);LASSO.k=Math.max(0.25,Math.min(4,t/LASSO.k0));LASSO.dirty=true;}}
-function lassoUp(){const S=LASSO.S;if(!S)return;const mode=LASSO.mode;LASSO.mode=null;
+function lassoUp(e){const S=LASSO.S;if(!S)return;if(e&&e.type==='pointerup')lassoMove(e);const mode=LASSO.mode;LASSO.mode=null;
   if(mode==='lasso'){const P=LASSO.path;LASSO.path=null;LASSO.dirty=true;if(!P||P.length<8){lassoClear();return;}
     const {items,locked}=lassoPick(S,P);
     if(!items.length){lassoClear();S.tip(locked?'已保存的原答案不能移动（只能移动之后写的批注）':'没有圈到笔迹：把要移动的笔迹整个圈起来');return;}
@@ -2444,38 +2452,47 @@ const LASSO_CSS=`.lassomenu{z-index:8;display:flex;gap:2px;align-items:center;ba
 (function(){const st=document.createElement('style');st.textContent=LASSO_CSS;document.head.appendChild(st);})();
 
 /* ---- 激光笔（讲题用）：红色光点 + 顺滑轨迹，抬笔后停留 5 秒再 1 秒淡出（不留笔尖光点）；只在屏幕上显示，不入库。
-   轨迹记的是「内容坐标」（随视图层的平移 / 缩放一起动，放大缩小时光点始终贴着题）。view = inkViewport 实例；
+   轨迹按实际题纸宽度归一化；缩放、平移、旋转和分屏后仍贴着同一个位置。view = inkViewport 实例；
    host = document.body 时（选择题套题页）记页面坐标，随页面滚动 ---- */
-const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:5000,fade:1000,dpr:1};
+const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:5000,fade:1000,dpr:1,dirty:false,sig:''};
 function laserAttach(host,view){
   if(!LASER.cv){LASER.cv=document.createElement('canvas');LASER.cv.className='inklaser';LASER.cv.style.pointerEvents='none';}
   const fixed=host===document.body,st=LASER.cv.style;
   st.position=fixed?'fixed':'absolute';st.left='0';st.top='0';st.zIndex=fixed?'69':'6';
+  if(LASER.host&&(LASER.host!==host||LASER.view!==(view||null)))laserClear();
   if(LASER.host!==host){host.appendChild(LASER.cv);LASER.host=host;}
   LASER.view=view||null;
   const w=fixed?innerWidth:host.clientWidth,h=fixed?innerHeight:host.clientHeight,dpr=Math.min(2,devicePixelRatio||1);
-  if(LASER.cv.width!==Math.round(w*dpr)||LASER.cv.height!==Math.round(h*dpr)){LASER.cv.width=Math.round(w*dpr);LASER.cv.height=Math.round(h*dpr);}
+  if(LASER.cv.width!==Math.round(w*dpr)||LASER.cv.height!==Math.round(h*dpr)){LASER.cv.width=Math.round(w*dpr);LASER.cv.height=Math.round(h*dpr);LASER.dirty=true;}
   st.width=w+'px';st.height=h+'px';LASER.dpr=dpr;}                                       // CSS 尺寸每次都设：位图 = 尺寸 × dpr，否则在 iPad 上会被放大一倍而偏移
-function laserPt(e){if(LASER.host===document.body)return[e.clientX,e.clientY];const r=LASER.host.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top];}
-/* 屏幕（host 内）坐标 ↔ 内容坐标 */
-function laserToC(x,y){const v=LASER.view;if(v){const Z=v.VZ;return[(x-Z.tx)/Z.z,(y-Z.ty)/Z.z];}if(LASER.host===document.body)return[x+scrollX,y+scrollY];return[x,y];}
-function laserToS(x,y){const v=LASER.view;if(v){const Z=v.VZ;return[x*Z.z+Z.tx,y*Z.z+Z.ty];}if(LASER.host===document.body)return[x-scrollX,y-scrollY];return[x,y];}
-function laserDown(host,e,view){laserAttach(host,view);const [sx,sy]=laserPt(e),[x,y]=laserToC(sx,sy);LASER.cur={p:[[x,y,sx,sy]],sx,sy,end:0};LASER.trails.push(LASER.cur);laserLoop();}
-function laserMove(e){const t=LASER.cur;if(!t)return;
-  for(const s of inkSamples(e)){const [x,y]=laserPt(s);t.sx+=(x-t.sx)*0.55;t.sy+=(y-t.sy)*0.55;const [cx,cy]=laserToC(t.sx,t.sy);const L=t.p[t.p.length-1];if(Math.hypot(t.sx-L[2],t.sy-L[3])<1.2)continue;t.p.push([cx,cy,t.sx,t.sy]);}}
-function laserUp(){if(LASER.cur){LASER.cur.end=performance.now();LASER.cur=null;}}
-function laserClear(){LASER.trails=[];LASER.cur=null;if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
-function laserDraw(c,t,alpha){const P=t.p.map(q=>laserToS(q[0],q[1]));if(!P.length)return;c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
+function laserFrame(){return{o:inkOverlayFrame(LASER.cv),paper:LASER.view&&LASER.view.inner?LASER.view.inner.getBoundingClientRect():null};}
+function laserPt(e,f=laserFrame()){return[(e.clientX-f.o.left)/f.o.sx,(e.clientY-f.o.top)/f.o.sy];}
+/* Overlay CSS pixels ↔ paper coordinates. Read geometry once per input batch/frame. */
+function laserToC(x,y,f=laserFrame()){const {o,paper}=f;if(paper&&paper.width)return[(o.left+x*o.sx-paper.left)/paper.width,(o.top+y*o.sy-paper.top)/paper.width];
+  const v=LASER.view;if(v){const Z=v.VZ;return[(x-Z.tx)/Z.z,(y-Z.ty)/Z.z];}if(LASER.host===document.body)return[o.left+x*o.sx+scrollX,o.top+y*o.sy+scrollY];return[x,y];}
+function laserToS(x,y,f=laserFrame()){const {o,paper}=f;if(paper&&paper.width)return[(paper.left+x*paper.width-o.left)/o.sx,(paper.top+y*paper.width-o.top)/o.sy];
+  const v=LASER.view;if(v){const Z=v.VZ;return[x*Z.z+Z.tx,y*Z.z+Z.ty];}if(LASER.host===document.body)return[(x-scrollX-o.left)/o.sx,(y-scrollY-o.top)/o.sy];return[x,y];}
+function laserDown(host,e,view){laserAttach(host,view);const f=laserFrame(),[sx,sy]=laserPt(e,f),[x,y]=laserToC(sx,sy,f);LASER.cur={p:[[x,y,sx,sy]],sx,sy,end:0};LASER.trails.push(LASER.cur);LASER.dirty=true;laserLoop();}
+function laserMove(e){const t=LASER.cur;if(!t)return;const f=laserFrame(),samples=inkOverlaySamples(e);
+  // Safari can omit the parent event from its coalesced list. Always reach the
+  // actual tip; smoothing the input by 0.55 used to leave a visible trailing gap.
+  for(const s of samples){const [x,y]=laserPt(s,f);if(Math.hypot(x-t.sx,y-t.sy)<.01)continue;const [cx,cy]=laserToC(x,y,f);t.sx=x;t.sy=y;t.p.push([cx,cy,x,y]);LASER.dirty=true;}}
+function laserUp(e){if(LASER.cur){if(e&&e.type==='pointerup')laserMove(e);LASER.cur.end=performance.now();LASER.cur=null;LASER.dirty=true;}}
+function laserClear(){LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
+function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[1],f));if(!P.length)return;c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
   const path=new Path2D();path.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length-1;i++)path.quadraticCurveTo(P[i][0],P[i][1],(P[i][0]+P[i+1][0])/2,(P[i][1]+P[i+1][1])/2);const L=P[P.length-1];path.lineTo(L[0],L[1]);
-  c.strokeStyle='rgba(255,40,40,.22)';c.lineWidth=12;c.stroke(path);
-  c.strokeStyle='rgba(255,50,50,.85)';c.lineWidth=4.5;c.stroke(path);
-  c.strokeStyle='rgba(255,215,215,.9)';c.lineWidth=1.5;c.stroke(path);
-  if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],10);g.addColorStop(0,'rgba(255,255,255,.98)');g.addColorStop(.32,'rgba(255,40,40,.95)');g.addColorStop(1,'rgba(255,40,40,0)');
-  c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],10,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
+  c.shadowColor='rgba(255,30,45,.65)';c.shadowBlur=6*LASER.dpr;c.strokeStyle='rgba(255,45,55,.9)';c.lineWidth=3.5;c.stroke(path);
+  c.shadowBlur=0;c.strokeStyle='rgba(255,225,225,.95)';c.lineWidth=1.2;c.stroke(path);
+  if(P.length===1){c.beginPath();c.arc(L[0],L[1],1.75,0,Math.PI*2);c.fillStyle='#ff454f';c.fill();}
+  if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],6);g.addColorStop(0,'rgba(255,255,255,.98)');g.addColorStop(.3,'rgba(255,50,60,.95)');g.addColorStop(1,'rgba(255,40,40,0)');
+  c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],6,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
 function laserLoop(){if(LASER.raf)return;const f=()=>{LASER.raf=0;if(!LASER.cv)return;const now=performance.now(),c=LASER.cv.getContext('2d');
-  c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);c.setTransform(LASER.dpr,0,0,LASER.dpr,0,0);
+  laserAttach(LASER.host,LASER.view);const g=laserFrame(),p=g.paper,o=g.o,sig=[o.left,o.top,o.sx,o.sy,o.w,o.h,p&&p.left,p&&p.top,p&&p.width,scrollX,scrollY].join(',');
+  const count=LASER.trails.length,fading=LASER.trails.some(t=>t.end&&now-t.end>=LASER.hold);
   LASER.trails=LASER.trails.filter(t=>!t.end||now-t.end<LASER.hold+LASER.fade);
-  for(const t of LASER.trails)laserDraw(c,t,t.end?Math.max(0,1-Math.max(0,now-t.end-LASER.hold)/LASER.fade):1);
+  if(LASER.dirty||sig!==LASER.sig||fading||count!==LASER.trails.length){LASER.dirty=false;LASER.sig=sig;
+    c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);c.setTransform(LASER.dpr,0,0,LASER.dpr,0,0);
+    for(const t of LASER.trails){const u=t.end?Math.max(0,Math.min(1,(now-t.end-LASER.hold)/LASER.fade)):0;laserDraw(c,t,1-u*u*(3-2*u),g);}}
   if(LASER.trails.length)LASER.raf=requestAnimationFrame(f);};LASER.raf=requestAnimationFrame(f);}
 addEventListener('resize',()=>{if(LASER.host&&LASER.trails.length)laserAttach(LASER.host,LASER.view);});
 
@@ -2525,8 +2542,8 @@ function pup(e,cv){
   if(e.pointerType==='touch'&&PALM.has(e.pointerId)){if(DRAW.cur&&DRAW.cur.id===e.pointerId)cancelStroke();return;}
   const cur=DRAW.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
   DRAW.cur=null;clearTimeout(DRAW.holdT);try{cv.releasePointerCapture(e.pointerId);}catch(x){}
-  if(cur.laser){laserUp();return;}
-  if(cur.lasso){lassoUp();return;}
+  if(cur.laser){laserUp(e);return;}
+  if(cur.lasso){lassoUp(e);return;}
   if(cur.erase){wetClear();eraseFlush();if(cur.hit)markDirty(cur.q);return;}
   if(e.type==='pointercancel'&&!cur.shape&&cur.st.n<3){wetClear();return;}   // 被系统打断的极短一笔：丢弃
   const s=curStroke(cur);if(annotLayer(cur.q))s.a=1;
@@ -2617,7 +2634,7 @@ document.addEventListener('click',e=>{
    全屏手写页（结构题作答 / 讲评批注 / 重做）
    ====================================================================== */
 const W={q:null,old:[],showOld:false,redo:false,annot:false,list:[],prevSelf:null};
-async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)return;lassoClear();setTimeout(renderSetTabs,0);flushInk();W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!opts.redo;W.annot=!!opts.annot||(it.mc!==1&&!!(doSet&&subs[doSet])&&!opts.redo);W.showOld=false;
+async function openWriter(q,opts){opts=opts||{};const it=byId.get(q);if(!it)return;laserClear();lassoClear();setTimeout(renderSetTabs,0);flushInk();W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!opts.redo;W.annot=!!opts.annot||(it.mc!==1&&!!(doSet&&subs[doSet])&&!opts.redo);W.showOld=false;
   const wr=$('#writer');wr.classList.add('on');wr.classList.toggle('annot',W.annot);document.body.style.overflow='hidden';
   $('#wMode').hidden=!W.annot;
   const at=attempts[q]||{};
