@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104183509"></script>
+<script src="config.js?v=20261104201100"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1103,6 +1103,8 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 /* Existing source answers stay on their original canvas. */
 .source-record{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--surface2,#f8f5f3);border-top:1px solid var(--line,#e5dedb);font-size:12px;color:var(--muted,#665b5b)}
 .source-record button{flex-shrink:0}
+
+.learning-records{margin:0 18px 18px;border:1px solid var(--line,#e5dedb);border-radius:12px;overflow:hidden}.learning-records>summary{padding:12px;cursor:pointer;font-size:13px;font-weight:600}.learning-records>p{margin:0;padding:0 12px 12px;font-size:12px;color:var(--muted,#665b5b)}
 </style>
 </head>
 <body class="student-app">
@@ -1248,7 +1250,7 @@ const learningMarks=it=>it.t||(PLAN.learning?.questionMarks||{})[it.id]||null;
 const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>s.phase===learningPhase&&s.phase!=='legacy');return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
 const learningChapterSets=(P,ch)=>P.sets.filter(s=>s.ch===ch).slice().sort((a,b)=>PLAN.learning?({homework:0,stage:1,final:2,legacy:3}[a.phase]-{homework:0,stage:1,final:2,legacy:3}[b.phase])||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0):0);
 function learningPhaseTabs(){if(!PLAN.learning)return '';learningEnsurePhase();return `<div class="learning-phases" role="group" aria-label="练习类型">${learningPhases().map(p=>`<button data-learning-phase="${p.id}" aria-pressed="${p.id===learningPhase}"><b>${esc(p.label)}</b><small>${esc(p.years)}</small></button>`).join('')}</div>`;}
-function learningDirectory(P,{action='go',status=()=>''}={}){
+function learningDirectory(P,{action='go',status=()=>'',records=()=>''}={}){
   learningEnsurePhase();const phases=learningPhases(),phase=phases.find(p=>p.id===learningPhase),visible=learningVisibleSets(P);
   const button=s=>`<button class="learning-open" data-${action}="${s.id}${action==='lkgo'?'|':''}"><span>${s.n} 题${s.originalN?' · 含原创':s.mc?'':' · 结构题'}</span><b>${esc(status(s)||'开始练习')} <span aria-hidden="true">↗</span></b></button>`;
   let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
@@ -1261,7 +1263,7 @@ function learningDirectory(P,{action='go',status=()=>''}={}){
     }else if(sets.length){
       html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc('整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
     }else html+='<div class="learning-topic"><span class="learning-gap">本章暂无这一年份的题目</span></div>';
-    html+='</section>';
+    html+=records(ch)+'</section>';
   }
   return html;
 }
@@ -1449,7 +1451,7 @@ function learningRetiredWrong(q){return !!PLAN.learning&&!learningRecordMapped(q
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104183509';
+const BUILD='20261104201100';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1800,12 +1802,14 @@ function renderTabs(){$('#tabs').innerHTML=PAPERS.map(p=>{const st=stats(p);cons
   return `<button data-p="${p}" aria-pressed="${p===paper}">${L[0]} ${L[1]||''}<br><small style="font-weight:500">${st.pct}%</small></button>`;}).join('');}
 const answered=id=>setItems(id).filter(i=>attempts[i.id]&&(attempts[i.id].a!=null||attempts[i.id].s)).length;
 const studentHasRecord=q=>!!q&&!!(attempts[q]||inkIds[q]||pending.ink[q]?.length||notes[q]||grades[q]||wrong.has(q));
-function sourceRecordHtml(q){const parent=learningRecordParent(q);return studentHasRecord(parent)?`<div class="source-record"><span>${attempts[parent]?.s?'原题已作答':'原题有记录'}${gradeTag(parent)} · 保留整题笔迹与评分</span><button class="sm" data-source-record="${parent}">查看原题作答 / 批改</button></div>`:'';}
+function sourceRecordHtml(q,seen){const parent=learningRecordParent(q);if(!studentHasRecord(parent)||seen?.has(parent))return '';if(seen)seen.add(parent);return `<div class="source-record"><span>${attempts[parent]?.s?'原题已作答':'原题有记录'}${gradeTag(parent)} · 保留整题笔迹与评分</span><button class="sm" data-source-record="${parent}">查看原题作答 / 批改</button></div>`;}
+function studentChapterRecordItems(p,ch){return PLAN.learning?DATA.items.filter(it=>it.p===p&&it.ch===ch&&!learningRecordMapped(it.id)&&studentHasRecord(it.id)&&learningPhase===(it.y>=2024?'final':it.y>=2022?'stage':'homework')):[];}
+function studentChapterRecords(p,ch){const items=studentChapterRecordItems(p,ch);return items.length?`<details class="learning-records"><summary>本章其他已做记录 · ${items.length} 题</summary><p>这些题已保留原作答、笔迹和老师批改，未计入当前作业题量。</p>${items.map(it=>`<div class="source-record"><span>${esc(it.o)}${gradeTag(it.id)}</span><button class="sm" data-annot="${it.id}">查看原题记录</button></div>`).join('')}</details>`:'';}
 const submittedN=id=>setItems(id).filter(i=>attempts[i.id]&&attempts[i.id].s).length;
 function openSet(id){const target=setOf(id);if(!target)return;if(!studentSetVisible(target)){doSet=null;switchView('plan');renderAll();return;}stopRestore();stabRemember();stabAdd(id);doSet=id;if(!isHW(id)){paper=id.split('-')[0];localStorage.setItem('ial27w.plan.tab',paper);}switchView('plan');renderAll();scrollTo(0,0);}
 const stageOf=id=>{const b=bitsOf(id);return b===7?3:(b&6)===6?2:(b&4)?1:0;};
 function renderPlan(){if($('#viewPlan').hidden)return;renderSetTabs();renderTabs();$('#tabs').hidden=!!doSet;if(doSet){renderSet();return;}
-  if(PLAN.learning){if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=learningDirectory(PLAN.papers[paper],{status:s=>isDone(s.id)?'✓ 已清零':submittedN(s.id)?'查看作答':answered(s.id)?'继续练习':learningRecordIds(setItems(s.id).map(i=>i.id)).some(studentHasRecord)?'查看原题记录':''});pruneCVS();return;}
+  if(PLAN.learning){if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=learningDirectory(PLAN.papers[paper],{records:ch=>studentChapterRecords(paper,ch),status:s=>isDone(s.id)?'✓ 已清零':submittedN(s.id)?'查看作答':answered(s.id)?'继续练习':learningRecordIds(setItems(s.id).map(i=>i.id)).some(studentHasRecord)?'查看原题记录':''});pruneCVS();return;}
   const P=PLAN.papers[paper],st=stats(paper),td=today(),r=44,C=2*Math.PI*r;
   const daysLeft=P.exam?Math.ceil((new Date(P.exam)-new Date(td))/864e5):null;
   const s1=P.sets.filter(s=>stageOf(s.id)===1).length,s2=P.sets.filter(s=>stageOf(s.id)===2).length;
@@ -1941,11 +1945,12 @@ function renderSet(){const s=setOf(doSet);if(!studentSetVisible(s)){doSet=null;r
   }
   if(!isP1||(hw&&stItems.length)){
     if(hw&&mcItems.length)html+=`<div class="n" style="margin:10px 0 6px;font-weight:600">大题 ${stItems.length} 题</div>`;
+    const sourceSeen=new Set();
     for(const it of stItems){const at=attempts[it.id]||{},done=!!at.s,ink=hasInk(it.id),nt=notes[it.id],sm=selfOf(it.id);
       const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 自评满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:#1d4ed8">已提交 · 未自评</b>'):ink?'写了一些':'';
       html+=`<div class="qbox ${done?(sm&&!sm.full?'bad':'ok'):''}"><div class="p2q"><div class="th" data-write="${it.id}"><img loading="lazy" src="${IMG(it.i[0])}" alt=""></div>
         <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${learningMarks(it)?` <span class="n">${learningMarks(it)} 分</span>`:''}<small>${learningTopic(it)?`考纲 ${learningTopic(it)} · `:''}${it.d?`难度 ${dstar(it)} · `:''}${it.i.length} 页${stt?' · '+stt:''}${gradeTag(it.id)}${flagged(it.id)?' · 📝 重点':''}</small></div>
-        <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">${PLAN.learning?'订正':'重做'}</button>`:''}</div></div>${sourceRecordHtml(it.id)}</div>`;}
+        <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">${PLAN.learning?'订正':'重做'}</button>`:''}</div></div>${sourceRecordHtml(it.id,sourceSeen)}</div>`;}
     const sn=hw?stItems.filter(i=>attempts[i.id]&&attempts[i.id].s).length:submittedN(doSet),nn=hw?stItems.length:n,gs=setGrade(doSet);
     html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${nn}${gs.n?` · <span style="color:#4338ca">老师已批 <b>${gs.n}</b>/${nn}${gs.tt?` · 得分 <b>${gs.sc}</b>/${gs.tt}`:''}</span>`:''}</span><span class="grow"></span>${hw?(sn>=nn?'<span class="tag g">✓ 大题都交了</span>':'<span class="n">每题写完「保存 · 看答案」即算提交</span>'):sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a2">看批注</button>':`<button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
   if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=html;pruneCVS();
@@ -2760,8 +2765,8 @@ document.addEventListener('click',e=>{
 /* ======================================================================
    全屏手写页（结构题作答 / 讲评批注 / 重做）
    ====================================================================== */
-const W={q:null,old:[],showOld:false,redo:false,annot:false,list:[],prevSelf:null};
-async function openWriter(q,opts){opts=opts||{};if(PLAN.learning&&opts.redo)opts={...opts,redo:false,annot:true};const it=byId.get(q);if(!it)return;laserClear();lassoClear();setTimeout(renderSetTabs,0);flushInk();W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!opts.redo;W.annot=!!opts.annot||(it.mc!==1&&!!(doSet&&subs[doSet])&&!opts.redo);W.showOld=false;
+const W={q:null,openSeq:0,old:[],showOld:false,redo:false,annot:false,list:[],prevSelf:null};
+async function openWriter(q,opts){opts=opts||{};if(PLAN.learning&&opts.redo)opts={...opts,redo:false,annot:true};const it=byId.get(q);if(!it)return;const request=++W.openSeq,generation=SGEN;laserClear();lassoClear();setTimeout(renderSetTabs,0);flushInk();W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=!!opts.redo;W.annot=!!opts.annot||(it.mc!==1&&!!(doSet&&subs[doSet])&&!opts.redo);W.showOld=false;
   const wr=$('#writer');wr.classList.add('on');wr.classList.toggle('annot',W.annot);document.body.style.overflow='hidden';
   $('#wMode').hidden=!W.annot;
   const at=attempts[q]||{};
@@ -2771,7 +2776,7 @@ async function openWriter(q,opts){opts=opts||{};if(PLAN.learning&&opts.redo)opts
   wetFree();cancelStroke();setTimeout(pruneCVS,0);$('#wInner').innerHTML=sourceRecordHtml(q)+it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
   wProg();
   const i=W.list.indexOf(q);$('#wPrev').disabled=i<=0;$('#wNext').disabled=i<0||i>=W.list.length-1;
-  const saved=await loadInk(q);if(W.q!==q)return;
+  const saved=await loadInk(q);if(W.q!==q||request!==W.openSeq||generation!==SGEN||!wr.classList.contains('on'))return;
   {const inner=$('#wInner');[...inner.querySelectorAll('.strip:not(.nb):not(.ans)')].forEach((st,k)=>{if(nbHas(q,k))st.insertAdjacentHTML('afterend',nbHtml(q,k,true));});nbSlots();}
   W.prevSelf=selfOf(q);
   if(grades[q]||(attempts[q]&&attempts[q].s))showGradeBox(q);

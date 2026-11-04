@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104183509"></script>
+<script src="config.js?v=20261104201100"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -948,6 +948,8 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 /* Existing source answers stay on their original canvas. */
 .source-record{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--surface2,#f8f5f3);border-top:1px solid var(--line,#e5dedb);font-size:12px;color:var(--muted,#665b5b)}
 .source-record button{flex-shrink:0}
+
+.learning-records{margin:0 18px 18px;border:1px solid var(--line,#e5dedb);border-radius:12px;overflow:hidden}.learning-records>summary{padding:12px;cursor:pointer;font-size:13px;font-weight:600}.learning-records>p{margin:0;padding:0 12px 12px;font-size:12px;color:var(--muted,#665b5b)}
 </style>
 </head>
 <body class="teacher-app">
@@ -1052,7 +1054,7 @@ const learningMarks=it=>it.t||(PLAN.learning?.questionMarks||{})[it.id]||null;
 const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>s.phase===learningPhase&&s.phase!=='legacy');return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
 const learningChapterSets=(P,ch)=>P.sets.filter(s=>s.ch===ch).slice().sort((a,b)=>PLAN.learning?({homework:0,stage:1,final:2,legacy:3}[a.phase]-{homework:0,stage:1,final:2,legacy:3}[b.phase])||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0):0);
 function learningPhaseTabs(){if(!PLAN.learning)return '';learningEnsurePhase();return `<div class="learning-phases" role="group" aria-label="练习类型">${learningPhases().map(p=>`<button data-learning-phase="${p.id}" aria-pressed="${p.id===learningPhase}"><b>${esc(p.label)}</b><small>${esc(p.years)}</small></button>`).join('')}</div>`;}
-function learningDirectory(P,{action='go',status=()=>''}={}){
+function learningDirectory(P,{action='go',status=()=>'',records=()=>''}={}){
   learningEnsurePhase();const phases=learningPhases(),phase=phases.find(p=>p.id===learningPhase),visible=learningVisibleSets(P);
   const button=s=>`<button class="learning-open" data-${action}="${s.id}${action==='lkgo'?'|':''}"><span>${s.n} 题${s.originalN?' · 含原创':s.mc?'':' · 结构题'}</span><b>${esc(status(s)||'开始练习')} <span aria-hidden="true">↗</span></b></button>`;
   let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
@@ -1065,7 +1067,7 @@ function learningDirectory(P,{action='go',status=()=>''}={}){
     }else if(sets.length){
       html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc('整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
     }else html+='<div class="learning-topic"><span class="learning-gap">本章暂无这一年份的题目</span></div>';
-    html+='</section>';
+    html+=records(ch)+'</section>';
   }
   return html;
 }
@@ -1253,7 +1255,7 @@ function learningRetiredWrong(q){return !!PLAN.learning&&!learningRecordMapped(q
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104183509';
+const BUILD='20261104201100';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
