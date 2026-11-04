@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104143807"></script>
+<script src="config.js?v=20261104162416"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1067,6 +1067,38 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
   .ink-toolbar-inline .ink-toolstrip .tb {width:33px;min-width:33px}
   .ink-toolbar-inline .ink-more {right:0}
 }
+
+/* Teacher progress: one entry for completion, answers and feedback. */
+.teacher-app .progress-nav{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.teacher-app .progress-nav .tabs{margin:0;flex:0 1 auto}
+.teacher-app .progress-nav>.sub{flex:1;min-width:180px}
+.teacher-app .matrix-link{border:0;background:transparent;padding:3px 0;text-align:left;color:inherit;font:inherit;white-space:normal;line-height:1.5}
+.teacher-app .matrix-link:hover{text-decoration:underline;color:var(--crimson)}
+.teacher-app .mx .progress-cell{width:auto;min-width:52px;height:auto;min-height:30px;padding:4px 7px;border:0;white-space:nowrap}
+.teacher-app .result-grade{display:block;white-space:nowrap;font-size:10px;line-height:1.5;color:var(--green)}
+.teacher-app .mx .c:has(.result-grade){height:auto;min-height:30px;padding:4px!important}
+.teacher-app #rsSel,.teacher-app #gSel{max-width:100%;min-width:0}
+.teacher-app #dash .learning-phases{flex-basis:100%;width:100%;margin:10px 0}
+@media(max-width:600px){
+ .teacher-app .progress-nav{gap:8px}
+ .teacher-app .progress-nav .tabs{width:100%;display:flex}
+ .teacher-app .progress-nav .tabs button{flex:1}
+ .teacher-app #rsSel,.teacher-app #gSel{width:100%}
+ .teacher-app #dash .learning-phases{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+.teacher-app .learning-phases button[aria-pressed="true"],.teacher-app .learning-phases button[aria-pressed="true"]:hover{background:var(--crimson);color:#fff;border-color:var(--crimson)}
+
+.teacher-app .result-grade{background:#f0faf4;color:#175e39;border-radius:3px;padding:1px 3px;margin-top:3px}
+.teacher-app #chips{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.teacher-app #chips .chip{min-width:0}
+@media(max-width:1100px){.teacher-app #chips{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.teacher-app #chips .chip{padding:10px 7px}.teacher-app #chips .chip b{font-size:25px}.teacher-app #chips .chip small{font-size:10px}}
+
+.teacher-app .progress-students .tablewrap{overflow-x:auto}
+.teacher-app .progress-students .tablewrap table{min-width:1000px}
+.teacher-app .progress-students .pr .sub{white-space:nowrap}
+@media(max-width:900px){.teacher-app .progress-students .tablewrap{display:none}.teacher-app .progress-students .stack{display:block}}
 </style>
 </head>
 <body class="student-app">
@@ -1398,7 +1430,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-p
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104143807';
+const BUILD='20261104162416';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
