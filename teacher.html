@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104165232"></script>
+<script src="config.js?v=20261104183304"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -944,6 +944,10 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .teacher-app .progress-students .tablewrap table{min-width:1000px}
 .teacher-app .progress-students .pr .sub{white-space:nowrap}
 @media(max-width:900px){.teacher-app .progress-students .tablewrap{display:none}.teacher-app .progress-students .stack{display:block}}
+
+/* Existing source answers stay on their original canvas. */
+.source-record{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--surface2,#f8f5f3);border-top:1px solid var(--line,#e5dedb);font-size:12px;color:var(--muted,#665b5b)}
+.source-record button{flex-shrink:0}
 </style>
 </head>
 <body class="teacher-app">
@@ -1040,18 +1044,18 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};try{CUR=BANKS[localStorage.getI
 let learningPhase='homework';
 try{const p=localStorage.getItem('ial27w.learning.phase');if(['homework','stage','final','legacy'].includes(p))learningPhase=p;}catch(e){}
 const learningStudent=()=>!!document.body?.classList.contains('student-app');
-const learningPhases=()=>PLAN.learning.phases.filter(p=>!learningStudent()||p.id!=='legacy');
+const learningPhases=()=>PLAN.learning.phases.filter(p=>p.id!=='legacy');
 function learningEnsurePhase(){if(PLAN.learning&&!learningPhases().some(p=>p.id===learningPhase))learningPhase='homework';}
 const learningActiveSets=P=>PLAN.learning?P.sets.filter(s=>s.phase!=='legacy'):P.sets;
 const learningTopic=it=>(PLAN.learning?.topicForQuestion||{})[it.id]||it.sy;
 const learningMarks=it=>it.t||(PLAN.learning?.questionMarks||{})[it.id]||null;
-const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>learningPhase==='legacy'?(s.legacy||s.phase==='legacy'):s.phase===learningPhase);return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
+const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>s.phase===learningPhase&&s.phase!=='legacy');return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
 const learningChapterSets=(P,ch)=>P.sets.filter(s=>s.ch===ch).slice().sort((a,b)=>PLAN.learning?({homework:0,stage:1,final:2,legacy:3}[a.phase]-{homework:0,stage:1,final:2,legacy:3}[b.phase])||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0):0);
 function learningPhaseTabs(){if(!PLAN.learning)return '';learningEnsurePhase();return `<div class="learning-phases" role="group" aria-label="练习类型">${learningPhases().map(p=>`<button data-learning-phase="${p.id}" aria-pressed="${p.id===learningPhase}"><b>${esc(p.label)}</b><small>${esc(p.years)}</small></button>`).join('')}</div>`;}
 function learningDirectory(P,{action='go',status=()=>''}={}){
   learningEnsurePhase();const phases=learningPhases(),phase=phases.find(p=>p.id===learningPhase),visible=learningVisibleSets(P);
   const button=s=>`<button class="learning-open" data-${action}="${s.id}${action==='lkgo'?'|':''}"><span>${s.n} 题${s.originalN?' · 含原创':s.mc?'':' · 结构题'}</span><b>${esc(status(s)||'开始练习')} <span aria-hidden="true">↗</span></b></button>`;
-  let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':learningPhase==='legacy'?'原有题册及进度继续保留；原题的作答、笔迹和批改也可在新目录中查看。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
+  let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
   for(const ch of P.chapters){
     const sets=visible.filter(s=>s.ch===ch);
     html+=`<section class="learning-chapter"><div class="learning-chapter-head"><span>${String(ch).padStart(2,'0')}</span><h3>${esc(PLAN.chapters[ch])}</h3><small>${sets.reduce((n,s)=>n+s.n,0)} 题</small></div>`;
@@ -1059,13 +1063,28 @@ function learningDirectory(P,{action='go',status=()=>''}={}){
       const topics=PLAN.learning.topics.filter(t=>t.ch===ch);
       html+=topics.map(t=>{const s=sets.find(s=>s.topic===t.id);return `<div class="learning-topic"><div><b>${t.level==='chapter'?'':esc(t.id)+' '}${esc(t.title)}</b><small>${esc(t.en)}</small></div>${s?button(s):'<span class="learning-gap">本卷暂未选入适题</span>'}</div>`;}).join('');
     }else if(sets.length){
-      html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc(learningPhase==='legacy'?(s.phase==='stage'?'旧日常作业':s.phase==='final'?'总复习':s.set==='SR'?'旧阶段复习':s.set==='EX'?'补充拓展':s.title||'旧版作业'):'整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
+      html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc('整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
     }else html+='<div class="learning-topic"><span class="learning-gap">本章暂无这一年份的题目</span></div>';
     html+='</section>';
   }
   return html;
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-phase]');if(!b||!PLAN.learning)return;if(!learningPhases().some(p=>p.id===b.dataset.learningPhase))return;learningPhase=b.dataset.learningPhase;try{localStorage.setItem('ial27w.learning.phase',learningPhase);}catch(e){}document.dispatchEvent(new CustomEvent('learningphasechange'));});
+
+/* Related source records retain their original question ID, image and full score.
+   They are references inside the current directory, never copied onto a crop. */
+let learningRecordPlan=null,learningParentMap={},learningRecordSetMap={};
+function learningRecordIndex(){
+  if(learningRecordPlan===PLAN)return;learningRecordPlan=PLAN;learningParentMap={};learningRecordSetMap={};
+  if(!PLAN.learning)return;const current=PLAN.learning.studentSet||{};
+  for(const it of DATA.items){const set=current[it.id],parent=it.sourceId;if(!set||!parent||current[parent]||!byId.has(parent))continue;
+    learningParentMap[it.id]=parent;const sets=learningRecordSetMap[parent]||=[];if(!sets.includes(set))sets.push(set);}
+}
+function learningRecordParent(q){learningRecordIndex();return learningParentMap[q]||null;}
+function learningRecordSets(q){learningRecordIndex();const set=PLAN.learning?.studentSet?.[q];return set?[set]:learningRecordSetMap[q]||[];}
+function learningRecordIds(ids){learningRecordIndex();return [...new Set(ids.flatMap(q=>learningParentMap[q]?[q,learningParentMap[q]]:[q]))];}
+function learningRecordMapped(q){return !PLAN.learning||learningRecordSets(q).length>0;}
+function learningRetiredWrong(q){return !!PLAN.learning&&!learningRecordMapped(q)&&/^p[124]:9702_/.test(q);}
 
 /* Measure the actual sticky stack after nav wrapping, Safari split view and text scaling.
    All writes are change-checked; scroll and Pencil events do not trigger layout scans. */
@@ -1234,7 +1253,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-p
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104165232';
+const BUILD='20261104183304';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -1319,13 +1338,22 @@ const vis=()=>Object.keys(S).filter(u=>S[u].curr===CUR&&(!klass||S[u].klass===kl
 const typeOf=u=>PLAN.types[S[u]&&S[u].type]?S[u].type:'free';
 const TY=u=>PLAN.types[typeOf(u)];
 /* ---------- 教师目录适配：读取按题记录，保留原存储键 ---------- */
-const teachingSet=q=>PLAN.learning?.studentSet?.[q]||Q2SET.get(q);
+const teachingSet=q=>learningRecordSets(q)[0]||Q2SET.get(q);
+const teachingRecordItems=id=>learningRecordIds(setItems(id).map(i=>i.id)).map(q=>byId.get(q)).filter(Boolean);
+const teachingSourceLabel=it=>PLAN.learning&&!PLAN.learning.studentSet[it.id]?' · 原题记录（整题）':'';
+function teachingHasRecord(index,q){return ['attempts','ink','notes','grades'].some(k=>Object.values(index?.[k]||{}).some(rows=>rows[q]));}
+function teachingOtherRecords(p){
+  if(!PLAN.learning||!TP.index)return '';
+  const rows=DATA.items.filter(it=>it.p===p&&!learningRecordMapped(it.id)).flatMap(it=>vis().filter(u=>['attempts','ink','notes','grades'].some(k=>TP.index[k]?.[u]?.[it.id])).map(u=>({it,u})));
+  if(!rows.length)return '';
+  return `<details class="card"><summary>其他已做记录 · ${rows.length} 份</summary><p class="sub">这些原题未入选当前题单，保留原作答、笔迹和评分。不会作为新作业重复出现。</p><div class="tw"><table><tr><th>学生</th><th>原题</th><th>状态</th><th></th></tr>${rows.map(({it,u})=>{const a=TP.index.attempts[u]?.[it.id],g=TP.index.grades[u]?.[it.id];return `<tr><td>${esc(S[u].n)}</td><td>${esc(it.o)}</td><td>${g?`师评 ${g.sc??'—'}/${g.tt??'—'}`:a?.s?'已提交':'已留存'}</td><td><button class="sm" data-ink="${it.id}" data-u="${u}">查看记录</button>${it.mc!==1?` <button class="sm" data-record-grade="${it.id}" data-u="${u}">批改原题</button>`:''}</td></tr>`;}).join('')}</table></div></details>`;
+}
 function resultIndex(rows){const out={attempts:{},ink:{},notes:{},grades:{}};for(const kind of Object.keys(out))for(const row of rows[kind]||[])(out[kind][row.u] ||= {})[row.q]=row;return out;}
 function teachingStatus(u,s,index=TP.index){
   const ids=s.qids||setItems(s.id).map(i=>i.id),b=S[u]?.bits[s.id]|0;
   const A=index?.attempts[u]||{},I=index?.ink[u]||{},N=index?.notes[u]||{},Gr=index?.grades[u]||{};
   const done=ids.filter(q=>A[q]?.s).length,full=ids.length>0&&done===ids.length;
-  const started=!!b||!!S[u]?.subs[s.id]||ids.some(q=>A[q]||I[q]||N[q]||Gr[q]);
+  const started=!!b||!!S[u]?.subs[s.id]||learningRecordIds(ids).some(q=>A[q]||I[q]||N[q]||Gr[q]);
   const level=b===7?3:(b&6)===6?2:full||(b&4)?1:0;
   const submitted=full||!!S[u]?.subs[s.id];
   const mc=ids.map(q=>A[q]).filter(a=>a?.s&&a.a&&/^[ABCD]$/.test(a.a));
@@ -1336,7 +1364,7 @@ async function loadTeachingProgress(force=false){
   if(TP.loading||(!force&&Date.now()-TP.at<60000))return;
   const seq=++tpSeq,course=CUR,token=session.token;
   TP.loading=true;TP.error='';
-  const ids=[...new Set(Object.values(PLAN.papers).flatMap(P=>learningActiveSets(P).flatMap(s=>s.qids||setItems(s.id).map(i=>i.id))))];
+  const ids=[...new Set(DATA.items.map(i=>i.id))];
   const rows={attempts:[],ink:[],notes:[],grades:[]};
   try{for(let n=0;n<ids.length;n+=350){
     const j=await rpc('results_for',{p_token:token,p_qids:ids.slice(n,n+350)});
@@ -1489,13 +1517,14 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=learningVisibleSets(P
     <span class="sub">选择题套题：看每道题谁错了、错在哪个选项；结构题套题：看谁写了、谁提交了，点格子看该生的手写和笔记</span></div></div>`;
   if(!cur){const rows=sets.map(s=>{const us=vis().filter(u=>teachingStatus(u,s).started);const scores=us.map(u=>teachingStatus(u,s).score).filter(x=>x!=null);const avg=scores.length?Math.round(scores.reduce((a,n)=>a+n,0)/scores.length):null;return{s,n:us.filter(u=>teachingStatus(u,s).submitted).length,active:us.length,avg,names:us.map(u=>S[u].n)};}).filter(r=>r.active);
     h+=rows.length?`<div class="card"><h2>已有作答的题单</h2><div class="tw"><table><tr><th>套题</th><th>完成 / 动笔人数</th><th>选择题正确率</th><th>学生</th></tr>${rows.map(r=>`<tr><td><span class="name" data-rss="${r.s.id}">第${r.s.ch}章 ${PLAN.chapters[r.s.ch]} · ${PLAN.setLabels[r.s.set]}</span></td><td>${r.n} / ${r.active}</td><td>${r.avg!=null?r.avg+'%':'—'}</td><td class="sub">${esc(r.names.join('、'))}</td></tr>`).join('')}</table></div></div>`:'<div class="card"><div class="empty">当前分类暂无已加载的作答记录。选择一套题可查看逐题作答与历史记录。</div></div>';
-    showProgress(h);return;}
-  const items=setItems(cur);
+    showProgress(h+teachingOtherRecords(rsPaper));return;}
+  let items=setItems(cur);
   if(!RS||RS.set!==cur){h+='<div class="card"><div class="empty">加载中…</div></div>';showProgress(h);loadResults(cur);return;}
   if(Date.now()-RS.at>12000)loadResults(cur);
   const us=vis();const A={};for(const a of RS.attempts){if(!S[a.u])continue;(A[a.u]=A[a.u]||{})[a.q]=a;}
   const I={};for(const x of RS.ink){if(!S[x.u])continue;(I[x.u]=I[x.u]||{})[x.q]=x.t;}const N={};for(const x of RS.notes){if(!S[x.u])continue;(N[x.u]=N[x.u]||{})[x.q]=x.b;}
   const IX=resultIndex(RS),active=us.filter(u=>A[u]||I[u]||N[u]||IX.grades[u]||S[u].subs[cur]);
+  items=teachingRecordItems(cur).filter(it=>items.some(i=>i.id===it.id)||teachingHasRecord(IX,it.id));
   const stats=Object.fromEntries(active.map(u=>[u,teachingStatus(u,setOf(cur),IX)]));
   const subsU=active.filter(u=>stats[u].submitted);
   if(isMCSet(cur)){
@@ -1511,13 +1540,13 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=learningVisibleSets(P
   }else{
     h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>完成本套</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${items.length}</b><small>题</small></div></div></div>`;
     h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">谁写了</h2><span class="grow"></span><button data-lecture="${cur}">🎤 讲题模式</button><button class="primary" data-gss="${cur}" data-totab="grading">✍️ 去批作业</button></div><div class="sub">✓ 已提交 · ✎ 写了还没提交 · 📝 有笔记；点格子查看该生的手写和笔记</div><div class="mxwrap"><table class="mx"><tr><th class="rh">题号</th>${active.map(u=>`<th class="v" title="${esc(S[u].n)}"><span>${esc(S[u].n)}</span></th>`).join('')}</tr>
-      ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${esc(it.o)}${learningMarks(it)?` · ${learningMarks(it)} 分`:''}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id],ink=I[u]&&I[u][it.id],nt=N[u]&&N[u][it.id];const done=a&&a.s;const sc=done&&a.a?a.a:null;const full=done&&a.ok===true;const gr=IX.grades[u]?.[it.id];
+      ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${esc(it.o)}${learningMarks(it)?` · ${learningMarks(it)} 分`:''}${teachingSourceLabel(it)}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id],ink=I[u]&&I[u][it.id],nt=N[u]&&N[u][it.id];const done=a&&a.s;const sc=done&&a.a?a.a:null;const full=done&&a.ok===true;const gr=IX.grades[u]?.[it.id];
         return `<td><div class="c ${done?(full?'d3':(sc?'':'d2')):ink?'d1':''}" style="width:auto;min-width:32px;padding:0 3px;cursor:${ink||nt||done?'pointer':'default'};${done&&sc&&!full?'background:var(--crimson)':''}" data-ink="${it.id}" data-u="${u}" title="${esc(S[u].n)} #${pad(it.n)}${sc?' · 自评 '+sc:''}">${done?(sc?sc:'✓'):ink?'✎':''}${nt?'📝':''}${gr?`<small class="result-grade">师评 ${gr.sc!=null?gr.sc+'/'+(gr.tt||'?'):'已批注'}</small>`:''}</div></td>`;}).join('')}</tr>`).join('')}</table></div>
     <div class="sub" style="margin-top:6px">格子首行是学生对照评分方案后的自评得分；「师评」另列教师批改（绿 = 满分，红 = 有失分）；✓ = 提交了但没自评。</div></div>`;}
   showProgress(h);}
 async function loadResults(set){
   const seq=++rsSeq,course=CUR,token=session.token;rsLoading=true;
-  try{const j=await rpc('results_for',{p_token:token,p_qids:setItems(set).map(i=>i.id)});
+  try{const j=await rpc('results_for',{p_token:token,p_qids:learningRecordIds(setItems(set).map(i=>i.id))});
     if(seq!==rsSeq||CUR!==course||session?.token!==token)return;
     if(!j.ok)throw new Error(j.error);RS={set,at:Date.now(),attempts:j.attempts||[],ink:j.ink||[],notes:j.notes||[],grades:j.grades||[]};
     if((tab==='progress'&&progressView==='results'&&rsSet===set)||(tab==='grading'&&gSet===set))render();
@@ -2183,6 +2212,7 @@ document.addEventListener('click',async e=>{
     document.querySelectorAll(`button[data-det="${CSS.escape(u)}"]`).forEach(b=>b.textContent=openDet.has(u)?'收起':'详情');return;}
   const op=e.target.closest('[data-open]');if(op){openQ(op.dataset.open,op.dataset.who||'');return;}
   const rp=e.target.closest('[data-rsp]');if(rp){rsPaper=rp.dataset.rsp;rsSet='';RS=null;render();return;}
+  const rg=e.target.closest('[data-record-grade]');if(rg){openGrader([{u:rg.dataset.u,q:rg.dataset.recordGrade,set:Q2SET.get(rg.dataset.recordGrade)}],0);return;}
   const rss=e.target.closest('[data-rss]');if(rss){rsSet=rss.dataset.rss;rsPaper=rsSet.split('-')[0];tab='progress';progressView='results';const set=setOf(rsSet);if(PLAN.learning&&set)learningPhase=set.phase||'legacy';RS=null;[...$('#tabs').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===tab));render();return;}
   const gp=e.target.closest('[data-gp]');if(gp){gPaper=gp.dataset.gp;gSet='';gChapter=0;if(!GQ||GQ.p!==gPaper){GQ=null;}render();return;}
   const gss=e.target.closest('[data-gss]');if(gss){gSet=gss.dataset.gss;gChapter=0;if(PLAN.learning&&setOf(gSet))learningPhase=setOf(gSet).phase||'legacy';{const sp=gSet.split('-')[0];if(gSet&&!isHW(gSet)&&PLAN.papers[sp]&&gPaper!==sp)gPaper=sp;}if(gss.dataset.totab){tab=gss.dataset.totab;[...$('#tabs').children].forEach(x=>x.setAttribute('aria-pressed',x.dataset.t===tab));}if(!RS||RS.set!==gSet)RS=null;render();return;}
@@ -2351,10 +2381,10 @@ function gqIdx(){const us=new Set(vis()),A={},I={},Gd={};
   const pend=[];for(const u of Object.keys(A))for(const q of Object.keys(A[u]))if(saved(u,q)&&inked(u,q)&&(!graded(u,q)||regrade(u,q))&&Q2SET.has(q))pend.push({u,q,set:teachingSet(q),t:A[u][q].t||0,re:graded(u,q)});
   pend.sort(byN);return{A,I,Gd,saved,graded,inked,pend,byN,regrade};}
 function gradingSets(){return learningVisibleSets(PLAN.papers[gPaper]).filter(x=>!x.mc&&(!gChapter||x.ch===gChapter));}
-function gradingIndex(){const all=gqIdx(),qs=new Set(gradingSets().flatMap(s=>setItems(s.id).map(i=>i.id))),out={...all};for(const kind of ['A','I','Gd'])out[kind]=Object.fromEntries(Object.entries(all[kind]).map(([u,rows])=>[u,Object.fromEntries(Object.entries(rows).filter(([q])=>qs.has(q)))]).filter(([,rows])=>Object.keys(rows).length));out.pend=all.pend.filter(x=>qs.has(x.q));return out;}
+function gradingIndex(){const all=gqIdx(),qs=new Set(gradingSets().flatMap(s=>teachingRecordItems(s.id).map(i=>i.id))),out={...all};for(const kind of ['A','I','Gd'])out[kind]=Object.fromEntries(Object.entries(all[kind]).map(([u,rows])=>[u,Object.fromEntries(Object.entries(rows).filter(([q])=>qs.has(q)))]).filter(([,rows])=>Object.keys(rows).length));out.pend=all.pend.filter(x=>qs.has(x.q));return out;}
 function renderGrading(){const P=PLAN.papers[gPaper],sets=gradingSets();
   const cur=gSet&&sets.find(x=>x.id===gSet)?gSet:'';
-  const X=GQ&&GQ.p===gPaper?gradingIndex():null;const pS=new Map();if(X)for(const st of sets){const qs=new Set(setItems(st.id).map(i=>i.id));pS.set(st.id,X.pend.filter(x=>qs.has(x.q)).length);}
+  const X=GQ&&GQ.p===gPaper?gradingIndex():null;const pS=new Map();if(X)for(const st of sets){const qs=new Set(teachingRecordItems(st.id).map(i=>i.id));pS.set(st.id,X.pend.filter(x=>qs.has(x.q)).length);}
   let h=`<div class="card"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><div class="tabs" style="margin:0">${PLAN.stPapers.map(p=>`<button class="sm" data-gp="${p}" aria-pressed="${p===gPaper}">${PLAN.papers[p].label}</button>`).join('')}</div>
     ${learningPhaseTabs()}<select id="gChapter" aria-label="批改章节"><option value="0">全部章节</option>${P.chapters.map(ch=>`<option value="${ch}" ${gChapter===ch?'selected':''}>第${ch}章 ${esc(PLAN.chapters[ch])}</option>`).join('')}</select><select id="gSel"><option value="">全部套题 · 逐题待批</option>${P.chapters.map(ch=>`<optgroup label="第${ch}章 ${PLAN.chapters[ch]}">${sets.filter(x=>x.ch===ch).map(x=>`<option value="${x.id}" ${x.id===cur?'selected':''}>${PLAN.setLabels[x.set]} · ${x.n} 题${pS.get(x.id)?` · 待批 ${pS.get(x.id)} 题`:''}</option>`).join('')}</optgroup>`).join('')}</select>
     <span class="sub">学生每「保存 · 看答案」一题，这一题就进待批；批完一题（红笔、分数、评语自动保存），学生那边马上看到这一题的反馈</span></div></div>`;
@@ -2370,22 +2400,22 @@ function renderGrading(){const P=PLAN.papers[gPaper],sets=gradingSets();
     const rowsU=us.map(u=>{const sv=Object.keys(X.A[u]||{}).filter(q=>X.saved(u,q)).length,gd=Object.keys(X.Gd[u]||{}).length,dr=Object.keys(X.I[u]||{}).filter(q=>!X.saved(u,q)).length;const last=Math.max(0,...Object.values(X.A[u]||{}).map(x=>x.t||0),...Object.values(X.I[u]||{}));return{u,pend:pU.get(u)||0,sv,gd,dr,last};})
       .sort((a,b)=>b.pend-a.pend||b.last-a.last);
     h+=`<div class="card"><h2>按学生</h2><div class="tw"><table><tr><th>学生</th><th>待批</th><th>已批</th><th>已保存</th><th>草稿（未保存）</th><th>最近</th><th></th></tr>${rowsU.map(r=>`<tr><td><b class="name">${esc(S[r.u].n)}</b>${classLabel(S[r.u].klass)?` <span class="ktag">${esc(classLabel(S[r.u].klass))}</span>`:''}</td><td>${r.pend?`<span class="late">${r.pend}</span>`:'0'}</td><td class="ok">${r.gd}</td><td>${r.sv}</td><td class="sub">${r.dr||'—'}</td><td class="sub">${r.last?ago(r.last*1000):'—'}</td><td>${r.pend?`<button class="sm primary" data-gqueue="u:${r.u}">批改 ${r.pend} 题</button>`:''}</td></tr>`).join('')}</table></div></div>`;
-    const rowsS=sets.map(x=>{const items=setItems(x.id);const su=us.filter(u=>items.some(it=>X.saved(u,it.id)||X.inked(u,it.id)));const gd=items.reduce((a,it)=>a+us.filter(u=>X.graded(u,it.id)).length,0);return{x,su,pend:pS.get(x.id)||0,gd};}).filter(r=>r.su.length||r.gd);
+    const rowsS=sets.map(x=>{const items=teachingRecordItems(x.id);const su=us.filter(u=>items.some(it=>X.saved(u,it.id)||X.inked(u,it.id)));const gd=items.reduce((a,it)=>a+us.filter(u=>X.graded(u,it.id)).length,0);return{x,su,pend:pS.get(x.id)||0,gd};}).filter(r=>r.su.length||r.gd);
     h+=`<div class="card"><h2>按套题</h2><div class="tw"><table><tr><th>套题</th><th>动笔的学生</th><th>待批</th><th>已批</th><th></th></tr>${rowsS.map(r=>`<tr><td><span class="name" data-gss="${r.x.id}">${setTitle(r.x.id)}</span><div class="sub">${r.x.n} 题</div></td><td class="sub">${esc(r.su.map(u=>S[u].n).join('、'))||'—'}</td><td>${r.pend?`<span class="late">${r.pend}</span>`:'0'}</td><td class="ok">${r.gd}</td><td style="white-space:nowrap">${r.pend?`<button class="sm primary" data-gqueue="s:${r.x.id}">批改 ${r.pend} 题</button> `:''}<button class="sm" data-gss="${r.x.id}">详情</button> <button class="sm" data-lecture="${r.x.id}">🎤 讲题</button></td></tr>`).join('')}</table></div></div>`;
     $('#dash').innerHTML=h;return;}
   // ---- 某一套：学生 × 题目 状态矩阵 ----
-  const items=setItems(cur);const us=vis().filter(u=>items.some(it=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id))).sort((a,b)=>(S[a].n||'').localeCompare(S[b].n||'','zh'));
+  const items=teachingRecordItems(cur).filter(it=>setItems(cur).some(i=>i.id===it.id)||vis().some(u=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id)));const us=vis().filter(u=>items.some(it=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id))).sort((a,b)=>(S[a].n||'').localeCompare(S[b].n||'','zh'));
   const pn=pS.get(cur)||0;
   h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="sm" data-gss="">← 全部套题</button><h2 style="margin:0">${setTitle(cur)}</h2><span class="sub">${items.length} 题</span><span class="grow"></span><button data-lecture="${cur}" title="左边讲题批注，右边看全班答案">🎤 讲题模式</button>${pn?`<button class="primary" data-gqueue="s:${cur}">▶ 批这套的待批（${pn} 题）</button>`:''}</div>
     <div class="sub" style="margin-top:6px">绿 = 已批（显示老师分数）· 橙 = 已保存待批（↻ = 批改后学生重做了）· 粉 = 写了还没保存（草稿，也能先批）· 「未写」= 点了提交但这题没写，不进待批。点格子直接批这一题。</div></div>`;
-  h+=us.length?`<div class="card"><div class="mxwrap"><table class="mx"><tr><th class="rh">学生</th>${items.map(it=>`<th title="${esc(it.o)}">#${pad(it.n)}</th>`).join('')}</tr>${us.map(u=>`<tr><th class="rh">${esc(S[u].n)}</th>${items.map(it=>{const q=it.id,g=X.Gd[u]&&X.Gd[u][q],sv=X.saved(u,q),ik=X.inked(u,q);
+  h+=us.length?`<div class="card"><div class="mxwrap"><table class="mx"><tr><th class="rh">学生</th>${items.map(it=>`<th title="${esc(it.o)}">#${pad(it.n)}${teachingSourceLabel(it)}</th>`).join('')}</tr>${us.map(u=>`<tr><th class="rh">${esc(S[u].n)}</th>${items.map(it=>{const q=it.id,g=X.Gd[u]&&X.Gd[u][q],sv=X.saved(u,q),ik=X.inked(u,q);
       const re=X.regrade(u,q);const cls=re?'pend':g?'d3':sv&&ik?'pend':ik?'d1':'';const txt=re?'↻ 重交':g?(g.sc!=null?`${g.sc}/${g.tt||'?'}`:'✓'):sv&&ik?'待批':ik?'✎':sv?'<span style="color:var(--muted)">未写</span>':'';
       return `<td><div class="c ${cls}" style="width:auto;min-width:40px;padding:0 4px;${cls?'cursor:pointer':''}" ${cls?`data-gcell="${u}|${q}"`:''} title="${esc(S[u].n)} #${pad(it.n)}${re?' · 批改后学生重做了，需要重批':g?' · 已批':sv&&ik?' · 已保存待批':ik?' · 草稿':sv?' · 点了保存但没写':''}">${txt}</div></td>`;}).join('')}</tr>`).join('')}</table></div></div>`
     :'<div class="card"><div class="empty">这套题还没有学生动笔。</div></div>';
   $('#dash').innerHTML=h;}
 function gqOpen(kind,val){if(!GQ)return;const X=gradingIndex();let list=[],idx=0;
-  if(kind==='all')list=X.pend;else if(kind==='u')list=X.pend.filter(x=>x.u===val);else if(kind==='s'){const qs=new Set(setItems(val).map(i=>i.id));list=X.pend.filter(x=>qs.has(x.q));}
-  else if(kind==='cell'){const [u,q]=val.split('|');const set=gSet&&setItems(gSet).some(i=>i.id===q)?gSet:teachingSet(q);list=setItems(set).filter(it=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id)).map(it=>({u,q:it.id,set}));idx=Math.max(0,list.findIndex(x=>x.q===q));}
+  if(kind==='all')list=X.pend;else if(kind==='u')list=X.pend.filter(x=>x.u===val);else if(kind==='s'){const qs=new Set(teachingRecordItems(val).map(i=>i.id));list=X.pend.filter(x=>qs.has(x.q));}
+  else if(kind==='cell'){const [u,q]=val.split('|');const set=gSet&&teachingRecordItems(gSet).some(i=>i.id===q)?gSet:teachingSet(q);list=teachingRecordItems(set).filter(it=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id)).map(it=>({u,q:it.id,set}));idx=Math.max(0,list.findIndex(x=>x.q===q));}
   if(!list.length)return toast('没有待批的题');openGrader(list.map(x=>({u:x.u,q:x.q,set:Q2SET.get(x.q)||x.set,displaySet:kind==='s'?val:x.set})),idx);}
 document.addEventListener('change',e=>{if(e.target.id==='gSel'){gSet=e.target.value;render();}if(e.target.id==='gChapter'){gChapter=+e.target.value;gSet='';render();}});
 
@@ -2475,7 +2505,7 @@ $('#pkSave').onclick=async()=>{const qids=[...PKR.sel.keys()];if(!qids.length)re
 let lkPaper=null;
 function renderLectureTab(){if(!lkPaper||!PLAN.papers[lkPaper])lkPaper=PLAN.defaultPaper||PAPERS[0];const P=PLAN.papers[lkPaper];
   let last=null;try{last=JSON.parse(localStorage.getItem('ial27w.llast.'+CUR)||'null');}catch(e){}
-  const lastOk=last&&setOf(last.set)&&byId.has(last.q)&&setItems(last.set).some(i=>i.id===last.q);
+  const lastOk=last&&setOf(last.set)&&(!PLAN.learning||setOf(last.set).phase!=='legacy')&&byId.has(last.q)&&setItems(last.set).some(i=>i.id===last.q);
   let h=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">🎤 讲题</h2><span class="sub">点任意一套直接开讲：左边板书可写、可放大、有激光笔和套索；选择题带答案和解析，大题每一问下面带评分方案（「评分方案 / 答案」可开关）；右边全班答案可开可关</span><span class="grow"></span>
     ${lastOk?`<button class="primary" data-lkgo="${esc(last.set)}|${esc(last.q)}">▶ 继续上次：${esc(setTitle(last.set))} · 第 ${setItems(last.set).findIndex(i=>i.id===last.q)+1} 题</button>`:''}</div>
     <div class="tabs" style="margin:10px 0 0">${PAPERS.map(p=>`<button class="sm" data-lkp="${p}" aria-pressed="${p===lkPaper}">${esc(PLAN.papers[p].label)}</button>`).join('')}</div></div>`;

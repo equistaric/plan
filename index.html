@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104165232"></script>
+<script src="config.js?v=20261104183304"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1099,6 +1099,10 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .teacher-app .progress-students .tablewrap table{min-width:1000px}
 .teacher-app .progress-students .pr .sub{white-space:nowrap}
 @media(max-width:900px){.teacher-app .progress-students .tablewrap{display:none}.teacher-app .progress-students .stack{display:block}}
+
+/* Existing source answers stay on their original canvas. */
+.source-record{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px;background:var(--surface2,#f8f5f3);border-top:1px solid var(--line,#e5dedb);font-size:12px;color:var(--muted,#665b5b)}
+.source-record button{flex-shrink:0}
 </style>
 </head>
 <body class="student-app">
@@ -1236,18 +1240,18 @@ let CUR='cie',PLAN=null,DATA=null,EXPL={},SYL={};
 let learningPhase='homework';
 try{const p=localStorage.getItem('ial27w.learning.phase');if(['homework','stage','final','legacy'].includes(p))learningPhase=p;}catch(e){}
 const learningStudent=()=>!!document.body?.classList.contains('student-app');
-const learningPhases=()=>PLAN.learning.phases.filter(p=>!learningStudent()||p.id!=='legacy');
+const learningPhases=()=>PLAN.learning.phases.filter(p=>p.id!=='legacy');
 function learningEnsurePhase(){if(PLAN.learning&&!learningPhases().some(p=>p.id===learningPhase))learningPhase='homework';}
 const learningActiveSets=P=>PLAN.learning?P.sets.filter(s=>s.phase!=='legacy'):P.sets;
 const learningTopic=it=>(PLAN.learning?.topicForQuestion||{})[it.id]||it.sy;
 const learningMarks=it=>it.t||(PLAN.learning?.questionMarks||{})[it.id]||null;
-const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>learningPhase==='legacy'?(s.legacy||s.phase==='legacy'):s.phase===learningPhase);return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
+const learningVisibleSets=P=>{learningEnsurePhase();if(!PLAN.learning)return P.sets;const sets=P.sets.filter(s=>s.phase===learningPhase&&s.phase!=='legacy');return learningPhase==='homework'?sets.sort((a,b)=>a.ch-b.ch||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0)):sets;};
 const learningChapterSets=(P,ch)=>P.sets.filter(s=>s.ch===ch).slice().sort((a,b)=>PLAN.learning?({homework:0,stage:1,final:2,legacy:3}[a.phase]-{homework:0,stage:1,final:2,legacy:3}[b.phase])||Number(a.topic?.split('.')[1]||0)-Number(b.topic?.split('.')[1]||0):0);
 function learningPhaseTabs(){if(!PLAN.learning)return '';learningEnsurePhase();return `<div class="learning-phases" role="group" aria-label="练习类型">${learningPhases().map(p=>`<button data-learning-phase="${p.id}" aria-pressed="${p.id===learningPhase}"><b>${esc(p.label)}</b><small>${esc(p.years)}</small></button>`).join('')}</div>`;}
 function learningDirectory(P,{action='go',status=()=>''}={}){
   learningEnsurePhase();const phases=learningPhases(),phase=phases.find(p=>p.id===learningPhase),visible=learningVisibleSets(P);
   const button=s=>`<button class="learning-open" data-${action}="${s.id}${action==='lkgo'?'|':''}"><span>${s.n} 题${s.originalN?' · 含原创':s.mc?'':' · 结构题'}</span><b>${esc(status(s)||'开始练习')} <span aria-hidden="true">↗</span></b></button>`;
-  let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':learningPhase==='legacy'?'原有题册及进度继续保留；原题的作答、笔迹和批改也可在新目录中查看。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
+  let html=learningPhaseTabs()+`<div class="learning-intro"><div><span class="learning-eyebrow">CIE 9702 · ${esc(phase.years)}</span><h2>${esc(phase.label)}</h2></div><p>${learningPhase==='homework'?'依照考纲黑体小标题，收录符合当前主题与学习顺序的题目。缺少适合真题时补充原创题，均注明“非真题”。':'按整章综合训练，保留整题与完整评分方案。'}</p></div>`;
   for(const ch of P.chapters){
     const sets=visible.filter(s=>s.ch===ch);
     html+=`<section class="learning-chapter"><div class="learning-chapter-head"><span>${String(ch).padStart(2,'0')}</span><h3>${esc(PLAN.chapters[ch])}</h3><small>${sets.reduce((n,s)=>n+s.n,0)} 题</small></div>`;
@@ -1255,13 +1259,28 @@ function learningDirectory(P,{action='go',status=()=>''}={}){
       const topics=PLAN.learning.topics.filter(t=>t.ch===ch);
       html+=topics.map(t=>{const s=sets.find(s=>s.topic===t.id);return `<div class="learning-topic"><div><b>${t.level==='chapter'?'':esc(t.id)+' '}${esc(t.title)}</b><small>${esc(t.en)}</small></div>${s?button(s):'<span class="learning-gap">本卷暂未选入适题</span>'}</div>`;}).join('');
     }else if(sets.length){
-      html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc(learningPhase==='legacy'?(s.phase==='stage'?'旧日常作业':s.phase==='final'?'总复习':s.set==='SR'?'旧阶段复习':s.set==='EX'?'补充拓展':s.title||'旧版作业'):'整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
+      html+=sets.map(s=>`<div class="learning-topic"><div><b>${esc('整章综合')}</b><small>${esc((PLAN.setYears||{})[s.set]||s.topic||'')}</small></div>${button(s)}</div>`).join('');
     }else html+='<div class="learning-topic"><span class="learning-gap">本章暂无这一年份的题目</span></div>';
     html+='</section>';
   }
   return html;
 }
 document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-phase]');if(!b||!PLAN.learning)return;if(!learningPhases().some(p=>p.id===b.dataset.learningPhase))return;learningPhase=b.dataset.learningPhase;try{localStorage.setItem('ial27w.learning.phase',learningPhase);}catch(e){}document.dispatchEvent(new CustomEvent('learningphasechange'));});
+
+/* Related source records retain their original question ID, image and full score.
+   They are references inside the current directory, never copied onto a crop. */
+let learningRecordPlan=null,learningParentMap={},learningRecordSetMap={};
+function learningRecordIndex(){
+  if(learningRecordPlan===PLAN)return;learningRecordPlan=PLAN;learningParentMap={};learningRecordSetMap={};
+  if(!PLAN.learning)return;const current=PLAN.learning.studentSet||{};
+  for(const it of DATA.items){const set=current[it.id],parent=it.sourceId;if(!set||!parent||current[parent]||!byId.has(parent))continue;
+    learningParentMap[it.id]=parent;const sets=learningRecordSetMap[parent]||=[];if(!sets.includes(set))sets.push(set);}
+}
+function learningRecordParent(q){learningRecordIndex();return learningParentMap[q]||null;}
+function learningRecordSets(q){learningRecordIndex();const set=PLAN.learning?.studentSet?.[q];return set?[set]:learningRecordSetMap[q]||[];}
+function learningRecordIds(ids){learningRecordIndex();return [...new Set(ids.flatMap(q=>learningParentMap[q]?[q,learningParentMap[q]]:[q]))];}
+function learningRecordMapped(q){return !PLAN.learning||learningRecordSets(q).length>0;}
+function learningRetiredWrong(q){return !!PLAN.learning&&!learningRecordMapped(q)&&/^p[124]:9702_/.test(q);}
 
 /* Measure the actual sticky stack after nav wrapping, Safari split view and text scaling.
    All writes are change-checked; scroll and Pencil events do not trigger layout scans. */
@@ -1430,7 +1449,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-p
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104165232';
+const BUILD='20261104183304';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1780,11 +1799,13 @@ function stats(p){const all=learningActiveSets(PLAN.papers[p]);const done=all.fi
 function renderTabs(){$('#tabs').innerHTML=PAPERS.map(p=>{const st=stats(p);const L=PLAN.papers[p].label.split(' ');
   return `<button data-p="${p}" aria-pressed="${p===paper}">${L[0]} ${L[1]||''}<br><small style="font-weight:500">${st.pct}%</small></button>`;}).join('');}
 const answered=id=>setItems(id).filter(i=>attempts[i.id]&&(attempts[i.id].a!=null||attempts[i.id].s)).length;
+const studentHasRecord=q=>!!q&&!!(attempts[q]||inkIds[q]||pending.ink[q]?.length||notes[q]||grades[q]||wrong.has(q));
+function sourceRecordHtml(q){const parent=learningRecordParent(q);return studentHasRecord(parent)?`<div class="source-record"><span>${attempts[parent]?.s?'原题已作答':'原题有记录'}${gradeTag(parent)} · 保留整题笔迹与评分</span><button class="sm" data-source-record="${parent}">查看原题作答 / 批改</button></div>`:'';}
 const submittedN=id=>setItems(id).filter(i=>attempts[i.id]&&attempts[i.id].s).length;
 function openSet(id){const target=setOf(id);if(!target)return;if(!studentSetVisible(target)){doSet=null;switchView('plan');renderAll();return;}stopRestore();stabRemember();stabAdd(id);doSet=id;if(!isHW(id)){paper=id.split('-')[0];localStorage.setItem('ial27w.plan.tab',paper);}switchView('plan');renderAll();scrollTo(0,0);}
 const stageOf=id=>{const b=bitsOf(id);return b===7?3:(b&6)===6?2:(b&4)?1:0;};
 function renderPlan(){if($('#viewPlan').hidden)return;renderSetTabs();renderTabs();$('#tabs').hidden=!!doSet;if(doSet){renderSet();return;}
-  if(PLAN.learning){if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=learningDirectory(PLAN.papers[paper],{status:s=>isDone(s.id)?'✓ 已清零':submittedN(s.id)?'查看作答':answered(s.id)?'继续练习':''});pruneCVS();return;}
+  if(PLAN.learning){if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=learningDirectory(PLAN.papers[paper],{status:s=>isDone(s.id)?'✓ 已清零':submittedN(s.id)?'查看作答':answered(s.id)?'继续练习':learningRecordIds(setItems(s.id).map(i=>i.id)).some(studentHasRecord)?'查看原题记录':''});pruneCVS();return;}
   const P=PLAN.papers[paper],st=stats(paper),td=today(),r=44,C=2*Math.PI*r;
   const daysLeft=P.exam?Math.ceil((new Date(P.exam)-new Date(td))/864e5):null;
   const s1=P.sets.filter(s=>stageOf(s.id)===1).length,s2=P.sets.filter(s=>stageOf(s.id)===2).length;
@@ -1924,7 +1945,7 @@ function renderSet(){const s=setOf(doSet);if(!studentSetVisible(s)){doSet=null;r
       const stt=done?(sm?(sm.full?`<b style="color:var(--green)">✓ 自评满分 ${sm.s}/${sm.t}</b>`:`<b style="color:var(--crimson)">自评 ${sm.s}/${sm.t} · 待强化</b>`):'<b style="color:#1d4ed8">已提交 · 未自评</b>'):ink?'写了一些':'';
       html+=`<div class="qbox ${done?(sm&&!sm.full?'bad':'ok'):''}"><div class="p2q"><div class="th" data-write="${it.id}"><img loading="lazy" src="${IMG(it.i[0])}" alt=""></div>
         <div class="info"><span class="no">#${pad(it.n)}</span> ${esc(it.o)}${learningMarks(it)?` <span class="n">${learningMarks(it)} 分</span>`:''}<small>${learningTopic(it)?`考纲 ${learningTopic(it)} · `:''}${it.d?`难度 ${dstar(it)} · `:''}${it.i.length} 页${stt?' · '+stt:''}${gradeTag(it.id)}${flagged(it.id)?' · 📝 重点':''}</small></div>
-        <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">${PLAN.learning?'订正':'重做'}</button>`:''}</div></div></div>`;}
+        <div style="display:flex;flex-direction:column;gap:6px"><button class="${done?'':'primary'} sm" data-write="${it.id}">${sb?'批注':done?'查看':ink?'继续':'写题'}</button>${done&&sm&&!sm.full?`<button class="sm" data-redo="${it.id}">${PLAN.learning?'订正':'重做'}</button>`:''}</div></div>${sourceRecordHtml(it.id)}</div>`;}
     const sn=hw?stItems.filter(i=>attempts[i.id]&&attempts[i.id].s).length:submittedN(doSet),nn=hw?stItems.length:n,gs=setGrade(doSet);
     html+=`<div class="dock2"><span class="n">已提交 <b>${sn}</b> / ${nn}${gs.n?` · <span style="color:#4338ca">老师已批 <b>${gs.n}</b>/${nn}${gs.tt?` · 得分 <b>${gs.sc}</b>/${gs.tt}`:''}</span>`:''}</span><span class="grow"></span>${hw?(sn>=nn?'<span class="tag g">✓ 大题都交了</span>':'<span class="n">每题写完「保存 · 看答案」即算提交</span>'):sb?(stg===3?'<span class="tag g">✓ 已清零</span><button class="sm" data-rev="a2">看批注</button>':`<button class="primary" id="doFinal">错题清零（整合进错题库）</button>`):`<button class="primary" id="doFinish">完成本套</button>`}</div>`;}
   if(!DRAW.cur)wetFree();lassoClear();stopInline();$('#planWrap').innerHTML=html;pruneCVS();
@@ -1959,6 +1980,7 @@ document.addEventListener('click',e=>{
   const na=e.target.closest('[data-nbadd]');if(na){const q=na.dataset.nbadd,k=+(na.dataset.k||0);const slot=na.closest('.nbslot')||document.querySelector(`.nbslot[data-nbs="${CSS.escape(q)}"]`);if(!slot)return;const inW=!!na.closest('#writer');
     slot.outerHTML=nbHtml(q,k,true);const cv=document.querySelector(`.strip.nb[data-q="${CSS.escape(q)}"][data-k="${k}"] canvas`);loadInk(q).then(()=>{bindCanvas(cv,q,NB+k,()=>false,()=>inW?$('#wBody'):window);fitCanvas(cv);});tip('在这块横线纸上手写；写了字的题会进「复习」里的批注页');return;}
   const nb=e.target.closest('[data-notet]');if(nb){const el=$('#nb_'+nb.dataset.notet);el.hidden=!el.hidden;if(!el.hidden)el.querySelector('textarea').focus();return;}
+  const sr=e.target.closest('[data-source-record]');if(sr){const q=sr.dataset.sourceRecord;if(!byId.has(q))return;openSet('record:'+q);openWriter(q,{annot:!!attempts[q]?.s});return;}
   const w=e.target.closest('[data-write]');if(w){openWriter(w.dataset.write,{});return;}
   const rd=e.target.closest('[data-redo]');if(rd){const it=byId.get(rd.dataset.redo);if(it){const sid=realSetOf(it);if(setOf(sid))doSet=sid;}openWriter(rd.dataset.redo,{redo:true});return;}
   const an=e.target.closest('[data-annot]');if(an){const q=an.dataset.annot;const it=byId.get(q);if(!it)return;const sid=realSetOf(it);
@@ -2746,7 +2768,7 @@ async function openWriter(q,opts){opts=opts||{};if(PLAN.learning&&opts.redo)opts
   $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${it.ch}章${learningMarks(it)?` · ${learningMarks(it)} 分`:''}${it.mc===1&&at.s?(at.ok?' · ✓ 答对':` · ✗ ${at.a?'你选 '+at.a:'未作答'} · 答案 ${it.L}`):''}`;
   $('#wTools').innerHTML=toolbarHtml()+`<button class="tb" data-tool="marker" aria-pressed="false" title="标记错处：点一下做错的那一问">❌</button><button class="tb" data-act="clear" title="清空本题">🗑</button><button class="tb wide" data-act="old" hidden aria-pressed="false" title="重做时显示上次的笔迹（淡色）">👀 上次笔迹</button>`;
   resetView();
-  wetFree();cancelStroke();setTimeout(pruneCVS,0);$('#wInner').innerHTML=it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
+  wetFree();cancelStroke();setTimeout(pruneCVS,0);$('#wInner').innerHTML=sourceRecordHtml(q)+it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-q="${q}" data-i="${i}"></canvas></div>`).join('')+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
   wProg();
   const i=W.list.indexOf(q);$('#wPrev').disabled=i<=0;$('#wNext').disabled=i<0||i>=W.list.length-1;
   const saved=await loadInk(q);if(W.q!==q)return;
