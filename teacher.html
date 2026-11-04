@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104183304"></script>
+<script src="config.js?v=20261104183509"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1253,7 +1253,7 @@ function learningRetiredWrong(q){return !!PLAN.learning&&!learningRecordMapped(q
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104183304';
+const BUILD='20261104183509';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -1538,7 +1538,7 @@ function renderResults(){const P=PLAN.papers[rsPaper],sets=learningVisibleSets(P
       ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${it.L}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id];const st=!a||!a.a?'':a.s?(a.ok?'ok':'bad'):'draft';const txt=!a||!a.a?'':a.s?(a.ok?'✓':a.a):a.a;
         return `<td><div class="c ${st==='ok'?'d3':st==='draft'?'d1':''}" style="${st==='bad'?'background:var(--crimson)':''}" title="${esc(S[u].n)} #${pad(it.n)}：${a&&a.a?'选 '+a.a:'未作答'}${a&&a.s?(a.ok?'（对）':'（错）'):'（未提交）'}">${txt}</div></td>`;}).join('')}</tr>`).join('')}</table></div></div>`;
   }else{
-    h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>完成本套</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${items.length}</b><small>题</small></div></div></div>`;
+    h+=`<div class="card"><div class="chips" style="margin:0"><div class="chip"><b>${subsU.length}</b><small>完成本套</small></div><div class="chip"><b>${active.length-subsU.length}</b><small>进行中</small></div><div class="chip"><b>${setItems(cur).length}</b><small>题${items.length>setItems(cur).length?` · 另含 ${items.length-setItems(cur).length} 份原题记录`:''}</small></div></div></div>`;
     h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><h2 style="margin:0">谁写了</h2><span class="grow"></span><button data-lecture="${cur}">🎤 讲题模式</button><button class="primary" data-gss="${cur}" data-totab="grading">✍️ 去批作业</button></div><div class="sub">✓ 已提交 · ✎ 写了还没提交 · 📝 有笔记；点格子查看该生的手写和笔记</div><div class="mxwrap"><table class="mx"><tr><th class="rh">题号</th>${active.map(u=>`<th class="v" title="${esc(S[u].n)}"><span>${esc(S[u].n)}</span></th>`).join('')}</tr>
       ${items.map(it=>`<tr><th class="rh">#${pad(it.n)} <span class="sub">${esc(it.o)}${learningMarks(it)?` · ${learningMarks(it)} 分`:''}${teachingSourceLabel(it)}</span></th>${active.map(u=>{const a=A[u]&&A[u][it.id],ink=I[u]&&I[u][it.id],nt=N[u]&&N[u][it.id];const done=a&&a.s;const sc=done&&a.a?a.a:null;const full=done&&a.ok===true;const gr=IX.grades[u]?.[it.id];
         return `<td><div class="c ${done?(full?'d3':(sc?'':'d2')):ink?'d1':''}" style="width:auto;min-width:32px;padding:0 3px;cursor:${ink||nt||done?'pointer':'default'};${done&&sc&&!full?'background:var(--crimson)':''}" data-ink="${it.id}" data-u="${u}" title="${esc(S[u].n)} #${pad(it.n)}${sc?' · 自评 '+sc:''}">${done?(sc?sc:'✓'):ink?'✎':''}${nt?'📝':''}${gr?`<small class="result-grade">师评 ${gr.sc!=null?gr.sc+'/'+(gr.tt||'?'):'已批注'}</small>`:''}</div></td>`;}).join('')}</tr>`).join('')}</table></div>
@@ -2406,7 +2406,7 @@ function renderGrading(){const P=PLAN.papers[gPaper],sets=gradingSets();
   // ---- 某一套：学生 × 题目 状态矩阵 ----
   const items=teachingRecordItems(cur).filter(it=>setItems(cur).some(i=>i.id===it.id)||vis().some(u=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id)));const us=vis().filter(u=>items.some(it=>X.saved(u,it.id)||X.inked(u,it.id)||X.graded(u,it.id))).sort((a,b)=>(S[a].n||'').localeCompare(S[b].n||'','zh'));
   const pn=pS.get(cur)||0;
-  h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="sm" data-gss="">← 全部套题</button><h2 style="margin:0">${setTitle(cur)}</h2><span class="sub">${items.length} 题</span><span class="grow"></span><button data-lecture="${cur}" title="左边讲题批注，右边看全班答案">🎤 讲题模式</button>${pn?`<button class="primary" data-gqueue="s:${cur}">▶ 批这套的待批（${pn} 题）</button>`:''}</div>
+  h+=`<div class="card"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><button class="sm" data-gss="">← 全部套题</button><h2 style="margin:0">${setTitle(cur)}</h2><span class="sub">${setItems(cur).length} 题${items.length>setItems(cur).length?` · ${items.length-setItems(cur).length} 份原题记录`:''}</span><span class="grow"></span><button data-lecture="${cur}" title="左边讲题批注，右边看全班答案">🎤 讲题模式</button>${pn?`<button class="primary" data-gqueue="s:${cur}">▶ 批这套的待批（${pn} 题）</button>`:''}</div>
     <div class="sub" style="margin-top:6px">绿 = 已批（显示老师分数）· 橙 = 已保存待批（↻ = 批改后学生重做了）· 粉 = 写了还没保存（草稿，也能先批）· 「未写」= 点了提交但这题没写，不进待批。点格子直接批这一题。</div></div>`;
   h+=us.length?`<div class="card"><div class="mxwrap"><table class="mx"><tr><th class="rh">学生</th>${items.map(it=>`<th title="${esc(it.o)}">#${pad(it.n)}${teachingSourceLabel(it)}</th>`).join('')}</tr>${us.map(u=>`<tr><th class="rh">${esc(S[u].n)}</th>${items.map(it=>{const q=it.id,g=X.Gd[u]&&X.Gd[u][q],sv=X.saved(u,q),ik=X.inked(u,q);
       const re=X.regrade(u,q);const cls=re?'pend':g?'d3':sv&&ik?'pend':ik?'d1':'';const txt=re?'↻ 重交':g?(g.sc!=null?`${g.sc}/${g.tt||'?'}`:'✓'):sv&&ik?'待批':ik?'✎':sv?'<span style="color:var(--muted)">未写</span>':'';
