@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104162416"></script>
+<script src="config.js?v=20261104165232"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1234,7 +1234,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-p
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104162416';
+const BUILD='20261104165232';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -2510,7 +2510,10 @@ async function gLoad(){const q=G.q,u=G.u,k=gk(u,q),it=byId.get(q);if(!it)return;
   $('#gTools').innerHTML=gToolbar();if(G.cur){G.cur=null;}wetFree();$('#gInner').innerHTML='<div class="empty">加载中…</div>';gStatusShow(G.dk.size||G.err?undefined:'');
   $('#gPrev').disabled=G.idx<=0;$('#gNext').disabled=G.idx>=G.list.length-1;gProg();
   if(!G.ink[k]){try{const j=await rpc('teacher_grade_get',{p_token:session.token,p_user:u,p_qid:q});if(j.ok){G.ink[k]=j.ink||[];if(j.grade)G.grade[k]=j.grade;}else throw new Error(j.error);}
-    catch(e){G.ink[k]=[];if(e.message==='NOINIT'||/teacher_grade_get/.test(e.message)){$('#gInner').innerHTML='<div class="empty">批作业功能需要先在 Supabase 运行 <b>_private/update3.sql</b>（建 grades 表和批改函数）。</div>';return;}}}
+    catch(e){delete G.ink[k];if(G.q!==q||G.u!==u||!$('#grader').classList.contains('on'))return;
+      const missing=e.message==='NOINIT'||/teacher_grade_get/.test(e.message);
+      $('#gInner').innerHTML=`<div class="empty">${missing?'批作业功能需要先在 Supabase 运行 <b>_private/update3.sql</b>（建 grades 表和批改函数）。':`答卷与原批改未加载成功：${esc(errMsg(e))}。请重试后再批改。`}<div style="margin-top:12px"><button id="gLoadRetry">重新加载答卷</button></div></div>`;
+      $('#gLoadRetry').onclick=()=>{if(G.q===q&&G.u===u)gLoad();};return;}}
   if(G.q!==q||G.u!==u)return;
   const strokes=G.ink[k];const selfA=gAtt(u,q);const self=selfA&&selfA.s&&/^\d+\/\d+$/.test(selfA.a||'')?selfA.a:null;
   const gr=G.grade[k]||(G.grade[k]={score:null,total:learningMarks(it)||(self?+self.split('/')[1]:null),comment:'',strokes:[],_new:true});

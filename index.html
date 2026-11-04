@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261104162416"></script>
+<script src="config.js?v=20261104165232"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1430,7 +1430,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-learning-p
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261104162416';
+const BUILD='20261104165232';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1506,6 +1506,7 @@ let inkIds={};                            // qid -> ms
 let subs={};                              // set_id -> {sc,tt,t}
 let grades={};                            // qid -> {sc,tt,t,c,set}  老师批改（摘要）
 let redoAt={};                            // qid -> ms  学生重做并重新保存的时间（老师批改早于它 = 批的是旧答案）
+function sameGradeSummary(a,b){return !!a&&!!b&&['sc','tt','t','c','set'].every(k=>a[k]===b[k]);}
 const TG={};                              // qid -> {score,total,comment,strokes}  老师批改（详情，按需拉取）
 let xp=0,xpPushed=null;
 const inkCache={};
@@ -1530,7 +1531,8 @@ function applyServer(j){
   const nt={};for(const [q,v] of Object.entries(j.notes||{}))nt[q]={b:v[0],t:(v[1]||0)*1000};
   const ik={};for(const [q,t] of Object.entries(j.ink||{}))ik[q]=(t||0)*1000;
   const sb={};for(const [s,v] of Object.entries(j.submissions||{}))sb[s]={sc:v[0],tt:v[1],t:(v[2]||0)*1000};
-  const gr={};for(const [q,v] of Object.entries(j.grades||{})){gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};if(grades[q]&&grades[q].t!==gr[q].t)delete TG[q];}
+  const gr={};for(const [q,v] of Object.entries(j.grades||{})){gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};if(!sameGradeSummary(grades[q],gr[q]))delete TG[q];}
+  for(const q of Object.keys(TG))if(!gr[q])delete TG[q];
   for(const [id,b] of Object.entries(pending.practice)){pr[id]=b;pt[id]=ptime[id]||Date.now();}
   for(const [q,o] of Object.entries(pending.wrong)){if(o.on){w.add(q);o.m?m.add(q):m.delete(q);wt[q]=wtime[q]||Date.now();}else{w.delete(q);m.delete(q);}}
   for(const [q,o] of Object.entries(pending.attempts))at[q]={a:o.a,ok:o.ok,s:!!o.s,t:(attempts[q]&&attempts[q].t)||Date.now()};
@@ -1653,30 +1655,37 @@ const gradeOf=q=>grades[q]||null;
 const gradeStale=q=>!!(grades[q]&&redoAt[q]&&grades[q].t<redoAt[q]);   // 老师批的是重做之前的答案
 const gradeTag=q=>{const g=grades[q];if(!g)return attempts[q]&&attempts[q].s?' · <span style="color:#6366f1">待老师批改</span>':'';return g.sc!=null?` · <b style="color:#4338ca">老师 ${g.sc}/${g.tt||'?'}</b>`:' · <b style="color:#4338ca">老师已批</b>';};
 const setGrade=id=>{let n=0,sc=0,tt=0,has=false;for(const it of setItems(id)){const g=grades[it.id];if(!g)continue;n++;if(g.sc!=null&&g.tt){sc+=g.sc;tt+=g.tt;has=true;}}return{n,sc,tt:has?tt:0};};
-async function loadGrade(q,force){if(!grades[q]&&!force)return null;if(TG[q]&&!force)return TG[q];const g0=SGEN;
-  try{const j=await rpc('get_grade',{p_token:session.token,p_qid:q});if(g0!==SGEN)return null;if(j.ok){if(j.grade){TG[q]=j.grade;const g=j.grade;const old=grades[q];grades[q]={sc:g.score,tt:g.total,t:(g.t||0)*1000,c:!!g.comment,set:old?old.set:null};return j.grade;}delete TG[q];if(grades[q]){delete grades[q];}}}catch(e){if(TG[q])return TG[q];}return null;}
-/* 老师是逐题批改的：页面可见时每 45 秒拉一次，只更新「老师批改」；有新的就提示并刷新相关界面 */
-async function refreshGrades(silent){if(!session)return;const g0=SGEN;
-  try{const j=await rpc('me',{p_token:session.token});if(g0!==SGEN||!j.ok)return;
+const gradeRequests=new Map();let gradeRefreshRequest=0;
+async function loadGrade(q,force){if(!grades[q]&&!force)return null;if(TG[q]&&!force)return TG[q];if(!session)return;
+  const g0=SGEN,token=session.token,request=(gradeRequests.get(q)||0)+1;gradeRequests.set(q,request);
+  try{const j=await rpc('get_grade',{p_token:token,p_qid:q});if(g0!==SGEN||token!==session?.token||request!==gradeRequests.get(q))return;
+    if(j.ok){if(j.grade){TG[q]=j.grade;const g=j.grade,old=grades[q];grades[q]={sc:g.score,tt:g.total,t:(g.t||0)*1000,c:!!g.comment,set:old?old.set:null};if(!sameGradeSummary(old,grades[q]))saveCache();return j.grade;}
+      delete TG[q];if(grades[q]){delete grades[q];saveCache();}return null;}}
+  catch(e){} // 请求失败时保留已经显示的批改，不能把网络错误当作老师撤销了批改
+  if(g0===SGEN&&token===session?.token&&request===gradeRequests.get(q))return TG[q];}
+/* 页面可见时每分钟同步摘要；正在看的题另拉完整批改，覆盖同秒改分、只改评语或红笔的情况。 */
+async function refreshGrades(silent){if(!session)return;const g0=SGEN,token=session.token,request=++gradeRefreshRequest;
+  try{const j=await rpc('me',{p_token:token});if(g0!==SGEN||token!==session?.token||request!==gradeRefreshRequest||!j.ok)return;
     const A=(j.assignments||[]).map(a=>({id:a.id,title:a.title||'作业',qids:a.qids||[],due:a.due||null,note:a.note||'',t:(a.t||0)*1000}));
     if(JSON.stringify(A)!==JSON.stringify(asg)){const more=A.length>asg.length;asg=A;saveCache();if(!DRAW.cur)renderHome();if(!silent&&more)toast('📚 老师布置了新作业，在「今天」页');}
     const gr={};for(const [q,v] of Object.entries(j.grades||{}))gr[q]={sc:v[0],tt:v[1],t:(v[2]||0)*1000,c:!!v[3],set:v[4]||null};
-    const changed=Object.keys(gr).filter(q=>!grades[q]||grades[q].t!==gr[q].t),removed=Object.keys(grades).filter(q=>!gr[q]);
-    if(!changed.length&&!removed.length)return;
-    for(const q of changed.concat(removed))delete TG[q];grades=gr;saveCache();
-    if(!silent&&changed.length)toast(`👩‍🏫 老师批改了 ${changed.length} 题，打开题目就能看到红笔和评语`);
-    if($('#writer').classList.contains('on')&&W.q&&(changed.includes(W.q)||removed.includes(W.q)))showGradeBox(W.q);
-    if(!DRAW.cur&&!PEN.down){counts();renderHome();if(!(doSet&&isMC(doSet)))renderPlan();revRender();}}
-  catch(e){}}
+    const changed=Object.keys(gr).filter(q=>!sameGradeSummary(grades[q],gr[q])),removed=Object.keys(grades).filter(q=>!gr[q]);
+    const active=$('#writer').classList.contains('on')&&W.q;
+    if(changed.length||removed.length){
+      for(const q of changed)if(q!==active)delete TG[q];for(const q of removed)delete TG[q];grades=gr;saveCache();
+      if(!silent&&changed.length)toast(`👩‍🏫 老师批改了 ${changed.length} 题，打开题目就能看到红笔和评语`);
+      if(!DRAW.cur&&!PEN.down){counts();renderHome();if(!(doSet&&isMC(doSet)))renderPlan();revRender();}}
+    if(active&&(gr[active]||attempts[active]?.s||removed.includes(active)))await showGradeBox(active,true);
+  }catch(e){}}
 function putGradeBox(q,g){if(W.q!==q)return;if(DRAW.cur||PEN.down||(window.writerBusy&&window.writerBusy())){W.pgq=q;return;}              // 正在写：抬笔后再放
   const inner=$('#wInner'),old=inner.querySelector('.wans.tg'),h0=old?old.offsetHeight+8:0;
-  const html=g&&!W.redo?gradeHtml(g,q):'';if(old&&old.outerHTML===html)return;
+  const html=g&&!W.redo?gradeHtml(g,q):'';if(old&&old.outerHTML===html){redrawQ(q);wStatus();return;}
   if(old)old.remove();if(html)inner.insertAdjacentHTML('afterbegin',html);
   const nb=inner.querySelector('.wans.tg'),h1=nb?nb.offsetHeight+8:0;
   if(h1!==h0&&(VZ.ty<-1||Date.now()-(W.act||0)<10000)){VZ.ty-=(h1-h0)*VZ.z;clampView();applyView();}   // 正在做这题时插入：题目停在原位                          // 往下看的时候插入：题目保持在原位
   redrawQ(q);wStatus();}
-function showGradeBox(q){if(W.q!==q)return;const had=TG[q]?JSON.stringify(TG[q]):'';if(TG[q])putGradeBox(q,TG[q]);
-  loadGrade(q,true).then(g=>{if(W.q!==q)return;if((g?JSON.stringify(g):'')!==had||!TG[q])putGradeBox(q,g);});}
+function showGradeBox(q,refreshOnly){if(W.q!==q)return;const had=TG[q]?JSON.stringify(TG[q]):'';if(TG[q]&&!refreshOnly)putGradeBox(q,TG[q]);
+  const g0=SGEN;return loadGrade(q,true).then(g=>{if(g===undefined||g0!==SGEN||W.q!==q)return;if((g?JSON.stringify(g):'')!==had||!TG[q])putGradeBox(q,g);});}
 setInterval(()=>{if(!document.hidden)refreshGrades(false);},60000);
 setInterval(()=>{if(W.pgq&&!DRAW.cur&&!PEN.down&&!(window.writerBusy&&window.writerBusy())){const q=W.pgq;W.pgq=null;showGradeBox(q);}},1200);   // 延后的老师批改：手势一停就放上去
 const gradeHtml=(g,q)=>gradeStale(q)?`<div class="wans tg"><b>👩‍🏫 老师批改的是你重做前的答案${g.score!=null?`（当时 ${g.score} / ${g.total||'?'}）`:''}</b><div class="n" style="margin-top:4px">新答案已经进老师的待批，批完这里会更新</div></div>`:`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
