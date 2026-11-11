@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261111143725"></script>
+<script src="config.js?v=20261111144129"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1277,7 +1277,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261111143725';
+const BUILD='20261111144129';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -2327,7 +2327,7 @@ async function lFetchFeedback(q,token,previous){
   const summary=result.status==='fulfilled'?result.value:null;
   for(const r of [...(summary?.ink||[]),...(summary?.grades||[]),...(summary?.attempts||[]).filter(a=>a.s)])if(r.q===q&&!rows.has(r.u))rows.set(r.u,{u:r.u,strokes:[]});
   const all=[...rows.values()];let next=0;
-  await Promise.all(Array.from({length:Math.min(4,all.length)},async()=>{while(next<all.length){const r=all[next++],a=summary?.attempts?.find(a=>a.u===r.u&&a.q===q);r.submitted=summary?!!a?.s:old.get(r.u)?.submitted;try{
+  await Promise.all(Array.from({length:Math.min(4,all.length)},async()=>{while(next<all.length){const r=all[next++],a=summary?.attempts?.find(a=>a.u===r.u&&a.q===q);r.submitted=summary?!!a?.s:old.get(r.u)?.submitted;r.attempt=summary?a||null:old.get(r.u)?.attempt;try{
     const j=await call('teacher_grade_get',{p_user:r.u,p_qid:q});r.strokes=j.ink||[];r.g=j.grade?{sc:j.grade.score,tt:j.grade.total,strokes:j.grade.strokes||[],c:!!j.grade.comment,comment:j.grade.comment||'',t:j.grade.t}:null;r.checked=true;r.loadError=false;
   }catch(e){r.loadError=true;r.checked=false;if(old.get(r.u)?.g)r.g=old.get(r.u).g;}}}));
   return all;
@@ -2584,7 +2584,7 @@ async function openGrader(a,b,c){await gSave();let list=a,idx=b||0;
   G.mode='grade';G.list=list;G.idx=idx;G.ink={};for(const k of Object.keys(G.grade))if(!G.dk.has(k))delete G.grade[k];gSetCur();   // 没存上的批改保留，继续重试
   $('#grader').classList.add('on');document.body.style.overflow='hidden';gLoad();}
 function gSetCur(){const it=G.list[G.idx];G.u=it.u;G.q=it.q;G.set=it.set||Q2SET.get(it.q)||null;}
-function gAtt(u,q){const src=(GQ&&GQ.attempts.find(x=>x.u===u&&x.q===q))||(RS&&RS.attempts.find(x=>x.u===u&&x.q===q));return src||null;}
+function gAtt(u,q){const row=L.on&&(L.all[q]||[]).find(r=>r.u===u);if(row&&row.attempt!==undefined)return row.attempt;const src=(GQ&&GQ.attempts.find(x=>x.u===u&&x.q===q))||(RS&&RS.attempts.find(x=>x.u===u&&x.q===q));return src||null;}
 function gDoneQ(u,q){const gr=G.grade[gk(u,q)];if(gr)return !!(gr.score!=null||(gr.strokes&&gr.strokes.length)||gr.comment);return !!((GQ&&GQ.grades.find(x=>x.u===u&&x.q===q))||(RS&&RS.grades&&RS.grades.find(x=>x.u===u&&x.q===q)));}
 function gProg(){const box=$('#gProg');const n=G.list.length,done=G.list.filter(x=>gDoneQ(x.u,x.q)).length,multi=new Set(G.list.map(x=>x.u)).size>1;
   const lbl=`<span>第 ${G.idx+1} / ${n} 题 · 已批 ${done}${multi?` · ${new Set(G.list.map(x=>x.u)).size} 人`:''}</span>`;
