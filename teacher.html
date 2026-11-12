@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112153754"></script>
+<script src="config.js?v=20261112161156"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1283,7 +1283,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112153754';
+const BUILD='20261112161156';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -1613,10 +1613,10 @@ const INK_COLORS=INK_PALETTE.flatMap(g=>g.c.map(x=>x[0]));
 const inkColorName=c=>{for(const g of INK_PALETTE)for(const [h,n] of g.c)if(h===c)return n;return '';};
 const r4=v=>Math.round(v*1e4)/1e4, r3=v=>Math.round(v*100)/100;   // 坐标 4 位小数，宽度系数 2 位
 const isIntEv=e=>Number.isInteger(e.clientX)&&Number.isInteger(e.clientY);
-/* 取一次 pointermove 的全部采样：iPadOS 18.2+ 有合并事件；过滤掉离父事件太远的（另一根手指串进来的）和完全重复的 */
+/* 保留同一指针的全部合并采样，包括快速移动；最新父事件必须到达笔尖。 */
 function inkSamples(e){let l=[];try{l=typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():[];}catch(x){}if(!l||!l.length)return[e];
-  const out=[];let lx=NaN,ly=NaN,lt=NaN;for(const s of l){if(Math.hypot(s.clientX-e.clientX,s.clientY-e.clientY)>80)continue;if(s.clientX===lx&&s.clientY===ly&&s.timeStamp===lt)continue;lx=s.clientX;ly=s.clientY;lt=s.timeStamp;out.push(s);}
-  return out.length?out:[e];}
+  const out=[];let lx=NaN,ly=NaN,lt=NaN;for(const s of l){if(s.pointerId!=null&&e.pointerId!=null&&s.pointerId!==e.pointerId)continue;if(!Number.isFinite(s.clientX)||!Number.isFinite(s.clientY))continue;if(s.timeStamp<lt)continue;if(s.clientX===lx&&s.clientY===ly&&s.timeStamp===lt)continue;lx=s.clientX;ly=s.clientY;lt=s.timeStamp;out.push(s);}
+  const last=out[out.length-1];if(!last||last.clientX!==e.clientX||last.clientY!==e.clientY||last.pressure!==e.pressure)out.push(e);return out;}
 function inkFrac(p){const x=Math.min(1,Math.max(0,(p-INK.pLo)/(INK.pHi-INK.pLo)));return INK.fMin+(1-INK.fMin)*Math.pow(x,INK.gamma);}
 
 /* 一笔的输入：begin → add… → end。x,y = 归一化坐标（以题图宽度为 1）；Wd = 题图未缩放时的 CSS 宽度；
@@ -1653,6 +1653,12 @@ function inkEnd(st){
   if(st.type==='pen')s.q=q;
   return s;
 }
+/* pointerup can carry the final movement absent from pointermove. Keep the last
+   real pressure (lift reports zero), and never synthesize a point on cancel. */
+function inkFinish(st,e,rect,Wd){if(e.type!=='pointerup'||!rect.width)return;
+  const x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.width;
+  if(!Number.isFinite(x)||!Number.isFinite(y)||Math.hypot(x-st.tx,y-st.ty)<1e-7)return;
+  inkAdd(st,x,y,st.lastP,Wd,e.timeStamp,isIntEv(e));}
 
 /* v2 轮廓：[1,2,1] 对称平滑 → 在急转弯处分段 → 每段一条左右偏移带（去掉内侧折回的点，二次曲线过中点）+ 两端圆头；
    全部放进一个 Path2D，nonzero 一次填充 —— 边缘干净、没有空洞、尖角不起刺 */
@@ -1697,11 +1703,15 @@ function drawStrokeV1(c,s,Wd){
 
 /* 统一入口：✗ 标记 / 几何图形 / v2 / 旧笔迹。INK_HIDE 里的笔画（正被套索拖动）画布上先不画 */
 const INK_HIDE=new WeakSet();
+// Saved strokes are immutable; erase/lasso produce new objects. Keep one outline
+// per stroke/width so viewport redraws and lasso drags do not rebuild old ink.
+const INK_PATHS=new WeakMap();
+function inkCachedPath(s,Wd){let v=INK_PATHS.get(s);if(!v||v.Wd!==Wd||v.p!==s.p||v.q!==s.q||v.w!==s.w){v={Wd,p:s.p,q:s.q,w:s.w,path:inkPathV2(s,Wd)};INK_PATHS.set(s,v);}return v.path;}
 function drawStroke(c,s,Wd){if(INK_HIDE.has(s))return;inkDraw(c,s,Wd);}
 function inkDraw(c,s,Wd){
   if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
   if(s.k){c.strokeStyle=s.c;c.lineWidth=s.w*Wd;c.lineCap='round';c.lineJoin='round';c.beginPath();for(let k=0;k<s.p.length;k+=2){k?c.lineTo(s.p[k]*Wd,s.p[k+1]*Wd):c.moveTo(s.p[k]*Wd,s.p[k+1]*Wd);}c.stroke();return;}
-  if(s.v===2){c.fillStyle=s.c;c.fill(inkPathV2(s,Wd),'nonzero');return;}
+  if(s.v===2){c.fillStyle=s.c;c.fill(inkCachedPath(s,Wd),'nonzero');return;}
   drawStrokeV1(c,s,Wd);
 }
 
@@ -1722,12 +1732,15 @@ function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.sx||WET.sca
 function inkBBox(s,Wd){const p=s.p;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<p.length;k+=2){const x=p[k]*Wd,y=p[k+1]*Wd;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}const m=s.w*Wd+3;return[x0-m,y0-m,x1+m,y1+m];}
 /* fn(ctx) 画当前这一笔；box = 这一笔的包围盒（CSS px）。每帧只清掉「上一帧 ∪ 这一帧」的包围盒，不整张清 */
 function wetRender(fn,box){WET.fn=fn;WET.box=box||null;if(WET.raf)return;WET.raf=requestAnimationFrame(()=>{WET.raf=0;if(!WET.cv||!WET.fn)return;
-  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
+  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=typeof WET.box==='function'?WET.box():WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
   if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*kx),y0=Math.floor(Math.min(b[1],l[1])*ky),x1=Math.ceil(Math.max(b[2],l[2])*kx),y1=Math.ceil(Math.max(b[3],l[3])*ky);c.clearRect(x0,y0,x1-x0,y1-y0);}
   else c.clearRect(0,0,WET.cv.width,WET.cv.height);
   WET.lastBox=b;c.setTransform(kx,0,0,ky,0,0);WET.fn(c);});}
+/* Snapshot and scan once per display frame, not once per hardware sample batch.
+   The same inkEnd data/renderer is used on lift; no predicted ink enters storage. */
+function wetStroke(read,Wd){let s;wetRender(c=>drawStroke(c,s,Wd),()=>{s=read();return inkBBox(s,Wd);});}
 function wetFree(){wetClear();if(WET.cv){WET.cv.width=WET.cv.height=0;}WET.lastBox=null;}   // 换页 / 关手写页：释放湿墨层位图
-function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
+function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;WET.box=null;WET.lastBox=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
 
 /* ---- 触控：笔优先的防误触 + 手指拖动惯性 ----
    规则（每个触点落下时判定一次，整段生命周期不变）：
@@ -2053,7 +2066,7 @@ function lassoDown(S,e){const [X,Y]=lassoPt(S,e);LASSO.start=[X,Y];
     if(X>=x0-m&&X<=x1+m&&Y>=y0-m&&Y<=y1+m){LASSO.mode='move';lassoHide(true);return;}}                                      // 框里：拖动
   lassoClear();LASSO.S=S;LASSO.baseW=S.box.offsetWidth;LASSO.mode='lasso';LASSO.path=[X,Y];lassoAttach(S);LASSO.dirty=true;lassoLoop();}                    // 框外：重新圈
 function lassoMove(e){const S=LASSO.S;if(!S||!LASSO.mode)return;const z=lassoZoom(S);
-  if(LASSO.mode==='lasso'){for(const ev of inkOverlaySamples(e)){const [X,Y]=lassoPt(S,ev),P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=.1/z)P.push(X,Y);}LASSO.dirty=true;return;}
+  if(LASSO.mode==='lasso'){const b=S.box.getBoundingClientRect();for(const ev of inkOverlaySamples(e)){const X=(ev.clientX-b.left)/z,Y=(ev.clientY-b.top)/z,P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=.1/z)P.push(X,Y);}LASSO.dirty=true;return;}
   const [X,Y]=lassoPt(S,e),[sx,sy]=LASSO.start;
   if(LASSO.mode==='move'){LASSO.dx=X-sx;LASSO.dy=Y-sy;LASSO.dirty=true;return;}
   if(LASSO.mode==='scale'){const [x0,y0,x1,y1]=LASSO.sel.box,vx=x1-x0,vy=y1-y0,t=((X-x0)*vx+(Y-y0)*vy)/((vx*vx+vy*vy)||1);LASSO.k=Math.max(0.25,Math.min(4,t/LASSO.k0));LASSO.dirty=true;}}
@@ -2117,10 +2130,11 @@ const LASSO_CSS=`.lassomenu{z-index:8;display:flex;gap:2px;align-items:center;ba
 .lassomenu button:hover{background:rgba(255,255,255,.14)}.lassomenu .n{opacity:.72;padding:0 6px 0 4px}`;
 (function(){const st=document.createElement('style');st.textContent=LASSO_CSS;document.head.appendChild(st);})();
 
-/* ---- 激光笔（讲题用）：红色光点 + 顺滑轨迹，抬笔后停留 5 秒再 1 秒淡出（不留笔尖光点）；只在屏幕上显示，不入库。
+/* ---- 激光笔：对照老师的 Goodnotes 录屏 8.5–9.5s / 14.25–15s，
+   抬笔短暂停留 300ms，再 450ms 整笔柔和消退；只在屏幕上显示，不入库。
    轨迹按实际题纸宽度归一化；缩放、平移、旋转和分屏后仍贴着同一个位置。view = inkViewport 实例；
    host = document.body 时（选择题套题页）记页面坐标，随页面滚动 ---- */
-const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:5000,fade:1000,dpr:1,dirty:false,sig:''};
+const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:300,fade:450,dpr:1,dirty:false,sig:''};
 function laserAttach(host,view){
   if(!LASER.cv){LASER.cv=document.createElement('canvas');LASER.cv.className='inklaser';LASER.cv.style.pointerEvents='none';}
   if(LASER.host&&(LASER.host!==host||LASER.view!==(view||null)))laserClear();
@@ -2582,7 +2596,7 @@ const G={mode:'grade',u:null,set:null,q:null,list:[],idx:0,ink:{},grade:{},cur:n
 try{const pp=JSON.parse(localStorage.getItem('ial27w.tpen')||'null');if(pp){if([1.8,2.8,4.5].includes(pp.w))G.width=pp.w;if(Array.isArray(pp.r)&&pp.r.length)G.recent=pp.r.slice(0,4);if(pp.c)G.color=pp.c;if(ERASER_SIZES.some(x=>x[0]===pp.e))G.esize=pp.e;G.ewhole=!!pp.ew;}}catch(e){}
 const gPenSave=()=>{try{localStorage.setItem('ial27w.tpen',JSON.stringify({w:G.width,r:G.recent,c:G.color,e:G.esize,ew:G.ewhole}));}catch(e){}};
 function gTip(m){const t=$('#gTip');t.textContent=m;t.hidden=false;clearTimeout(t._t);t._t=setTimeout(()=>t.hidden=true,3000);}
-function gToolbar(){const quick=G.recent.includes(G.color)?G.recent:[G.color].concat(G.recent).slice(0,4);return `<button class="tb" data-gact="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-gact="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span class="sep"></span><button class="tb" data-gtool="pen" aria-pressed="${G.tool==='pen'}" title="笔">✏️</button><button class="tb" data-gtool="eraser" aria-pressed="${G.tool==='eraser'}" title="橡皮：只擦老师自己的笔迹；默认只擦划过的地方，可选大小或「整笔」">🧽</button><button class="tb" data-gtool="laser" aria-pressed="${G.tool==='laser'}" title="激光笔：讲题时指给学生看，5 秒后淡出，不会保存">🔴</button><button class="tb" data-gtool="lasso" aria-pressed="${G.tool==='lasso'}" title="套索：圈住自己的笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色（学生的笔迹不会被动到）">➰</button><span class="gpen" ${G.tool==='eraser'?'hidden':''}><span class="sep"></span>${quick.map(c=>`<button class="sw" data-gcolor="${c}" aria-pressed="${G.color===c}" style="background:${c}" title="${inkColorName(c)}"></button>`).join('')}<button class="tb" data-palette="1" title="全部 15 种颜色">🎨</button><span class="sep"></span>${[[1.8,3],[2.8,5],[4.5,8]].map(([w,h])=>`<button class="wsz" data-gw="${w}" aria-pressed="${G.width===w}" title="最粗 ${w}px"><i style="height:${h}px"></i></button>`).join('')}</span><span class="gera" ${G.tool==='eraser'?'':'hidden'}><span class="sep"></span>${ERASER_SIZES.map(([r,l])=>`<button class="esz" data-gesz="${r}" aria-pressed="${G.esize===r}" title="橡皮 ${l}"><i style="width:${r+4}px;height:${r+4}px"></i></button>`).join('')}<button class="tb wide" data-gact="ewhole" aria-pressed="${G.ewhole}" title="整笔擦除：碰到哪一笔擦掉整笔（关 = 只擦划过的部分）">整笔</button></span><span class="sep"></span><button class="tb" data-gact="clear" title="清空本题笔迹">🗑</button><button class="tb wide" data-gact="ann" aria-pressed="${G.showAnn}" title="显示学生交卷后写的批注层">学生批注</button><button class="tb wide" data-gact="finger" aria-pressed="${G.finger}" title="没有笔时用手指写">☝️ 手指</button>`;}
+function gToolbar(){const quick=G.recent.includes(G.color)?G.recent:[G.color].concat(G.recent).slice(0,4);return `<button class="tb" data-gact="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-gact="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span class="sep"></span><button class="tb" data-gtool="pen" aria-pressed="${G.tool==='pen'}" title="笔">✏️</button><button class="tb" data-gtool="eraser" aria-pressed="${G.tool==='eraser'}" title="橡皮：只擦老师自己的笔迹；默认只擦划过的地方，可选大小或「整笔」">🧽</button><button class="tb" data-gtool="laser" aria-pressed="${G.tool==='laser'}" title="激光笔：讲题时指给学生看，抬笔后短暂发光并淡出，不会保存">🔴</button><button class="tb" data-gtool="lasso" aria-pressed="${G.tool==='lasso'}" title="套索：圈住自己的笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色（学生的笔迹不会被动到）">➰</button><span class="gpen" ${G.tool==='eraser'?'hidden':''}><span class="sep"></span>${quick.map(c=>`<button class="sw" data-gcolor="${c}" aria-pressed="${G.color===c}" style="background:${c}" title="${inkColorName(c)}"></button>`).join('')}<button class="tb" data-palette="1" title="全部 15 种颜色">🎨</button><span class="sep"></span>${[[1.8,3],[2.8,5],[4.5,8]].map(([w,h])=>`<button class="wsz" data-gw="${w}" aria-pressed="${G.width===w}" title="最粗 ${w}px"><i style="height:${h}px"></i></button>`).join('')}</span><span class="gera" ${G.tool==='eraser'?'':'hidden'}><span class="sep"></span>${ERASER_SIZES.map(([r,l])=>`<button class="esz" data-gesz="${r}" aria-pressed="${G.esize===r}" title="橡皮 ${l}"><i style="width:${r+4}px;height:${r+4}px"></i></button>`).join('')}<button class="tb wide" data-gact="ewhole" aria-pressed="${G.ewhole}" title="整笔擦除：碰到哪一笔擦掉整笔（关 = 只擦划过的部分）">整笔</button></span><span class="sep"></span><button class="tb" data-gact="clear" title="清空本题笔迹">🗑</button><button class="tb wide" data-gact="ann" aria-pressed="${G.showAnn}" title="显示学生交卷后写的批注层">学生批注</button><button class="tb wide" data-gact="finger" aria-pressed="${G.finger}" title="没有笔时用手指写">☝️ 手指</button>`;}
 const gk=(u,q)=>u+'|'+q;
 /* openGrader(list,idx)：list = [{u,q,set}]；兼容旧调用 openGrader(u,set,q) = 该生这套题 */
 async function openGrader(a,b,c){await gSave();let list=a,idx=b||0;
@@ -2650,7 +2664,7 @@ function gBind(cv){inkGuard(cv);cv.addEventListener('pointerdown',e=>gDown(e,cv)
 function gCancelStroke(id){const cur=G.cur;if(!cur||(id!=null&&cur.id!==id))return;G.cur=null;
   if(cur.laser){laserUp();return;}if(cur.lasso){lassoCancelGesture();return;}
   wetClear();if(cur.erase){gEraseFlush();if(cur.hit)gChanged();}}
-function gWet(){const cur=G.cur;if(!cur||cur.erase)return;const s=inkEnd(cur.st),Wd=cur.Wd;wetRender(c=>drawStroke(c,s,Wd),inkBBox(s,Wd));}
+function gWet(){const cur=G.cur;if(!cur||cur.erase)return;wetStroke(()=>inkEnd(cur.st),cur.Wd);}
 function gDown(e,cv){if(e.pointerType==='mouse'&&e.button!==0)return;
   if(!cv.width||!cv.height)gFit(cv);
   if(e.pointerType==='touch'){if(touchIsPalm(e)){e.preventDefault();return;}if(!G.finger)return;}   // 手指平移 / 缩放由视图层处理；「手指」模式才写
@@ -2670,6 +2684,7 @@ function gUp(e,cv){if(e.pointerType==='touch'&&PALM.has(e.pointerId)&&G.cur&&G.c
   const cur=G.cur;if(!cur||cur.cv!==cv||cur.id!==e.pointerId)return;if(e.type==='pointerleave'&&e.buttons)return;
   G.cur=null;try{cv.releasePointerCapture(e.pointerId);}catch(x){}if(cur.laser){laserUp(e);return;}if(cur.lasso){lassoUp(e);return;}if(cur.erase){wetClear();gEraseFlush();if(cur.hit)gChanged();return;}
   if(e.type==='pointercancel'&&cur.st.n<3){wetClear();return;}
+  inkFinish(cur.st,e,cv.getBoundingClientRect(),cur.Wd);
   const s=inkEnd(cur.st);const arr=gTarget();if(!arr){wetClear();return;}
   arr.push(s);drawStroke(gCtx(cv),s,cur.Wd);wetClear();gChanged();}
 /* 套索：批改页 = 这一题老师自己的红笔（学生的笔迹不会被选中）；讲题 = 老师的板书 */

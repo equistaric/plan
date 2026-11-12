@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112153754"></script>
+<script src="config.js?v=20261112161156"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1480,7 +1480,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112153754';
+const BUILD='20261112161156';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1952,7 +1952,7 @@ function shinDayLine(sk){const d=Math.floor(Date.now()/864e5);if(sk>=3&&d%3===0)
 function shinPlanLine(pct){return pct>=100?'全部清零！太厉害了吧～':pct>=75?'就差一点点了，冲呀！':pct>=50?'过半啦！胜利在望～':pct>=25?`已经刷了 ${pct}%，继续冲！`:pct>0?`${pct}% 了，好的开始～`:'从第一章开始吧～';}
 /* ---- 工具条（套题页的批注条和手写页共用同一份工具状态 DRAW） ---- */
 const swqHtml=()=>{const list=DRAW.recent.includes(DRAW.color)?DRAW.recent:[DRAW.color].concat(DRAW.recent).slice(0,4);return list.map(c=>`<button class="sw" data-color="${c}" aria-pressed="${DRAW.color===c}" style="background:${c}" title="${inkColorName(c)}"></button>`).join('');};
-function toolbarHtml(){return `<button class="tb" data-act="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-act="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span style="width:6px"></span><button class="tb" data-tool="pen" aria-pressed="${DRAW.tool==='pen'}" title="画笔">✏️</button><button class="tb" data-tool="eraser" aria-pressed="${DRAW.tool==='eraser'}" title="橡皮：默认只擦划过的地方；选中后可选大小、或「整笔」擦">🧽</button><button class="tb" data-tool="laser" aria-pressed="${DRAW.tool==='laser'}" title="激光笔：讲题时指给别人看，5 秒后淡出，不会保存">🔴</button><button class="tb" data-tool="lasso" aria-pressed="${DRAW.tool==='lasso'}" title="套索：圈住笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色">➰</button>
+function toolbarHtml(){return `<button class="tb" data-act="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-act="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span style="width:6px"></span><button class="tb" data-tool="pen" aria-pressed="${DRAW.tool==='pen'}" title="画笔">✏️</button><button class="tb" data-tool="eraser" aria-pressed="${DRAW.tool==='eraser'}" title="橡皮：默认只擦划过的地方；选中后可选大小、或「整笔」擦">🧽</button><button class="tb" data-tool="laser" aria-pressed="${DRAW.tool==='laser'}" title="激光笔：讲题时指给别人看，抬笔后短暂发光并淡出，不会保存">🔴</button><button class="tb" data-tool="lasso" aria-pressed="${DRAW.tool==='lasso'}" title="套索：圈住笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色">➰</button>
     <span class="penopt" ${DRAW.tool==='eraser'?'hidden':''}><span style="width:4px"></span><span class="swq">${swqHtml()}</span><button class="tb pal" data-palette="1" title="全部 15 种颜色（多巴胺 / 莫兰迪）">🎨</button>
     <span style="width:4px"></span>${PEN_SIZES.map(([w,h])=>`<button class="wsz" data-w="${w}" aria-pressed="${DRAW.width===w}" title="最粗 ${w}px（轻写更细）"><i style="width:14px;height:${h}px"></i></button>`).join('')}</span>
     <span class="eraopt" ${DRAW.tool==='eraser'?'':'hidden'}><span style="width:4px"></span>${ERASER_SIZES.map(([r,l])=>`<button class="esz" data-esz="${r}" aria-pressed="${DRAW.esize===r}" title="橡皮 ${l}"><i style="width:${r+4}px;height:${r+4}px"></i></button>`).join('')}<button class="tb wide" data-act="ewhole" aria-pressed="${DRAW.ewhole}" title="整笔擦除：碰到哪一笔就擦掉整笔（关 = 只擦划过的部分）">整笔</button></span>
@@ -2179,10 +2179,10 @@ const INK_COLORS=INK_PALETTE.flatMap(g=>g.c.map(x=>x[0]));
 const inkColorName=c=>{for(const g of INK_PALETTE)for(const [h,n] of g.c)if(h===c)return n;return '';};
 const r4=v=>Math.round(v*1e4)/1e4, r3=v=>Math.round(v*100)/100;   // 坐标 4 位小数，宽度系数 2 位
 const isIntEv=e=>Number.isInteger(e.clientX)&&Number.isInteger(e.clientY);
-/* 取一次 pointermove 的全部采样：iPadOS 18.2+ 有合并事件；过滤掉离父事件太远的（另一根手指串进来的）和完全重复的 */
+/* 保留同一指针的全部合并采样，包括快速移动；最新父事件必须到达笔尖。 */
 function inkSamples(e){let l=[];try{l=typeof e.getCoalescedEvents==='function'?e.getCoalescedEvents():[];}catch(x){}if(!l||!l.length)return[e];
-  const out=[];let lx=NaN,ly=NaN,lt=NaN;for(const s of l){if(Math.hypot(s.clientX-e.clientX,s.clientY-e.clientY)>80)continue;if(s.clientX===lx&&s.clientY===ly&&s.timeStamp===lt)continue;lx=s.clientX;ly=s.clientY;lt=s.timeStamp;out.push(s);}
-  return out.length?out:[e];}
+  const out=[];let lx=NaN,ly=NaN,lt=NaN;for(const s of l){if(s.pointerId!=null&&e.pointerId!=null&&s.pointerId!==e.pointerId)continue;if(!Number.isFinite(s.clientX)||!Number.isFinite(s.clientY))continue;if(s.timeStamp<lt)continue;if(s.clientX===lx&&s.clientY===ly&&s.timeStamp===lt)continue;lx=s.clientX;ly=s.clientY;lt=s.timeStamp;out.push(s);}
+  const last=out[out.length-1];if(!last||last.clientX!==e.clientX||last.clientY!==e.clientY||last.pressure!==e.pressure)out.push(e);return out;}
 function inkFrac(p){const x=Math.min(1,Math.max(0,(p-INK.pLo)/(INK.pHi-INK.pLo)));return INK.fMin+(1-INK.fMin)*Math.pow(x,INK.gamma);}
 
 /* 一笔的输入：begin → add… → end。x,y = 归一化坐标（以题图宽度为 1）；Wd = 题图未缩放时的 CSS 宽度；
@@ -2219,6 +2219,12 @@ function inkEnd(st){
   if(st.type==='pen')s.q=q;
   return s;
 }
+/* pointerup can carry the final movement absent from pointermove. Keep the last
+   real pressure (lift reports zero), and never synthesize a point on cancel. */
+function inkFinish(st,e,rect,Wd){if(e.type!=='pointerup'||!rect.width)return;
+  const x=(e.clientX-rect.left)/rect.width,y=(e.clientY-rect.top)/rect.width;
+  if(!Number.isFinite(x)||!Number.isFinite(y)||Math.hypot(x-st.tx,y-st.ty)<1e-7)return;
+  inkAdd(st,x,y,st.lastP,Wd,e.timeStamp,isIntEv(e));}
 
 /* v2 轮廓：[1,2,1] 对称平滑 → 在急转弯处分段 → 每段一条左右偏移带（去掉内侧折回的点，二次曲线过中点）+ 两端圆头；
    全部放进一个 Path2D，nonzero 一次填充 —— 边缘干净、没有空洞、尖角不起刺 */
@@ -2263,11 +2269,15 @@ function drawStrokeV1(c,s,Wd){
 
 /* 统一入口：✗ 标记 / 几何图形 / v2 / 旧笔迹。INK_HIDE 里的笔画（正被套索拖动）画布上先不画 */
 const INK_HIDE=new WeakSet();
+// Saved strokes are immutable; erase/lasso produce new objects. Keep one outline
+// per stroke/width so viewport redraws and lasso drags do not rebuild old ink.
+const INK_PATHS=new WeakMap();
+function inkCachedPath(s,Wd){let v=INK_PATHS.get(s);if(!v||v.Wd!==Wd||v.p!==s.p||v.q!==s.q||v.w!==s.w){v={Wd,p:s.p,q:s.q,w:s.w,path:inkPathV2(s,Wd)};INK_PATHS.set(s,v);}return v.path;}
 function drawStroke(c,s,Wd){if(INK_HIDE.has(s))return;inkDraw(c,s,Wd);}
 function inkDraw(c,s,Wd){
   if(s.f){const x=s.p[0]*Wd,y=s.p[1]*Wd,rad=Math.max(10,Wd*0.018);c.strokeStyle='#dc2626';c.lineWidth=2.5;c.beginPath();c.arc(x,y,rad,0,Math.PI*2);c.stroke();c.fillStyle='#dc2626';c.font=`bold ${rad*1.3}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText('✗',x,y+1);return;}
   if(s.k){c.strokeStyle=s.c;c.lineWidth=s.w*Wd;c.lineCap='round';c.lineJoin='round';c.beginPath();for(let k=0;k<s.p.length;k+=2){k?c.lineTo(s.p[k]*Wd,s.p[k+1]*Wd):c.moveTo(s.p[k]*Wd,s.p[k+1]*Wd);}c.stroke();return;}
-  if(s.v===2){c.fillStyle=s.c;c.fill(inkPathV2(s,Wd),'nonzero');return;}
+  if(s.v===2){c.fillStyle=s.c;c.fill(inkCachedPath(s,Wd),'nonzero');return;}
   drawStrokeV1(c,s,Wd);
 }
 
@@ -2288,12 +2298,15 @@ function wetCtx(){const c=WET.cv.getContext('2d');c.setTransform(WET.sx||WET.sca
 function inkBBox(s,Wd){const p=s.p;let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;for(let k=0;k<p.length;k+=2){const x=p[k]*Wd,y=p[k+1]*Wd;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;}const m=s.w*Wd+3;return[x0-m,y0-m,x1+m,y1+m];}
 /* fn(ctx) 画当前这一笔；box = 这一笔的包围盒（CSS px）。每帧只清掉「上一帧 ∪ 这一帧」的包围盒，不整张清 */
 function wetRender(fn,box){WET.fn=fn;WET.box=box||null;if(WET.raf)return;WET.raf=requestAnimationFrame(()=>{WET.raf=0;if(!WET.cv||!WET.fn)return;
-  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
+  const c=WET.cv.getContext('2d'),kx=WET.sx||WET.scale,ky=WET.sy||kx,b=typeof WET.box==='function'?WET.box():WET.box,l=WET.lastBox;c.setTransform(1,0,0,1,0,0);
   if(b&&l){const x0=Math.floor(Math.min(b[0],l[0])*kx),y0=Math.floor(Math.min(b[1],l[1])*ky),x1=Math.ceil(Math.max(b[2],l[2])*kx),y1=Math.ceil(Math.max(b[3],l[3])*ky);c.clearRect(x0,y0,x1-x0,y1-y0);}
   else c.clearRect(0,0,WET.cv.width,WET.cv.height);
   WET.lastBox=b;c.setTransform(kx,0,0,ky,0,0);WET.fn(c);});}
+/* Snapshot and scan once per display frame, not once per hardware sample batch.
+   The same inkEnd data/renderer is used on lift; no predicted ink enters storage. */
+function wetStroke(read,Wd){let s;wetRender(c=>drawStroke(c,s,Wd),()=>{s=read();return inkBBox(s,Wd);});}
 function wetFree(){wetClear();if(WET.cv){WET.cv.width=WET.cv.height=0;}WET.lastBox=null;}   // 换页 / 关手写页：释放湿墨层位图
-function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
+function wetClear(){if(WET.raf){cancelAnimationFrame(WET.raf);WET.raf=0;}WET.fn=null;WET.box=null;WET.lastBox=null;if(!WET.cv)return;const c=WET.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,WET.cv.width,WET.cv.height);WET.host=null;if(WET.cv.parentNode)WET.cv.parentNode.removeChild(WET.cv);}
 
 /* ---- 触控：笔优先的防误触 + 手指拖动惯性 ----
    规则（每个触点落下时判定一次，整段生命周期不变）：
@@ -2619,7 +2632,7 @@ function lassoDown(S,e){const [X,Y]=lassoPt(S,e);LASSO.start=[X,Y];
     if(X>=x0-m&&X<=x1+m&&Y>=y0-m&&Y<=y1+m){LASSO.mode='move';lassoHide(true);return;}}                                      // 框里：拖动
   lassoClear();LASSO.S=S;LASSO.baseW=S.box.offsetWidth;LASSO.mode='lasso';LASSO.path=[X,Y];lassoAttach(S);LASSO.dirty=true;lassoLoop();}                    // 框外：重新圈
 function lassoMove(e){const S=LASSO.S;if(!S||!LASSO.mode)return;const z=lassoZoom(S);
-  if(LASSO.mode==='lasso'){for(const ev of inkOverlaySamples(e)){const [X,Y]=lassoPt(S,ev),P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=.1/z)P.push(X,Y);}LASSO.dirty=true;return;}
+  if(LASSO.mode==='lasso'){const b=S.box.getBoundingClientRect();for(const ev of inkOverlaySamples(e)){const X=(ev.clientX-b.left)/z,Y=(ev.clientY-b.top)/z,P=LASSO.path,n=P.length;if(Math.hypot(X-P[n-2],Y-P[n-1])>=.1/z)P.push(X,Y);}LASSO.dirty=true;return;}
   const [X,Y]=lassoPt(S,e),[sx,sy]=LASSO.start;
   if(LASSO.mode==='move'){LASSO.dx=X-sx;LASSO.dy=Y-sy;LASSO.dirty=true;return;}
   if(LASSO.mode==='scale'){const [x0,y0,x1,y1]=LASSO.sel.box,vx=x1-x0,vy=y1-y0,t=((X-x0)*vx+(Y-y0)*vy)/((vx*vx+vy*vy)||1);LASSO.k=Math.max(0.25,Math.min(4,t/LASSO.k0));LASSO.dirty=true;}}
@@ -2683,10 +2696,11 @@ const LASSO_CSS=`.lassomenu{z-index:8;display:flex;gap:2px;align-items:center;ba
 .lassomenu button:hover{background:rgba(255,255,255,.14)}.lassomenu .n{opacity:.72;padding:0 6px 0 4px}`;
 (function(){const st=document.createElement('style');st.textContent=LASSO_CSS;document.head.appendChild(st);})();
 
-/* ---- 激光笔（讲题用）：红色光点 + 顺滑轨迹，抬笔后停留 5 秒再 1 秒淡出（不留笔尖光点）；只在屏幕上显示，不入库。
+/* ---- 激光笔：对照老师的 Goodnotes 录屏 8.5–9.5s / 14.25–15s，
+   抬笔短暂停留 300ms，再 450ms 整笔柔和消退；只在屏幕上显示，不入库。
    轨迹按实际题纸宽度归一化；缩放、平移、旋转和分屏后仍贴着同一个位置。view = inkViewport 实例；
    host = document.body 时（选择题套题页）记页面坐标，随页面滚动 ---- */
-const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:5000,fade:1000,dpr:1,dirty:false,sig:''};
+const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:300,fade:450,dpr:1,dirty:false,sig:''};
 function laserAttach(host,view){
   if(!LASER.cv){LASER.cv=document.createElement('canvas');LASER.cv.className='inklaser';LASER.cv.style.pointerEvents='none';}
   if(LASER.host&&(LASER.host!==host||LASER.view!==(view||null)))laserClear();
@@ -2736,7 +2750,7 @@ function tip(m){const t=$('#wTip');if(!$('#writer').classList.contains('on'))ret
    不再用 scrollTo + 自定义惯性接管画布上的手指，避免两套滚动交替。 */
 /* 正在写的这一笔：v2 笔迹或识别出的几何图形 */
 const curStroke=cur=>cur.shape?{i:cur.i,c:cur.st.c,w:+cur.st.w.toFixed(5),p:cur.sp,k:1}:inkEnd(cur.st);
-function wetDrawCur(){const cur=DRAW.cur;if(!cur||cur.erase||!cur.st)return;const st=curStroke(cur),Wd=cur.Wd;wetRender(c=>drawStroke(c,st,Wd),inkBBox(st,Wd));}
+function wetDrawCur(){const cur=DRAW.cur;if(!cur||cur.erase||!cur.st)return;wetStroke(()=>curStroke(cur),cur.Wd);}
 function cancelStroke(){if(DRAW.cur&&DRAW.cur.laser){laserUp();DRAW.cur=null;return;}if(DRAW.cur&&DRAW.cur.lasso){DRAW.cur=null;lassoCancelGesture();return;}if(DRAW.cur&&DRAW.cur.erase){const c=DRAW.cur;DRAW.cur=null;wetClear();eraseFlush();if(c.hit)markDirty(c.q);return;}if(DRAW.cur&&!DRAW.cur.erase){clearTimeout(DRAW.holdT);DRAW.cur=null;wetClear();}}
 /* 收尾一笔丢了 pointerup 的笔画：画布还在就照常落笔保存，不在就丢弃 */
 function abandonCur(){const cur=DRAW.cur;DRAW.cur=null;clearTimeout(DRAW.holdT);if(!cur){wetClear();return;}if(cur.laser){laserUp();return;}if(cur.lasso){lassoUp();return;}
@@ -2774,6 +2788,7 @@ function pup(e,cv){
   if(cur.lasso){lassoUp(e);return;}
   if(cur.erase){wetClear();eraseFlush();if(cur.hit)markDirty(cur.q);return;}
   if(e.type==='pointercancel'&&!cur.shape&&cur.st.n<3){wetClear();return;}   // 被系统打断的极短一笔：丢弃
+  if(!cur.shape)inkFinish(cur.st,e,cv.getBoundingClientRect(),cur.Wd);
   const s=curStroke(cur);if(annotLayer(cur.q))s.a=1;
   INKS[cur.q].push(s);DRAW.lastQ=cur.q;
   drawStroke(ctxOf(cv),s,cur.Wd);wetClear();                                // 与湿墨层同一函数、同一组点：抬笔后不变
@@ -2840,7 +2855,7 @@ function setTool(t){if(t!=='lasso')lassoClear();DRAW.tool=t;document.querySelect
 function setColor(c,remember){DRAW.color=c;if(remember){DRAW.recent=[c].concat(DRAW.recent.filter(x=>x!==c)).slice(0,4);penSave();document.querySelectorAll('.swq').forEach(x=>x.innerHTML=swqHtml());}
   document.querySelectorAll('.sw[data-color]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.color===c));}
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-tool]');if(t){setTool(t.dataset.tool);if(t.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');if(t.dataset.tool==='laser')tip('激光笔：只在屏幕上亮 5 秒，不会写进题里');return;}
+  const t=e.target.closest('[data-tool]');if(t){setTool(t.dataset.tool);if(t.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');if(t.dataset.tool==='laser')tip('激光笔：抬笔后短暂发光并淡出，不会写进题里');return;}
   const pb=e.target.closest('[data-palette]');if(pb){inkPaletteOpen(pb,DRAW.color,c=>{if(DRAW.tool==='lasso'&&lassoActive()){lassoRecolor(c);return;}setColor(c,true);if(DRAW.tool!=='pen')setTool('pen');});return;}
   const c=e.target.closest('.sw[data-color]');if(c){if(DRAW.tool==='lasso'&&lassoActive()){lassoRecolor(c.dataset.color);return;}setColor(c.dataset.color);if(DRAW.tool!=='pen')setTool('pen');return;}   // 套索选中时点颜色 = 给选中的笔迹改色
   const ez=e.target.closest('[data-esz]');if(ez){DRAW.esize=+ez.dataset.esz;penSave();document.querySelectorAll('[data-esz]').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.esz===DRAW.esize));if(DRAW.tool!=='eraser')setTool('eraser');return;}
