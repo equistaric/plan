@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112161156"></script>
+<script src="config.js?v=20261112164324"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -983,10 +983,10 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .ink-tools .ink-toolstrip .tb[aria-pressed="true"] {background:#eef3f5;color:#18282b;box-shadow:none;border:0}
 .ink-tools .ink-toolstrip [data-tool="pen"][aria-pressed="true"] .ink-nib,.ink-tools .ink-toolstrip [data-gtool="pen"][aria-pressed="true"] .ink-nib {fill:var(--ink-active);stroke:var(--ink-active)}
 .ink-toolstrip .tb:hover {background:rgba(255,255,255,.12)}
-.ink-undo {display:flex;align-items:center;position:absolute;left:10px;top:calc(100% + 20px);height:42px;padding:2px 3px;background:rgba(250,250,251,.97);border:1px solid #dedfe3;border-radius:13px;box-shadow:0 2px 5px rgba(30,35,40,.08);z-index:4}
-.ink-tools .ink-undo .tb {display:flex;align-items:center;justify-content:center;width:35px;height:36px;padding:4px;border:0;background:none;box-shadow:none;border-radius:8px;color:#6b747b}
+.ink-undo {display:flex;align-items:center;position:static;flex:none;gap:2px;padding-right:8px;margin-right:2px;border-right:1px solid #ffffff40}
+.ink-tools .ink-undo .tb {display:flex;align-items:center;justify-content:center;width:40px;min-width:40px;height:42px;padding:6px;border:0;background:none;box-shadow:none;border-radius:8px;color:#f9e8ec}
 .ink-undo .ink-icon {width:24px;height:24px}
-.ink-options {position:absolute;top:calc(100% + 20px);left:max(102px,calc(50% - 260px));right:10px;max-width:520px;z-index:4;padding:3px 7px;background:rgba(250,250,251,.98);border:1px solid #dedfe3;border-radius:14px;box-shadow:0 3px 8px rgba(30,35,40,.11);color:#222b32;min-height:42px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
+.ink-options {position:absolute;top:calc(100% + 20px);left:max(8px,calc(50% - 260px));right:10px;max-width:520px;z-index:4;padding:3px 7px;background:rgba(250,250,251,.98);border:1px solid #dedfe3;border-radius:14px;box-shadow:0 3px 8px rgba(30,35,40,.11);color:#222b32;min-height:42px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;touch-action:pan-x}
 .ink-options::-webkit-scrollbar {display:none}
 .ink-options .penopt,.ink-options .gpen,.ink-options .eraopt,.ink-options .gera {display:flex;align-items:center;gap:6px;min-height:34px;flex-wrap:nowrap;width:max-content;margin:auto}
 .ink-options .ink-colors,.ink-options .swq {display:inline-flex;align-items:center;gap:7px;flex:none}
@@ -1011,9 +1011,20 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .ink-erase-menu {position:absolute;left:0;top:40px;min-width:160px;padding:5px;background:#fff;border:1px solid #dce0e4;border-radius:12px;box-shadow:0 6px 20px #202b3820}
 .ink-tools .ink-erase-menu button {display:block;width:100%;padding:9px 12px;border:0;border-radius:7px;text-align:left;font-size:12px;color:#283139;background:none;box-shadow:none}
 .ink-tools .ink-erase-menu button[aria-pressed="true"] {background:#edf1f4;color:#253d50}
-.ink-tools[data-ink-tool="eraser"] .ink-options {left:max(102px,calc(50% - 145px));right:auto;width:290px;max-width:calc(100% - 112px)}
-.ink-toolbar-inline[data-ink-tool="eraser"] .ink-options {left:max(60px,calc(50% - 145px));max-width:calc(100% - 70px)}
-.ink-tools[data-ink-tool="laser"] .ink-options,.ink-tools[data-ink-tool="marker"] .ink-options {display:none}
+.ink-tools[data-ink-tool="eraser"] .ink-options {left:max(8px,calc(50% - 145px));right:auto;width:290px;max-width:calc(100% - 16px)}
+.ink-toolbar-inline[data-ink-tool="eraser"] .ink-options {left:max(4px,calc(50% - 145px));max-width:calc(100% - 8px)}
+.ink-tools[data-ink-tool="marker"] .ink-options {display:none}
+.ink-laser-options {display:none;align-items:center;justify-content:center;gap:6px;font-size:12px}
+.ink-tools[data-ink-tool="laser"] .ink-options {left:max(8px,calc(50% - 125px));right:auto;width:250px;max-width:calc(100% - 16px)}
+.ink-tools[data-ink-tool="laser"] .ink-laser-options {display:flex}
+.ink-tools[data-ink-tool="laser"] .ink-options>.penopt,.ink-tools[data-ink-tool="laser"] .ink-options>.gpen {display:none}
+.ink-laser-options button {min-width:50px;height:36px;padding:3px 8px;border:0;border-radius:9px;background:transparent;color:#283139;box-shadow:none}
+.ink-laser-options button[aria-pressed="true"] {background:#f0dfe3;color:#8d182b}
+.ink-toolstrip {justify-content:safe center}
+.ink-toolstrip .tb {touch-action:manipulation}
+.ink-tools .ink-toolstrip .tb {height:42px}
+.ink-tools .ink-toolstrip .tb:active {background:#ffffff30}
+@media(max-width:600px){.ink-tools .ink-toolstrip .tb{width:34px;min-width:34px}.ink-undo{gap:0;padding-right:4px;margin-right:0}.ink-toolstrip{gap:2px}}
 .ink-more {position:absolute;right:10px;top:3px;z-index:7}
 .ink-more>summary {display:flex;align-items:center;justify-content:center;list-style:none;width:36px;height:36px;border-radius:9px;color:#faedf0;cursor:pointer}
 .ink-more>summary::-webkit-details-marker {display:none}
@@ -1041,9 +1052,9 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .student-app #annotbar:has(.ink-tools)>b {display:flex;align-items:center;min-height:42px;color:#f9e8ed!important;font-size:11px;padding-left:5px}
 .student-app #annotbar:has(.ink-tools)>.n {display:none}
 .student-app #annotbar .ink-tools {overflow:visible;flex:1;min-width:0;max-width:none;margin:0}
-.ink-toolbar-inline .ink-toolstrip {justify-content:center}
-.ink-toolbar-inline .ink-undo {left:-40px;top:calc(100% + 5px)}
-.ink-toolbar-inline .ink-options {top:calc(100% + 5px);left:max(60px,calc(50% - 260px))}
+.ink-toolbar-inline .ink-toolstrip {justify-content:safe center}
+
+.ink-toolbar-inline .ink-options {top:calc(100% + 5px);left:max(4px,calc(50% - 260px))}
 .ink-options .swq {display:contents}
 .ink-colors [data-color="#dc2626"],.ink-colors [data-gcolor="#dc2626"] {order:1}
 .ink-colors [data-color="#1d4ed8"],.ink-colors [data-gcolor="#1d4ed8"] {order:2}
@@ -1054,15 +1065,15 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .ink-colors [data-color="#0ea5e9"],.ink-colors [data-gcolor="#0ea5e9"] {order:7}
 .ink-workspace:has(.ink-tools[data-ink-tool="laser"]) canvas:not(.inkwet) {cursor:none}
 @media(max-width:600px){
-  .ink-toolstrip {gap:3px;padding:0 45px 0 8px;justify-content:center}
-  .ink-tools .ink-toolstrip .tb {width:37px;min-width:37px;height:36px}
-  .ink-options {left:96px;right:6px;padding:3px 5px}
+  .ink-toolstrip {gap:3px;padding:0 42px 0 6px;justify-content:safe center}
+  .ink-tools .ink-toolstrip .tb {width:34px;min-width:34px;height:42px}
+  .ink-options {left:6px;right:6px;padding:3px 5px}
   .ink-options .ink-colors,.ink-options .swq {gap:6px}
   .ink-options .ink-colors {margin-left:5px}
   .ink-tools .ink-options .wsz {width:30px}
   .ink-tools .ink-options .sw {width:22px;height:22px;min-width:22px}
   .ink-document-bar .ink-document-title {font-size:11px!important}
-  .ink-toolbar-inline .ink-undo {left:-35px}
+
   .ink-toolbar-inline .ink-toolstrip {padding-left:0;padding-right:34px;gap:1px}
   .ink-toolbar-inline .ink-toolstrip .tb {width:33px;min-width:33px}
   .ink-toolbar-inline .ink-more {right:0}
@@ -1385,7 +1396,8 @@ function partAnswerHtml(it,i){
     const undo=document.createElement('div');undo.className='ink-undo';undo.setAttribute('aria-label','撤销和恢复');
     for(const a of ['undo','redo']){const b=take(act,a);if(b){icon(b,a,a==='undo'?'撤销':'恢复');undo.append(b);}}
     const main=document.createElement('div');main.className='ink-toolstrip';main.setAttribute('role','toolbar');main.setAttribute('aria-label','书写工具');
-    for(const name of ['lasso','pen','eraser']){const b=take(tool,name);if(b){icon(b,name,{lasso:'套索',pen:'钢笔',eraser:'橡皮'}[name]);main.append(b);}}
+    main.append(undo);
+    for(const name of ['pen','eraser','lasso']){const b=take(tool,name);if(b){icon(b,name,{lasso:'套索',pen:'钢笔',eraser:'橡皮'}[name]);main.append(b);}}
     const shapes=take(act,'shapes');if(shapes){icon(shapes,'shapes','图形识别');main.append(shapes);}
     const laser=take(tool,'laser');if(laser){icon(laser,'laser','激光笔');main.append(laser);}
     const options=document.createElement('div');options.className='ink-options';options.setAttribute('aria-label','当前工具设置');
@@ -1404,6 +1416,10 @@ function partAnswerHtml(it,i){
         mode.append(menu);whole.classList.add('ink-mode-source');whole.tabIndex=-1;whole.setAttribute('aria-hidden','true');eraser.replaceChildren(mode,whole,...sizes);
       }else eraser.replaceChildren(...sizes);
     }
+    const laserOptions=document.createElement('div');laserOptions.className='ink-laser-options';
+    const laserLabel=document.createElement('span');laserLabel.textContent='停留';laserOptions.append(laserLabel);
+    for(const [ms,label] of [[1000,'1秒'],[2000,'2秒'],[4000,'4秒']]){const b=document.createElement('button');b.type='button';b.dataset.uiLaserHold=ms;b.textContent=label;b.setAttribute('aria-label','激光停留'+label);laserOptions.append(b);}
+    options.append(laserOptions);
     const more=document.createElement('details');more.className='ink-more';
     const summary=document.createElement('summary');summary.innerHTML=svg('more');summary.setAttribute('aria-label','更多工具');summary.title='更多工具';
     const panel=document.createElement('div');panel.className='ink-more-panel';
@@ -1413,7 +1429,7 @@ function partAnswerHtml(it,i){
     for(const b of root.querySelectorAll('button')){b.classList.add('ink-more-item');panel.append(b);}
     more.append(summary,panel);
     // Only presentation spacers remain at root; all original controls were moved.
-    root.replaceChildren(undo,main,options,more);
+    root.replaceChildren(main,options,more);
   };
   const update=root=>{
     const g=root.id==='gTools'||root.id==='lTools',colorAttr=g?'data-gcolor':'data-color',toolAttr=g?'data-gtool':'data-tool',act=g?'data-gact':'data-act';
@@ -1426,6 +1442,7 @@ function partAnswerHtml(it,i){
         if(!colors.querySelector('['+colorAttr+'="'+hex+'"]')){const b=document.createElement('button');b.type='button';b.className='sw';b.dataset.inkExtra=hex;b.setAttribute(colorAttr,hex);b.setAttribute('aria-pressed','false');b.style.background=hex;b.title=label;colors.append(b);}}
       for(const b of colors.querySelectorAll('.sw')){const label=b.title||'颜色';if(b.getAttribute('aria-label')!==label)b.setAttribute('aria-label',label);}
     }
+    root.querySelectorAll('[data-ui-laser-hold]').forEach(b=>{const on=String(Number(b.dataset.uiLaserHold)===LASER.hold);if(b.getAttribute('aria-pressed')!==on)b.setAttribute('aria-pressed',on);});
     const whole=root.querySelector('['+act+'="ewhole"]');if(whole){const on=whole.getAttribute('aria-pressed')==='true',label=(on?'整笔':'局部')+'⌄',toggle=root.querySelector('.ink-erase-mode>summary');if(toggle&&toggle.textContent!==label)toggle.textContent=label;
       root.querySelectorAll('[data-ui-erase-mode]').forEach(b=>{const selected=(b.dataset.uiEraseMode==='whole')===on;if(b.getAttribute('aria-pressed')!==String(selected))b.setAttribute('aria-pressed',String(selected));});}
   };
@@ -1435,6 +1452,7 @@ function partAnswerHtml(it,i){
   for(const selector of ['#wTools','#gTools','#lTools','#planWrap']){const el=document.querySelector(selector);if(el)new MutationObserver(schedule).observe(el,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-pressed','hidden']});}
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ink-more'))document.querySelectorAll('.ink-more[open]').forEach(m=>m.open=false);},{passive:true,capture:true});
   document.addEventListener('click',e=>{if(e.target.closest('.ink-more-item'))document.querySelectorAll('.ink-more[open]').forEach(m=>m.open=false);});
+  document.addEventListener('click',e=>{const b=e.target.closest('[data-ui-laser-hold]');if(!b)return;laserSetHold(Number(b.dataset.uiLaserHold));for(const root of roots())update(root);});
   document.addEventListener('click',e=>{const item=e.target.closest('[data-ui-erase-mode]');if(!item)return;const box=item.closest('.ink-options'),source=box.querySelector('[data-act="ewhole"],[data-gact="ewhole"]'),on=source.getAttribute('aria-pressed')==='true';
     if(on!==(item.dataset.uiEraseMode==='whole'))source.click();const menu=item.closest('.ink-erase-mode');if(menu)menu.open=false;});
   document.addEventListener('pointerdown',e=>{if(!e.target.closest('.ink-erase-mode'))document.querySelectorAll('.ink-erase-mode[open]').forEach(m=>m.open=false);},{passive:true,capture:true});
@@ -1480,7 +1498,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112161156';
+const BUILD='20261112164324';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1952,7 +1970,7 @@ function shinDayLine(sk){const d=Math.floor(Date.now()/864e5);if(sk>=3&&d%3===0)
 function shinPlanLine(pct){return pct>=100?'全部清零！太厉害了吧～':pct>=75?'就差一点点了，冲呀！':pct>=50?'过半啦！胜利在望～':pct>=25?`已经刷了 ${pct}%，继续冲！`:pct>0?`${pct}% 了，好的开始～`:'从第一章开始吧～';}
 /* ---- 工具条（套题页的批注条和手写页共用同一份工具状态 DRAW） ---- */
 const swqHtml=()=>{const list=DRAW.recent.includes(DRAW.color)?DRAW.recent:[DRAW.color].concat(DRAW.recent).slice(0,4);return list.map(c=>`<button class="sw" data-color="${c}" aria-pressed="${DRAW.color===c}" style="background:${c}" title="${inkColorName(c)}"></button>`).join('');};
-function toolbarHtml(){return `<button class="tb" data-act="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-act="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span style="width:6px"></span><button class="tb" data-tool="pen" aria-pressed="${DRAW.tool==='pen'}" title="画笔">✏️</button><button class="tb" data-tool="eraser" aria-pressed="${DRAW.tool==='eraser'}" title="橡皮：默认只擦划过的地方；选中后可选大小、或「整笔」擦">🧽</button><button class="tb" data-tool="laser" aria-pressed="${DRAW.tool==='laser'}" title="激光笔：讲题时指给别人看，抬笔后短暂发光并淡出，不会保存">🔴</button><button class="tb" data-tool="lasso" aria-pressed="${DRAW.tool==='lasso'}" title="套索：圈住笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色">➰</button>
+function toolbarHtml(){return `<button class="tb" data-act="undo" title="撤销（⌘Z）">↶</button><button class="tb" data-act="redo" title="反撤销 / 恢复（⇧⌘Z）">↷</button><span style="width:6px"></span><button class="tb" data-tool="pen" aria-pressed="${DRAW.tool==='pen'}" title="画笔">✏️</button><button class="tb" data-tool="eraser" aria-pressed="${DRAW.tool==='eraser'}" title="橡皮：默认整笔擦除；碰到一笔即擦掉整笔，可切换局部擦除">🧽</button><button class="tb" data-tool="laser" aria-pressed="${DRAW.tool==='laser'}" title="激光笔：讲题时指给别人看，抬笔后停留并柔和淡出，时长可调，不会保存">🔴</button><button class="tb" data-tool="lasso" aria-pressed="${DRAW.tool==='lasso'}" title="套索：圈住笔迹后拖动移动、拖右下角圆点缩放；可删除、复制；选中时点颜色可改色">➰</button>
     <span class="penopt" ${DRAW.tool==='eraser'?'hidden':''}><span style="width:4px"></span><span class="swq">${swqHtml()}</span><button class="tb pal" data-palette="1" title="全部 15 种颜色（多巴胺 / 莫兰迪）">🎨</button>
     <span style="width:4px"></span>${PEN_SIZES.map(([w,h])=>`<button class="wsz" data-w="${w}" aria-pressed="${DRAW.width===w}" title="最粗 ${w}px（轻写更细）"><i style="width:14px;height:${h}px"></i></button>`).join('')}</span>
     <span class="eraopt" ${DRAW.tool==='eraser'?'':'hidden'}><span style="width:4px"></span>${ERASER_SIZES.map(([r,l])=>`<button class="esz" data-esz="${r}" aria-pressed="${DRAW.esize===r}" title="橡皮 ${l}"><i style="width:${r+4}px;height:${r+4}px"></i></button>`).join('')}<button class="tb wide" data-act="ewhole" aria-pressed="${DRAW.ewhole}" title="整笔擦除：碰到哪一笔就擦掉整笔（关 = 只擦划过的部分）">整笔</button></span>
@@ -2130,9 +2148,9 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-wgo]');if(
 const INKS={};                      // q -> strokes（内存里的当前笔迹）
 const CVS={};                       // q -> [canvas...]
 const PEN_SIZES=[[1.8,2],[2.8,3.5],[4.5,6]];
-const DRAW={tool:'pen',color:'#dc2626',width:2.8,finger:false,shapes:false,esize:8,ewhole:false,cur:null,lastQ:null,dirty:new Set(),saveT:null,recent:['#1e232a','#1d4ed8','#dc2626','#12b76a']};   // shapes：图形识别，默认关（笔停住时不会把手写换成直线 / 圆）
-try{const pp=JSON.parse(localStorage.getItem('ial27w.pen')||'null');if(pp){if(PEN_SIZES.some(x=>x[0]===pp.w))DRAW.width=pp.w;if(Array.isArray(pp.r)&&pp.r.length)DRAW.recent=pp.r.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,4);DRAW.shapes=!!pp.s;if(ERASER_SIZES.some(x=>x[0]===pp.e))DRAW.esize=pp.e;DRAW.ewhole=!!pp.ew;}}catch(e){}
-const penSave=()=>{try{localStorage.setItem('ial27w.pen',JSON.stringify({w:DRAW.width,r:DRAW.recent,s:DRAW.shapes,e:DRAW.esize,ew:DRAW.ewhole}));}catch(e){}};
+const DRAW={tool:'pen',color:'#dc2626',width:2.8,finger:false,shapes:false,esize:8,ewhole:true,cur:null,lastQ:null,dirty:new Set(),saveT:null,recent:['#1e232a','#1d4ed8','#dc2626','#12b76a']};   // shapes：图形识别，默认关（笔停住时不会把手写换成直线 / 圆）
+try{const pp=JSON.parse(localStorage.getItem('ial27w.pen')||'null');if(pp){if(PEN_SIZES.some(x=>x[0]===pp.w))DRAW.width=pp.w;if(Array.isArray(pp.r)&&pp.r.length)DRAW.recent=pp.r.filter(c=>/^#[0-9a-f]{6}$/i.test(c)).slice(0,4);DRAW.shapes=!!pp.s;if(ERASER_SIZES.some(x=>x[0]===pp.e))DRAW.esize=pp.e;DRAW.ewhole=pp.ev===2?!!pp.ew:true;}}catch(e){}
+const penSave=()=>{try{localStorage.setItem('ial27w.pen',JSON.stringify({w:DRAW.width,r:DRAW.recent,s:DRAW.shapes,e:DRAW.esize,ew:DRAW.ewhole,ev:2}));}catch(e){}};
 const INKLOADED=new Set();          // 这题的已存笔迹已经取回并合并过
 async function loadInk(q){if(INKLOADED.has(q)&&INKS[q])return INKS[q];let saved=pending.ink[q]||inkCache[q]||null;const g0=SGEN,revision=rounds[q]||0;
   if(!saved){saved=[];if(inkIds[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});if(g0!==SGEN||(rounds[q]||0)!==revision)return INKS[q]||[];if(!j.ok)throw new Error(j.error||'load');saved=j.strokes||[];inkCache[q]=saved;}
@@ -2696,11 +2714,13 @@ const LASSO_CSS=`.lassomenu{z-index:8;display:flex;gap:2px;align-items:center;ba
 .lassomenu button:hover{background:rgba(255,255,255,.14)}.lassomenu .n{opacity:.72;padding:0 6px 0 4px}`;
 (function(){const st=document.createElement('style');st.textContent=LASSO_CSS;document.head.appendChild(st);})();
 
-/* ---- 激光笔：对照老师的 Goodnotes 录屏 8.5–9.5s / 14.25–15s，
-   抬笔短暂停留 300ms，再 450ms 整笔柔和消退；只在屏幕上显示，不入库。
+/* ---- 激光笔：按老师实机反馈延长为抬笔停留2秒、800ms柔和消退，
+   可选1/2/4秒并记住本机偏好；只在屏幕上显示，不入库。
    轨迹按实际题纸宽度归一化；缩放、平移、旋转和分屏后仍贴着同一个位置。view = inkViewport 实例；
    host = document.body 时（选择题套题页）记页面坐标，随页面滚动 ---- */
-const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:300,fade:450,dpr:1,dirty:false,sig:''};
+const LASER={cv:null,host:null,view:null,trails:[],cur:null,raf:0,hold:2000,fade:800,dpr:1,dirty:false,sig:''};
+function laserSetHold(ms){if(![1000,2000,4000].includes(ms))return;LASER.hold=ms;try{localStorage.setItem('ial27w.laser',String(ms));}catch(e){}}
+try{const ms=Number(localStorage.getItem('ial27w.laser'));if([1000,2000,4000].includes(ms))LASER.hold=ms;}catch(e){}
 function laserAttach(host,view){
   if(!LASER.cv){LASER.cv=document.createElement('canvas');LASER.cv.className='inklaser';LASER.cv.style.pointerEvents='none';}
   if(LASER.host&&(LASER.host!==host||LASER.view!==(view||null)))laserClear();
@@ -2855,7 +2875,7 @@ function setTool(t){if(t!=='lasso')lassoClear();DRAW.tool=t;document.querySelect
 function setColor(c,remember){DRAW.color=c;if(remember){DRAW.recent=[c].concat(DRAW.recent.filter(x=>x!==c)).slice(0,4);penSave();document.querySelectorAll('.swq').forEach(x=>x.innerHTML=swqHtml());}
   document.querySelectorAll('.sw[data-color]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.color===c));}
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-tool]');if(t){setTool(t.dataset.tool);if(t.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');if(t.dataset.tool==='laser')tip('激光笔：抬笔后短暂发光并淡出，不会写进题里');return;}
+  const t=e.target.closest('[data-tool]');if(t){setTool(t.dataset.tool);if(t.dataset.tool==='marker')tip('点一下做错的那一问，会打一个 ❌');if(t.dataset.tool==='laser')tip('激光笔：抬笔后停留再淡出；可在工具下方选择1、2、4秒');return;}
   const pb=e.target.closest('[data-palette]');if(pb){inkPaletteOpen(pb,DRAW.color,c=>{if(DRAW.tool==='lasso'&&lassoActive()){lassoRecolor(c);return;}setColor(c,true);if(DRAW.tool!=='pen')setTool('pen');});return;}
   const c=e.target.closest('.sw[data-color]');if(c){if(DRAW.tool==='lasso'&&lassoActive()){lassoRecolor(c.dataset.color);return;}setColor(c.dataset.color);if(DRAW.tool!=='pen')setTool('pen');return;}   // 套索选中时点颜色 = 给选中的笔迹改色
   const ez=e.target.closest('[data-esz]');if(ez){DRAW.esize=+ez.dataset.esz;penSave();document.querySelectorAll('[data-esz]').forEach(x=>x.setAttribute('aria-pressed',+x.dataset.esz===DRAW.esize));if(DRAW.tool!=='eraser')setTool('eraser');return;}
