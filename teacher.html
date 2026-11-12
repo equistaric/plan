@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112165409"></script>
+<script src="config.js?v=20261112171800"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -1226,7 +1226,7 @@ function partAnswerHtml(it,i){
     const more=document.createElement('details');more.className='ink-more';
     const summary=document.createElement('summary');summary.innerHTML=svg('more');summary.setAttribute('aria-label','更多工具');summary.title='更多工具';
     const panel=document.createElement('div');panel.className='ink-more-panel';
-    const labels={finger:'手指书写',marker:'标记错处',clear:'清空笔迹',old:'显示上次笔迹',ann:'学生批注'};
+    const labels={finger:'手指书写',marker:'标记错处',clear:'清空本题笔迹',old:'显示上次笔迹',ann:'学生批注'};
     for(const [name,label] of Object.entries(labels)){const b=take(name==='marker'?tool:act,name);if(!b)continue;
       icon(b,name,label);const text=document.createElement('span');text.textContent=label;b.append(text);b.classList.add('ink-more-item');panel.append(b);}
     for(const b of root.querySelectorAll('button')){b.classList.add('ink-more-item');panel.append(b);}
@@ -1301,7 +1301,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112165409';
+const BUILD='20261112171800';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -2174,7 +2174,8 @@ function laserMove(e){const t=LASER.cur;if(!t)return;const f=laserFrame(),sample
   // actual tip; smoothing the input by 0.55 used to leave a visible trailing gap.
   for(const s of samples){const [x,y]=laserPt(s,f);if(Math.hypot(x-t.sx,y-t.sy)<.01)continue;const [cx,cy]=laserToC(x,y,f);t.sx=x;t.sy=y;t.p.push([cx,cy,x,y]);LASER.dirty=true;}}
 function laserUp(e){if(LASER.cur){if(e&&e.type==='pointerup')laserMove(e);LASER.cur.end=performance.now();LASER.cur=null;LASER.dirty=true;}}
-function laserClear(){LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
+function laserRelease(t){if(t.cache){t.cache.cv.width=t.cache.cv.height=0;delete t.cache;}}
+function laserClear(){LASER.trails.forEach(laserRelease);LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
 function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[1],f));if(!P.length)return;c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
   const path=new Path2D();path.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length-1;i++)path.quadraticCurveTo(P[i][0],P[i][1],(P[i][0]+P[i+1][0])/2,(P[i][1]+P[i+1][1])/2);const L=P[P.length-1];path.lineTo(L[0],L[1]);
   // Screen-sized bloom remains visible on white paper at every paper zoom.
@@ -2185,13 +2186,38 @@ function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[
   }
   if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],10);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.2,'rgba(255,245,235,.95)');g.addColorStop(.45,'rgba(255,25,50,.55)');g.addColorStop(1,'rgba(255,20,40,0)');
   c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],10,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
+/* Composite the completed glow once, then fade the whole image. Re-blurring
+   every path on every fading frame is costly on iPad, and fading separate
+   overlapping glow layers makes the bright centre linger disproportionately.
+   Cropped caches share a 4M-pixel budget and are invalidated on view changes. */
+function laserRender(c,t,alpha,f,sig){
+  if(!t.end)return laserDraw(c,t,alpha,f);
+  if(t.cache&&t.cache.sig!==sig)laserRelease(t);
+  if(!t.cache){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const p of t.p){const [x,y]=laserToS(p[0],p[1],f);x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    const sx=LASER.dpr,sy=LASER.sy||sx;
+    x0=Math.max(0,Math.floor(x0-48));y0=Math.max(0,Math.floor(y0-48));
+    x1=Math.min(LASER.cv.width/sx,Math.ceil(x1+48));y1=Math.min(LASER.cv.height/sy,Math.ceil(y1+48));
+    const w=Math.ceil((x1-x0)*sx),h=Math.ceil((y1-y0)*sy);
+    const used=LASER.trails.reduce((n,v)=>n+(v.cache?v.cache.cv.width*v.cache.cv.height:0),0);
+    if(w>0&&h>0&&w*h+used<=4e6){
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      const ctx=cv.getContext('2d');ctx.setTransform(sx,0,0,sy,-x0*sx,-y0*sy);laserDraw(ctx,t,1,f);
+      t.cache={cv,x:x0,y:y0,w:w/sx,h:h/sy,sig};
+    }
+  }
+  if(!t.cache)return laserDraw(c,t,alpha,f);
+  c.save();c.globalAlpha=alpha;c.shadowBlur=0;c.shadowColor='transparent';
+  const b=t.cache;c.drawImage(b.cv,b.x,b.y,b.w,b.h);c.restore();
+}
 function laserLoop(){if(LASER.raf)return;const f=()=>{LASER.raf=0;if(!LASER.cv)return;const now=performance.now(),c=LASER.cv.getContext('2d');
   laserAttach(LASER.host,LASER.view);const g=laserFrame(),p=g.paper,o=g.o,sig=[o.left,o.top,o.sx,o.sy,o.w,o.h,LASER.cv.style.clipPath,p&&p.left,p&&p.top,p&&p.width,scrollX,scrollY].join(',');
   const count=LASER.trails.length,fading=LASER.trails.some(t=>t.end&&now-t.end>=LASER.hold);
-  LASER.trails=LASER.trails.filter(t=>!t.end||now-t.end<LASER.hold+LASER.fade);
+  LASER.trails=LASER.trails.filter(t=>{if(!t.end||now-t.end<LASER.hold+LASER.fade)return true;laserRelease(t);return false;});
   if(LASER.dirty||sig!==LASER.sig||fading||count!==LASER.trails.length){LASER.dirty=false;LASER.sig=sig;
     c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);c.setTransform(LASER.dpr,0,0,LASER.sy||LASER.dpr,0,0);
-    for(const t of LASER.trails){const u=t.end?Math.max(0,Math.min(1,(now-t.end-LASER.hold)/LASER.fade)):0;laserDraw(c,t,1-u*u*(3-2*u),g);}}
+    for(const t of LASER.trails){const u=t.end?Math.max(0,Math.min(1,(now-t.end-LASER.hold)/LASER.fade)):0;laserRender(c,t,1-u*u*(3-2*u),g,sig);}}
   if(LASER.trails.length)LASER.raf=requestAnimationFrame(f);};LASER.raf=requestAnimationFrame(f);}
 addEventListener('resize',()=>{if(LASER.host&&LASER.trails.length)laserAttach(LASER.host,LASER.view);});
 

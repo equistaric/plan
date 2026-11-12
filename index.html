@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112165409"></script>
+<script src="config.js?v=20261112171800"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1423,7 +1423,7 @@ function partAnswerHtml(it,i){
     const more=document.createElement('details');more.className='ink-more';
     const summary=document.createElement('summary');summary.innerHTML=svg('more');summary.setAttribute('aria-label','更多工具');summary.title='更多工具';
     const panel=document.createElement('div');panel.className='ink-more-panel';
-    const labels={finger:'手指书写',marker:'标记错处',clear:'清空笔迹',old:'显示上次笔迹',ann:'学生批注'};
+    const labels={finger:'手指书写',marker:'标记错处',clear:'清空本题笔迹',old:'显示上次笔迹',ann:'学生批注'};
     for(const [name,label] of Object.entries(labels)){const b=take(name==='marker'?tool:act,name);if(!b)continue;
       icon(b,name,label);const text=document.createElement('span');text.textContent=label;b.append(text);b.classList.add('ink-more-item');panel.append(b);}
     for(const b of root.querySelectorAll('button')){b.classList.add('ink-more-item');panel.append(b);}
@@ -1498,7 +1498,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112165409';
+const BUILD='20261112171800';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -1771,7 +1771,7 @@ function showGradeBox(q,refreshOnly){if(W.q!==q)return;const had=TG[q]?JSON.stri
 setInterval(()=>{if(!document.hidden)refreshGrades(false);},60000);
 setInterval(()=>{if(W.pgq&&!DRAW.cur&&!PEN.down&&!(window.writerBusy&&window.writerBusy())){const q=W.pgq;W.pgq=null;showGradeBox(q);}},1200);   // 延后的老师批改：手势一停就放上去
 const gradeHtml=(g,q)=>gradeStale(q)?`<div class="wans tg"><b>👩‍🏫 老师批改的是你重做前的答案${g.score!=null?`（当时 ${g.score} / ${g.total||'?'}）`:''}</b><div class="n" style="margin-top:4px">新答案已经进老师的待批，批完这里会更新</div></div>`:`<div class="wans tg"><b>👩‍🏫 老师批改${g.score!=null?`：${g.score} / ${g.total||'?'}`:''}</b>${g.comment?`<div style="white-space:pre-wrap;margin-top:4px">${esc(g.comment)}</div>`:''}<div class="n" style="margin-top:4px">老师的红笔批改已叠加在题上${g.teacher?` · ${esc(g.teacher)}`:''}</div></div>`;
-/* 已保存（看过答案）的题：原答案锁定，之后写的都算批注层（a:1），只能撤销 / 擦除批注 */
+/* 提交后新增笔迹仍标记 a:1 供老师切换批注显示；所有个人笔迹始终可编辑。 */
 const annotLayer=q=>{const at=attempts[q]||{};return !!(at.s&&!(W.q===q&&W.redo));};
 const selfOf=q=>{const a=attempts[q];if(!a||!a.s||!a.a||!/^\d+\/\d+$/.test(a.a))return null;const [s,t]=a.a.split('/').map(Number);return{s,t,full:s>=t};};
 const p2Todo=()=>DATA.items.filter(i=>i.mc!==1&&attempts[i.id]&&attempts[i.id].s&&attempts[i.id].ok===false).sort((a,b)=>{const A=selfOf(a.id),B=selfOf(b.id);return (A?A.s/A.t:0)-(B?B.s/B.t:0)||a.ch-b.ch;});
@@ -1991,7 +1991,7 @@ function renderSet(){const s=setOf(doSet);if(!studentSetVisible(s)){doSet=null;r
       html+=`<div class="qbox ${done?(at.ok?'ok':'bad'):''}" id="q_${encodeURIComponent(it.id)}" data-no="${it.n}"><div class="qh ${done?(at.ok?'okh':'badh'):''}"><span class="no">#${pad(it.n)}</span><span class="n">${esc(it.o)}${learningTopic(it)?` · 考纲 ${learningTopic(it)}`:''}</span>${dtag(it)}<span class="grow"></span>${done?(at.ok?'<span class="res ok">✓ 答对</span>':`<span class="res bad">✗ ${at.a?`你选 ${at.a}`:'未作答'} · 答案 ${it.L}</span>`):''}${ink?'<span class="tag" title="有批注">✎</span>':''}${wrong.has(it.id)?'<span class="tag" title="在错题本里">📕</span>':''}</div>
         <div class="qimg">${it.i.map((x,k)=>`<div class="strip" data-i="${k}"><img loading="lazy" decoding="async" src="${IMG(x)}" alt=""${mcImageSize(x)}${inkPadCss(it,k)}><canvas data-q="${it.id}" data-i="${k}"></canvas></div>`).join('')}</div>
         <div class="opts">${['A','B','C','D'].map(L=>{let cls='';if(done){if(L===it.L)cls='right';else if(at.a===L)cls='wrongsel';}else if(at.a===L)cls='sel';return `<button class="opt ${cls}" data-ans="${L}" data-q="${it.id}" ${done?'disabled':''}>${L}</button>`;}).join('')}</div>
-        ${nbHas(it.id,0)?nbHtml(it.id,0,true):`<div class="nbslot" data-nbs="${it.id}"><button class="sm" data-nbadd="${it.id}">＋ 笔记区</button></div>`}<div class="qf"><button class="sm" data-write="${it.id}">打开题目</button>${done?`<button class="sm" data-reset-question="${it.id}">清空重做</button>`:''}</div>
+        ${nbHas(it.id,0)?nbHtml(it.id,0,true):`<div class="nbslot" data-nbs="${it.id}"><button class="sm" data-nbadd="${it.id}">＋ 笔记区</button></div>`}<div class="qf"><button class="sm" data-write="${it.id}">打开题目</button></div>
         ${done?`<div class="qf"><button class="sm" data-expl="${esc(it.id)}">${ex?'解析':'无解析'}</button>${!wrong.has(it.id)?`<button class="sm ghost" data-mark="${it.id}">加入错题本</button>`:''}</div>
           <div class="expl" id="ex_${encodeURIComponent(it.id)}" hidden>${ex?`<div class="row2"><b>答案：${it.L}</b> · ${esc(ex.point||'')}</div>`+['A','B','C','D'].map(L=>`<div class="row2"><span class="${L===it.L?'ok':'bad'}">${L===it.L?'✓':'✗'} ${L}</span> ${esc(ex[L]||'')}</div>`).join(''):'<div class="n">本题暂无解析</div>'}</div>`:''}
         </div>`;}
@@ -2043,8 +2043,8 @@ document.addEventListener('click',e=>{
   const sr=e.target.closest('[data-source-record]');if(sr){const q=sr.dataset.sourceRecord;if(!byId.has(q))return;openSet('record:'+q);openWriter(q,{annot:!!attempts[q]?.s});return;}
   const w=e.target.closest('[data-write]');if(w){openWriter(w.dataset.write,{});return;}
   const reload=e.target.closest('[data-reload-question]');if(reload){reloadQuestion(reload.dataset.reloadQuestion);return;}
-  const reset=e.target.closest('[data-reset-question]');if(reset){resetQuestion(reset.dataset.resetQuestion);return;}
-  const rd=e.target.closest('[data-redo]');if(rd){const it=byId.get(rd.dataset.redo);if(it){const sid=realSetOf(it);if(setOf(sid))doSet=sid;}resetQuestion(rd.dataset.redo);return;}
+  const verify=e.target.closest('[data-verify-ink]');if(verify){openWriter(verify.dataset.verifyInk);return;}
+  const rd=e.target.closest('[data-redo]');if(rd){const it=byId.get(rd.dataset.redo);if(it){const sid=realSetOf(it);if(setOf(sid))doSet=sid;}openWriter(rd.dataset.redo);return;}
   const an=e.target.closest('[data-annot]');if(an){const q=an.dataset.annot;const it=byId.get(q);if(!it)return;const sid=realSetOf(it);
     if(it.mc===1){openSet(sid);setTimeout(()=>{const el=document.getElementById('q_'+encodeURIComponent(it.id));if(el)el.scrollIntoView({block:'start'});},80);}else{if(setOf(sid))doSet=sid;openWriter(q,{annot:!!attempts[q]?.s});}return;}});
 let noteT={};
@@ -2080,46 +2080,39 @@ async function reloadQuestion(q){
     localStorage.setItem(ukey('round-conflict')+'.'+Date.now()+'.'+q,JSON.stringify(backup));
     for(const key of ['ink','attempts','notes'])delete pending[key][q];delete pending.roundRevisions?.[q];
     for(const id of sets){delete pending.practice[id];delete pending.subs[id];}
-    delete INKS[q];delete inkCache[q];INKLOADED.delete(q);DRAW.dirty.delete(q);delete TG[q];delete roundConflicts[q];
+    delete INKS[q];delete inkCache[q];INKLOADED.delete(q);DRAW.dirty.delete(q);delete TG[q];delete roundConflicts[q];delete resetJobs[q];
     delete INK_REDO['s|'+q];delete LASSO.hist['s|'+q];delete EXTRA[q];gradeRequests.set(q,(gradeRequests.get(q)||0)+1);
     applyServer(latest);saveCache();await openWriter(q);toast('已载入最新作答，旧草稿已保留在本机备份');
   }catch(e){if(generation===SGEN)toast(errMsg(e));}
   finally{if(generation===SGEN){W.resetting=false;$('#writer').classList.remove('is-resetting');wStatus();}}
 }
-async function resetQuestion(q){
-  if(!byId.has(q)||W.resetting)return;
-  if(!roundsEnabled)return toast('重做功能正在启用，请稍后刷新页面再试');
-  if(!resetJobs[q]&&!confirm('清空这道题并重新作答？\n本轮作答、笔记和批改会归档，当前页面恢复空白。重新提交后老师会重新批改，其他题目和错题记录不变。'))return;
-  const generation=SGEN,token=session?.token;W.resetting=true;$('#writer').classList.add('is-resetting');
+/* Old reset requests are never replayed. Reconcile by reading, with a recoverable
+   backup before releasing the old lock. A changed revision still blocks old queues. */
+async function verifyLegacyReset(q){
+  if(!resetJobs[q])return true;
+  const generation=SGEN,token=session?.token,job=resetJobs[q];
   try{
-    cancelStroke();laserClear();lassoClear();
-    if(!resetJobs[q]){
-      flushInk();clearTimeout(flushT);
-      for(let n=0;flushing&&n<100;n++)await new Promise(r=>setTimeout(r,50));
-      if(flushing)throw Error('仍在保存，请稍后重试');await flush();
-      if(generation!==SGEN||token!==session?.token)return;
-      if(npend())throw Error('请先联网，等待所有笔迹同步完成后再重做');
-      const fresh=await rpc('question_state',{p_token:token,p_qid:q});if(generation!==SGEN||token!==session?.token)return;
-      if(!fresh.ok)throw Error(fresh.error);if(fresh.state.revision!==(rounds[q]||0))throw Error('QUESTION_CHANGED');
-      const sets=allSets().filter(s=>setItems(s.id).some(i=>i.id===q||learningRecordParent(i.id)===q)).map(s=>s.id);
-      resetJobs[q]={fingerprint:fresh.fingerprint,id:crypto.randomUUID(),sets};saveCache();
-    }
-    const job=resetJobs[q],j=await rpc('reset_question',{p_token:token,p_qid:q,p_fingerprint:job.fingerprint,p_request_id:job.id,p_sets:job.sets});
-    if(generation!==SGEN||token!==session?.token)return;
-    if(!j.ok){if(j.error==='QUESTION_CHANGED'){delete resetJobs[q];saveCache();}throw Error(j.error);}
-    // A lost response can be retried after another device has already started the new round.
-    // Read current state instead of replacing that newer work with an assumed blank page.
-    const latest=await rpc('me',{p_token:token});if(generation!==SGEN||token!==session?.token)return;
-    if(!latest.ok)throw Error(latest.error);
-    delete resetJobs[q];delete roundConflicts[q];delete attempts[q];delete grades[q];delete TG[q];delete notes[q];delete inkIds[q];delete redoAt[q];
-    gradeRequests.set(q,(gradeRequests.get(q)||0)+1);delete INKS[q];delete inkCache[q];INKLOADED.delete(q);DRAW.dirty.delete(q);
-    delete INK_REDO['s|'+q];delete LASSO.hist['s|'+q];delete EXTRA[q];
-    for(const id of job.sets){delete subs[id];practice[id]=0;delete pending.subs[id];delete pending.practice[id];}
-    for(const id of Object.keys(subs))if(isHW(id)&&setItems(id).some(i=>i.id===q))delete subs[id];
-    delete pending.roundRevisions?.[q];applyServer(latest);saveCache();
-    if(W.q===q)await openWriter(q);else renderAll();toast('已清空，可以重新作答并提交');
-  }catch(e){if(generation===SGEN){if(e.message==='QUESTION_CHANGED')roundConflicts[q]=true;toast(errMsg(e));if(resetJobs[q])tip('重做结果尚未确认。请联网后再点「清空重做」重试，不会重复清空。');}}
-  finally{if(generation===SGEN){W.resetting=false;$('#writer').classList.remove('is-resetting');if(W.q)wStatus();}}
+    const fresh=await rpc('question_state',{p_token:token,p_qid:q});
+    if(generation!==SGEN||token!==session?.token)return false;if(!fresh.ok)throw Error(fresh.error);
+    const latest=await rpc('me',{p_token:token});
+    if(generation!==SGEN||token!==session?.token)return false;if(!latest.ok)throw Error(latest.error);
+    if((latest.rounds?.[q]||0)!==fresh.state.revision)throw Error('QUESTION_CHANGED');
+    localStorage.setItem(ukey('reset-backup')+'.'+job.id,JSON.stringify({q,job,revision:rounds[q]||0,ink:INKS[q]||inkCache[q],attempt:attempts[q],grade:TG[q]||grades[q],pending:pending.ink[q]}));
+    const queued=['ink','attempts','notes'].some(k=>Object.hasOwn(pending[k],q));
+    if(queued&&(pending.roundRevisions?.[q]??rounds[q]??0)!==fresh.state.revision){roundConflicts[q]=true;throw Error('QUESTION_CHANGED');}
+    if(!queued){delete INKS[q];delete inkCache[q];INKLOADED.delete(q);DRAW.dirty.delete(q);delete INK_REDO['s|'+q];delete LASSO.hist['s|'+q];}
+    delete TG[q];gradeRequests.set(q,(gradeRequests.get(q)||0)+1);
+    applyServer(latest);delete resetJobs[q];saveCache();return true;
+  }catch(e){if(generation===SGEN)toast('旧操作核对未完成：'+errMsg(e));return false;}
+}
+function clearStudentInk(q){
+  if(!q||W.resetting||resetJobs[q]||roundConflicts[q])return tip('请先完成当前题目的同步核对');
+  if(!INKLOADED.has(q))return tip('请等待原有笔迹加载完成后再清空');
+  cancelStroke();eraseFlush();const before=(INKS[q]||[]).slice();
+  if(!before.length)return tip('当前题页没有自己的笔迹');
+  if(!confirm('清空当前题页的全部个人笔迹（含本题笔记和答案批注）？\n老师的分数、评语和红笔、提交状态都保留，无需重新提交。误清可点撤销。'))return;
+  lassoClear();inkEraseHistory({},'s|'+q,before,[]);INKS[q]=[];
+  redrawQ(q);markDirty(q);tip('本题个人笔迹已清空，老师批改保留；可点撤销恢复');
 }
 
 /* ---- 笔记区：虚拟条带 i = 100 + 段序号，高度随笔迹自动加长；随笔迹一起入库 ---- */
@@ -2740,7 +2733,8 @@ function laserMove(e){const t=LASER.cur;if(!t)return;const f=laserFrame(),sample
   // actual tip; smoothing the input by 0.55 used to leave a visible trailing gap.
   for(const s of samples){const [x,y]=laserPt(s,f);if(Math.hypot(x-t.sx,y-t.sy)<.01)continue;const [cx,cy]=laserToC(x,y,f);t.sx=x;t.sy=y;t.p.push([cx,cy,x,y]);LASER.dirty=true;}}
 function laserUp(e){if(LASER.cur){if(e&&e.type==='pointerup')laserMove(e);LASER.cur.end=performance.now();LASER.cur=null;LASER.dirty=true;}}
-function laserClear(){LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
+function laserRelease(t){if(t.cache){t.cache.cv.width=t.cache.cv.height=0;delete t.cache;}}
+function laserClear(){LASER.trails.forEach(laserRelease);LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
 function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[1],f));if(!P.length)return;c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
   const path=new Path2D();path.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length-1;i++)path.quadraticCurveTo(P[i][0],P[i][1],(P[i][0]+P[i+1][0])/2,(P[i][1]+P[i+1][1])/2);const L=P[P.length-1];path.lineTo(L[0],L[1]);
   // Screen-sized bloom remains visible on white paper at every paper zoom.
@@ -2751,13 +2745,38 @@ function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[
   }
   if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],10);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.2,'rgba(255,245,235,.95)');g.addColorStop(.45,'rgba(255,25,50,.55)');g.addColorStop(1,'rgba(255,20,40,0)');
   c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],10,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
+/* Composite the completed glow once, then fade the whole image. Re-blurring
+   every path on every fading frame is costly on iPad, and fading separate
+   overlapping glow layers makes the bright centre linger disproportionately.
+   Cropped caches share a 4M-pixel budget and are invalidated on view changes. */
+function laserRender(c,t,alpha,f,sig){
+  if(!t.end)return laserDraw(c,t,alpha,f);
+  if(t.cache&&t.cache.sig!==sig)laserRelease(t);
+  if(!t.cache){
+    let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    for(const p of t.p){const [x,y]=laserToS(p[0],p[1],f);x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x);y1=Math.max(y1,y);}
+    const sx=LASER.dpr,sy=LASER.sy||sx;
+    x0=Math.max(0,Math.floor(x0-48));y0=Math.max(0,Math.floor(y0-48));
+    x1=Math.min(LASER.cv.width/sx,Math.ceil(x1+48));y1=Math.min(LASER.cv.height/sy,Math.ceil(y1+48));
+    const w=Math.ceil((x1-x0)*sx),h=Math.ceil((y1-y0)*sy);
+    const used=LASER.trails.reduce((n,v)=>n+(v.cache?v.cache.cv.width*v.cache.cv.height:0),0);
+    if(w>0&&h>0&&w*h+used<=4e6){
+      const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      const ctx=cv.getContext('2d');ctx.setTransform(sx,0,0,sy,-x0*sx,-y0*sy);laserDraw(ctx,t,1,f);
+      t.cache={cv,x:x0,y:y0,w:w/sx,h:h/sy,sig};
+    }
+  }
+  if(!t.cache)return laserDraw(c,t,alpha,f);
+  c.save();c.globalAlpha=alpha;c.shadowBlur=0;c.shadowColor='transparent';
+  const b=t.cache;c.drawImage(b.cv,b.x,b.y,b.w,b.h);c.restore();
+}
 function laserLoop(){if(LASER.raf)return;const f=()=>{LASER.raf=0;if(!LASER.cv)return;const now=performance.now(),c=LASER.cv.getContext('2d');
   laserAttach(LASER.host,LASER.view);const g=laserFrame(),p=g.paper,o=g.o,sig=[o.left,o.top,o.sx,o.sy,o.w,o.h,LASER.cv.style.clipPath,p&&p.left,p&&p.top,p&&p.width,scrollX,scrollY].join(',');
   const count=LASER.trails.length,fading=LASER.trails.some(t=>t.end&&now-t.end>=LASER.hold);
-  LASER.trails=LASER.trails.filter(t=>!t.end||now-t.end<LASER.hold+LASER.fade);
+  LASER.trails=LASER.trails.filter(t=>{if(!t.end||now-t.end<LASER.hold+LASER.fade)return true;laserRelease(t);return false;});
   if(LASER.dirty||sig!==LASER.sig||fading||count!==LASER.trails.length){LASER.dirty=false;LASER.sig=sig;
     c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);c.setTransform(LASER.dpr,0,0,LASER.sy||LASER.dpr,0,0);
-    for(const t of LASER.trails){const u=t.end?Math.max(0,Math.min(1,(now-t.end-LASER.hold)/LASER.fade)):0;laserDraw(c,t,1-u*u*(3-2*u),g);}}
+    for(const t of LASER.trails){const u=t.end?Math.max(0,Math.min(1,(now-t.end-LASER.hold)/LASER.fade)):0;laserRender(c,t,1-u*u*(3-2*u),g,sig);}}
   if(LASER.trails.length)LASER.raf=requestAnimationFrame(f);};LASER.raf=requestAnimationFrame(f);}
 addEventListener('resize',()=>{if(LASER.host&&LASER.trails.length)laserAttach(LASER.host,LASER.view);});
 
@@ -2783,7 +2802,7 @@ function pdown(e,cv){if(W.resetting||resetJobs[cv._ink?.q])return;const K=cv._in
   if(!cv.width||!cv.height)fitCanvas(cv);
   W.act=Date.now();
   if(DRAW.cur&&DRAW.cur.id!==e.pointerId){if(e.isPrimary||!DRAW.cur.cv||!DRAW.cur.cv.isConnected)abandonCur();else return;}   // 上一笔丢了抬笔事件：先收尾，不让它卡住
-  if(K.locked()&&DRAW.tool!=='marker'){tip('已提交的题不能再改笔迹；要重来点「清空重做」');return;}
+  if(K.locked()){tip('请等待笔迹加载完成');return;}
   e.preventDefault();try{cv.setPointerCapture(e.pointerId);}catch(x){}
   const r=cv.getBoundingClientRect(),[x,y]=normR(e,r),q=K.q,i=K.i;if(!INKS[q])INKS[q]=[];
   if(DRAW.tool==='laser'){DRAW.cur={laser:true,cv,id:e.pointerId,q};const inW=!!cv.closest('#writer');laserDown(inW?$('#wBody'):document.body,e,inW?VP:null);return;}
@@ -2823,16 +2842,15 @@ function pup(e,cv){
 function lassoSurface(cv){const inW=!!cv.closest('#writer'),q=cv._ink.q,box=inW?$('#wInner'):(cv.closest('.qbox')||cv.parentNode);
   return{key:'s|'+q,box,host:inW?$('#wBody'):document.body,zoom:()=>inW?VZ.z:1,
     canvases:()=>[...box.querySelectorAll('canvas')].filter(c=>c._ink&&c._ink.q===q),idx:c=>c._ink.i,
-    strokes:()=>INKS[q]||[],canMove:s=>!annotLayer(q)||!!s.a||!!s.f,stamp:s=>{if(annotLayer(q))s.a=1;return s;},
+    strokes:()=>INKS[q]||[],canMove:()=>true,stamp:s=>{if(annotLayer(q))s.a=1;return s;},
     commit:(arr,touched)=>{INKS[q]=arr;DRAW.lastQ=q;redrawQ(q);for(const i of touched)if(i>=NB&&i<AB)refreshBlock(q,i-NB);markDirty(q);},
     redraw:()=>redrawQ(q),tip};}
 /* 橡皮：局部（默认）/ 整笔；半径 = DRAW.esize 屏幕像素；一帧最多重画一次 */
 let eraseRaf=0;const eraseQs=new Set();
 function eraseFlush(){if(eraseRaf){cancelAnimationFrame(eraseRaf);eraseRaf=0;}for(const q of eraseQs)redrawQ(q);eraseQs.clear();}
-function eraseSeg(cur,x,y){const q=cur.q,i=cur.cv._ink.i,rect=cur.cv.getBoundingClientRect();if(!rect.width)return;const rn=DRAW.esize/rect.width,lock=annotLayer(q);
-  const before=INKS[q]||[],res=inkErase(before,i,cur.lx,cur.ly,x,y,rn,DRAW.ewhole,s=>!lock||!!s.a||!!s.f,cur.Wd);cur.lx=x;cur.ly=y;
+function eraseSeg(cur,x,y){const q=cur.q,i=cur.cv._ink.i,rect=cur.cv.getBoundingClientRect();if(!rect.width)return;const rn=DRAW.esize/rect.width;
+  const before=INKS[q]||[],res=inkErase(before,i,cur.lx,cur.ly,x,y,rn,DRAW.ewhole,()=>true,cur.Wd);cur.lx=x;cur.ly=y;
   if(res.changed){inkEraseHistory(cur,'s|'+q,before,res.arr);INKS[q]=res.arr;cur.hit=true;eraseQs.add(q);if(!eraseRaf)eraseRaf=requestAnimationFrame(()=>{eraseRaf=0;for(const k of eraseQs)redrawQ(k);eraseQs.clear();});}
-  else if(res.blocked&&!eraseSeg._t){eraseSeg._t=setTimeout(()=>eraseSeg._t=null,2500);tip('已保存的答案不能擦，只能擦之后写的批注');}
   inkEraserRing(x,y,rn,cur.Wd,zoomOf(cur.cv));}
 /* ---- 图形识别（GoodNotes 式）：落笔后停住 HOLD_MS 不动，当前笔画变成直线 / 圆(椭圆) / 三角形 / 四边形 ---- */
 const HOLD_MS=1500;
@@ -2892,8 +2910,8 @@ document.addEventListener('click',e=>{
     redoMark('s|'+q,INKS[q]);redrawQ(q);markDirty(q);return;}
   if(a.dataset.act==='undo'){const q=W.q||DRAW.lastQ;const before=((q&&INKS[q])||[]).slice();
     const le=q&&lassoUndo('s|'+q,()=>INKS[q]||[],arr=>{INKS[q]=arr;redrawQ(q);markDirty(q);});if(le){redoPush('s|'+q,{k:'lasso',e:le},before,INKS[q]||[]);return;}
-    lassoClear();if(!q||!INKS[q]||!INKS[q].length)return tip('没有可撤销的笔迹');const cvq=(CVS[q]||[])[0];const last=INKS[q][INKS[q].length-1];if(annotLayer(q)&&!last.a&&!last.f)return tip('已保存的答案不能再改，只能撤销之后写的批注');INKS[q].pop();redoPush('s|'+q,{k:'stroke',s:last},before,INKS[q]);redrawQ(q);markDirty(q);}
-  if(a.dataset.act==='clear'){const q=W.q;if(!q)return;lassoClear();if(annotLayer(q)){const keep=(INKS[q]||[]).filter(s=>!s.a&&!s.f);if(keep.length===(INKS[q]||[]).length)return tip('已保存的答案不能再改；要重来点「清空重做」');if(!confirm('清空本题的批注和标记？（原答案保留）'))return;INKS[q]=keep;}else{if(!(INKS[q]||[]).length||!confirm('清空本题的全部手写？'))return;INKS[q]=[];}redrawQ(q);markDirty(q);}
+    lassoClear();if(!q||!INKS[q]||!INKS[q].length)return tip('没有可撤销的笔迹');const cvq=(CVS[q]||[])[0];const last=INKS[q][INKS[q].length-1];INKS[q].pop();redoPush('s|'+q,{k:'stroke',s:last},before,INKS[q]);redrawQ(q);markDirty(q);}
+  if(a.dataset.act==='clear')clearStudentInk(W.q);
   if(a.dataset.act==='old'){W.showOld=!W.showOld;a.setAttribute('aria-pressed',W.showOld);redrawQ(W.q);}});
 
 /* ======================================================================
@@ -2903,9 +2921,10 @@ const W={q:null,openSeq:0,old:[],showOld:false,redo:false,annot:false,list:[],pr
 async function openWriter(q,opts){if(W.resetting&&W.q!==q)return;opts=opts||{};const it=byId.get(q);if(!it)return;const request=++W.openSeq,generation=SGEN;W.act=0;W.pgq=null;laserClear();lassoClear();setTimeout(renderSetTabs,0);flushInk();W.q=q;W.list=doSet?setItems(doSet).map(i=>i.id):[q];W.redo=false;W.annot=false;W.showOld=false;
   const wr=$('#writer');wr.classList.add('on');wr.classList.toggle('annot',W.annot);document.body.style.overflow='hidden';
   $('#wMode').hidden=true;
+  if(resetJobs[q])await verifyLegacyReset(q);if(W.q!==q||request!==W.openSeq||generation!==SGEN)return;
   const at=attempts[q]||{};
   $('#wTitle').textContent=`#${pad(it.n)} ${it.o} · 第${setOf(realSetOf(it))?.ch||it.ch}章${learningMarks(it)?` · ${learningMarks(it)} 分`:''}${it.mc===1&&at.s?(at.ok?' · ✓ 答对':` · ✗ ${at.a?'你选 '+at.a:'未作答'} · 答案 ${it.L}`):''}`;
-  $('#wTools').innerHTML=toolbarHtml()+`<button class="tb" data-tool="marker" aria-pressed="false" title="标记错处：点一下做错的那一问">❌</button><button class="tb" data-act="clear" title="擦除当前可编辑笔迹">🗑</button><button class="tb wide" data-reset-question="${q}">清空重做</button><button class="tb wide" data-act="old" hidden aria-pressed="false" title="重做时显示上次的笔迹（淡色）">👀 上次笔迹</button>`;
+  $('#wTools').innerHTML=toolbarHtml()+`<button class="tb" data-tool="marker" aria-pressed="false" title="标记错处：点一下做错的那一问">❌</button><button class="tb" data-act="clear" title="清空本题个人笔迹，保留老师批改，可撤销">🗑</button><button class="tb wide" data-act="old" hidden aria-pressed="false" title="重做时显示上次的笔迹（淡色）">👀 上次笔迹</button>`;
   resetView();
   wetFree();cancelStroke();setTimeout(pruneCVS,0);$('#wInner').innerHTML=sourceRecordHtml(q)+it.i.map((src,i)=>`<div class="strip" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-q="${q}" data-i="${i}"></canvas></div>`+partAnswerHtml(it,i)).join('')+writerChoices(it)+`<div class="wans" id="wAnsBox" hidden></div><div class="selfmark" id="wSelf" hidden></div><div style="height:30vh"></div>`;
   W.partAnswers=!!at.s;
@@ -2944,7 +2963,8 @@ function wStatus(){const at=attempts[W.q]||{},it=byId.get(W.q);if(!it)return;con
   $('#wExpl').hidden=!(isP1&&submitted);$('#wAns').hidden=isP1||!submitted;
   const parts=hasPartAnswers(it)&&submitted;$('#wPartAnswers').hidden=!parts;$('#wPartAnswers').setAttribute('aria-pressed',parts&&W.partAnswers?'true':'false');
   $('#wInner').querySelectorAll('.part-answer').forEach(el=>el.hidden=!(parts&&W.partAnswers));
-  $('#wStatus').textContent=resetJobs[W.q]?'重做结果待确认 · 请重试':!submitted?'未提交 · 笔迹自动保存':isP1?(at.ok?'已提交 · 答对':'已提交 · 可查看解析'):g&&!gradeStale(W.q)?(g.sc==null?'已批注 · 可继续书写':`老师 ${g.sc}/${g.tt||'?'} · 可继续批注`):'已提交 · 待老师批改';
+  $('#wStatus').textContent=resetJobs[W.q]?'旧操作待核对':!submitted?'未提交 · 笔迹自动保存':isP1?(at.ok?'已提交 · 答对':'已提交 · 可查看解析'):g&&!gradeStale(W.q)?(g.sc==null?'已批注 · 可继续书写':`老师 ${g.sc}/${g.tt||'?'} · 可继续批注`):'已提交 · 待老师批改';
+  if(resetJobs[W.q])$('#wStatus').innerHTML=`旧操作待联网核对 <button data-verify-ink="${W.q}">重试核对</button>`;
   if(roundConflicts[W.q])$('#wStatus').innerHTML=`此题已在其他设备重做 <button data-reload-question="${W.q}">载入最新作答</button>`;
   if(!submitted){$('#wAnsBox').hidden=true;$('#wSelf').hidden=true;}wProg();}
 function completeRelatedSets(q){const ids=new Set([doSet,realSetOf(byId.get(q))]);for(const id of ids){if(!id||isHW(id))continue;const items=setItems(id);if(!items.length||!items.every(i=>attempts[i.id]?.s))continue;
