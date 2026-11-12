@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261112164324"></script>
+<script src="config.js?v=20261112165409"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1498,7 +1498,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261112164324';
+const BUILD='20261112165409';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
@@ -2743,11 +2743,14 @@ function laserUp(e){if(LASER.cur){if(e&&e.type==='pointerup')laserMove(e);LASER.
 function laserClear(){LASER.trails=[];LASER.cur=null;LASER.sig='';LASER.dirty=false;if(LASER.raf){cancelAnimationFrame(LASER.raf);LASER.raf=0;}if(LASER.cv){const c=LASER.cv.getContext('2d');c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,LASER.cv.width,LASER.cv.height);}}
 function laserDraw(c,t,alpha,f=laserFrame()){const P=t.p.map(q=>laserToS(q[0],q[1],f));if(!P.length)return;c.save();c.globalAlpha=alpha;c.lineCap='round';c.lineJoin='round';
   const path=new Path2D();path.moveTo(P[0][0],P[0][1]);for(let i=1;i<P.length-1;i++)path.quadraticCurveTo(P[i][0],P[i][1],(P[i][0]+P[i+1][0])/2,(P[i][1]+P[i+1][1])/2);const L=P[P.length-1];path.lineTo(L[0],L[1]);
-  c.shadowColor='rgba(255,30,45,.65)';c.shadowBlur=6*LASER.dpr;c.strokeStyle='rgba(255,45,55,.9)';c.lineWidth=3.5;c.stroke(path);
-  c.shadowBlur=0;c.strokeStyle='rgba(255,225,225,.95)';c.lineWidth=1.2;c.stroke(path);
-  if(P.length===1){c.beginPath();c.arc(L[0],L[1],1.75,0,Math.PI*2);c.fillStyle='#ff454f';c.fill();}
-  if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],6);g.addColorStop(0,'rgba(255,255,255,.98)');g.addColorStop(.3,'rgba(255,50,60,.95)');g.addColorStop(1,'rgba(255,40,40,0)');
-  c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],6,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
+  // Screen-sized bloom remains visible on white paper at every paper zoom.
+  // All three layers share the trail alpha so the halo never outlives the line.
+  for(const [width,color,blur,glow] of [[11,'rgba(255,20,45,.24)',15,'rgba(255,0,30,.95)'],[5,'#ff1738',5,'rgba(255,0,30,.9)'],[1.8,'#fff5ef',0,'transparent']]){
+    c.shadowColor=glow;c.shadowBlur=blur*LASER.dpr;c.strokeStyle=color;c.lineWidth=width;
+    if(P.length===1){c.beginPath();c.arc(L[0],L[1],width/2,0,Math.PI*2);c.fillStyle=color;c.fill();}else c.stroke(path);
+  }
+  if(!t.end){const g=c.createRadialGradient(L[0],L[1],0,L[0],L[1],10);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.2,'rgba(255,245,235,.95)');g.addColorStop(.45,'rgba(255,25,50,.55)');g.addColorStop(1,'rgba(255,20,40,0)');
+  c.fillStyle=g;c.beginPath();c.arc(L[0],L[1],10,0,Math.PI*2);c.fill();}c.restore();}   // 笔尖光点只在落笔时显示；抬笔后只留轨迹
 function laserLoop(){if(LASER.raf)return;const f=()=>{LASER.raf=0;if(!LASER.cv)return;const now=performance.now(),c=LASER.cv.getContext('2d');
   laserAttach(LASER.host,LASER.view);const g=laserFrame(),p=g.paper,o=g.o,sig=[o.left,o.top,o.sx,o.sy,o.w,o.h,LASER.cv.style.clipPath,p&&p.left,p&&p.top,p&&p.width,scrollX,scrollY].join(',');
   const count=LASER.trails.length,fading=LASER.trails.some(t=>t.end&&now-t.end>=LASER.hold);
