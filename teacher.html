@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261117140009"></script>
+<script src="config.js?v=20261117143124"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;--ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;
   --hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;--amber:#b7791f;--amber-l:#fff6e5;--sat:#f3e9eb;--radius:12px;
@@ -208,7 +208,7 @@ dialog::backdrop{background:rgba(20,10,12,.62)}
 .lcard .drag{cursor:grab;touch-action:none;color:var(--muted);font-size:15px;padding:0 4px;user-select:none}
 .lcard .lb{padding:4px;line-height:0}
 .lcard .ls{position:relative;line-height:0;margin-bottom:3px;border:1px solid #eee}
-.lcard .ls img{width:100%;display:block;pointer-events:none}
+.lcard .ls img{width:100%;height:auto;object-fit:fill;display:block;pointer-events:none}
 .lcard .ls canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .lcard .lempty{padding:18px;text-align:center;color:var(--muted);font-size:12px;line-height:1.4}
 .lbar{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px;font-size:12px;color:var(--muted)}
@@ -985,6 +985,10 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .lecture-class-summary>span{white-space:nowrap}
 .lgrid{align-items:start;grid-template-columns:repeat(var(--lcols,2),minmax(0,1fr))}
 .lgrid .lcard .lh{flex-wrap:wrap;padding:6px}.lgrid .lcard .lh b{flex:1 1 55px}
+
+/* Read-only original-paper previews use the same width-normalized geometry. */
+.preview-note-title{font-size:11px;line-height:1.5;padding:3px 4px;color:var(--muted)}
+.preview-note{width:100%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)}
 </style>
 </head>
 <body class="teacher-app">
@@ -1309,7 +1313,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261117140009';
+const BUILD='20261117143124';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 let PAPERS=[],SETCODES=[],SETYS={},byId=new Map(),Q2SET=new Map();
@@ -2229,16 +2233,37 @@ function laserLoop(){if(LASER.raf)return;const f=()=>{LASER.raf=0;if(!LASER.cv)r
   if(LASER.trails.length)LASER.raf=requestAnimationFrame(f);};LASER.raf=requestAnimationFrame(f);}
 addEventListener('resize',()=>{if(LASER.host&&LASER.trails.length)laserAttach(LASER.host,LASER.view);});
 
-async function openInk(q,u,lecture=false){const it=byId.get(q);if(!it)return;$('#iNo').textContent='#'+pad(it.n);$('#iTitle').textContent=it.o;$('#iWho').textContent=S[u]?S[u].n:u;
+// Read-only previews: each observer owns only its captured canvases and data.
+function watchInkPreview(root,strokesFor,valid){
+  const canvases=[...root.querySelectorAll('canvas[data-i]')];let stopped=false,frame=0;
+  const paint=()=>{frame=0;if(stopped||!valid())return;
+    for(const cv of canvases){if(!cv.isConnected||!root.contains(cv))continue;const bg=cv.previousElementSibling;
+      if(!bg||(bg.tagName==='IMG'&&(!bg.complete||!bg.naturalWidth)))continue;
+      const r=bg.getBoundingClientRect();if(!r.width||!r.height)continue;
+      const bs=inkBitmapScale(r.width,r.height,devicePixelRatio||1);
+      cv.width=Math.max(1,Math.round(r.width*bs));cv.height=Math.max(1,Math.round(r.height*bs));
+      const c=cv.getContext('2d');c.setTransform(cv.width/r.width,0,0,cv.height/r.height,0,0);c.lineCap='round';c.lineJoin='round';
+      for(const stroke of strokesFor(cv))if(stroke.i===+cv.dataset.i)drawStroke(c,stroke,r.width);
+    }
+  };
+  const schedule=()=>{if(!stopped&&!frame)frame=requestAnimationFrame(paint);};
+  const observer=typeof ResizeObserver==='function'?new ResizeObserver(schedule):null;
+  for(const cv of canvases){const bg=cv.previousElementSibling;if(bg){observer?.observe(bg);bg.addEventListener('load',schedule);}}
+  addEventListener('resize',schedule);paint();
+  return()=>{stopped=true;observer?.disconnect();cancelAnimationFrame(frame);removeEventListener('resize',schedule);for(const cv of canvases)cv.previousElementSibling?.removeEventListener('load',schedule);};
+}
+function previewNoteRatio(strokes,i){let bottom=0;for(const s of strokes)if(s.i===100+i)for(let k=1;k<s.p.length;k+=2)bottom=Math.max(bottom,s.p[k]);return Math.max(.18,bottom+.06);}
+let inkPreviewSeq=0,inkPreviewStop=null;
+function stopInkPreview(){inkPreviewSeq++;inkPreviewStop?.();inkPreviewStop=null;}
+async function openInk(q,u,lecture=false){const it=byId.get(q);if(!it)return;stopInkPreview();const seq=inkPreviewSeq,token=session?.token,course=CUR,valid=()=>seq===inkPreviewSeq&&session?.token===token&&CUR===course&&$('#dlgInk').open;$('#iNo').textContent='#'+pad(it.n);$('#iTitle').textContent=it.o;$('#iWho').textContent=S[u]?S[u].n:u;
   $('#iBody').innerHTML='<div class="empty">加载中…</div>';$('#iNote').hidden=true;$('#dlgInk').showModal();
-  let strokes=[],grade=null;try{const j=await rpc('teacher_grade_get',{p_token:session.token,p_user:u,p_qid:q});if(j.ok){strokes=j.ink||[];grade=j.grade;}else throw new Error(j.error);}catch(e){try{const j=await rpc('teacher_ink',{p_token:session.token,p_user:u,p_qid:q});if(j.ok)strokes=j.strokes||[];}catch(e2){}}
+  let strokes=[],grade=null;try{const j=await rpc('teacher_grade_get',{p_token:token,p_user:u,p_qid:q});if(j.ok){strokes=j.ink||[];grade=j.grade;}else throw new Error(j.error);}catch(e){if(!valid())return;try{const j=await rpc('teacher_ink',{p_token:token,p_user:u,p_qid:q});if(!j.ok)throw Error(j.error);strokes=j.strokes||[];}catch(e2){if(valid())$('#iBody').innerHTML='<div class="empty">原卷暂未读取成功，请关闭后重试</div>';return;}}
+  if(!valid())return;
   if(grade)$('#iWho').textContent+=`　老师批改 ${grade.score!=null?grade.score+'/'+(grade.total||'?'):'（只有批注）'}`;
   const nt=RS&&RS.notes.find(x=>x.u===u&&x.q===q);if(nt){$('#iNote').hidden=false;$('#iNote').innerHTML=`<b>📝 学生笔记</b><div style="white-space:pre-wrap">${esc(nt.b)}</div>`;}
-  const nbR=k=>{let m=0;for(const s of strokes)if(s.i===100+k)for(let j=1;j<s.p.length;j+=2)m=Math.max(m,s.p[j]);return Math.max(0.18,m+0.06);};
-  $('#iBody').innerHTML=(lecture?lScoreStrip(grade?.comment):(grade?.comment?`<div class="lecture-feedback"><b>小问得分与评语</b><div>${esc(grade.comment)}</div></div>`:''))+it.i.map((src,i)=>`<div style="position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0"><img src="${IMG(src)}" alt="" style="width:100%;display:block${inkPadDecl(it,i)}"><canvas data-i="${i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>`+(strokes.some(s=>s.i===100+i)?`<div style="position:relative;margin:-6px 0 6px;line-height:0;border:1px solid var(--line);border-top:1px dashed #d9d0b3"><div style="width:100%;padding-bottom:${(nbR(i)*100).toFixed(1)}%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)"></div><canvas data-i="${100+i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas><span style="position:absolute;left:8px;top:4px;font-size:11px;color:#a89f80;line-height:1.2">📝 笔记区</span></div>`:'')).join('')+(strokes.length?'':'<div class="sub" style="padding:6px">这题没有手写内容</div>');
-  const draw=()=>{$('#iBody').querySelectorAll('canvas').forEach(cv=>{const img=cv.previousElementSibling;const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=r.width*dpr;cv.height=r.height*dpr;const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+cv.dataset.i;
-    for(const s of strokes){if(s.i!==i)continue;drawStroke(c,s,r.width);}if(grade)for(const s of grade.strokes||[]){if(s.i===i)drawStroke(c,s,r.width);}});};
-  $('#iBody').querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)draw();else im.onload=draw;});setTimeout(draw,300);}
+  const preview=strokes.concat(grade?.strokes||[]),nbR=k=>previewNoteRatio(preview,k);
+  $('#iBody').innerHTML=(lecture?lScoreStrip(grade?.comment):(grade?.comment?`<div class="lecture-feedback"><b>小问得分与评语</b><div>${esc(grade.comment)}</div></div>`:''))+it.i.map((src,i)=>`<div style="position:relative;background:#fff;border:1px solid var(--line);margin-bottom:6px;line-height:0"><img src="${IMG(src)}" alt="" style="width:100%;display:block${inkPadDecl(it,i)}"><canvas data-i="${i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas></div>`+(preview.some(s=>s.i===100+i)?`<div style="position:relative;margin:-6px 0 6px;line-height:0;border:1px solid var(--line);border-top:1px dashed #d9d0b3"><div style="width:100%;padding-bottom:${(nbR(i)*100).toFixed(1)}%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)"></div><canvas data-i="${100+i}" style="position:absolute;inset:0;width:100%;height:100%"></canvas><span style="position:absolute;left:8px;top:4px;font-size:11px;color:#a89f80;line-height:1.2">📝 笔记区</span></div>`:'')).join('')+(strokes.length?'':'<div class="sub" style="padding:6px">这题没有手写内容</div>');
+  inkPreviewStop=watchInkPreview($('#iBody'),()=>preview,valid);}
 document.addEventListener('change',e=>{if(e.target.id==='rsSel'){rsSet=e.target.value;RS=null;render();}});
 
 function renderStudents(){const us=vis().sort((a,b)=>S[a].n.localeCompare(S[b].n,'zh'));const showK=classes().length>0||!!klass;
@@ -2337,7 +2362,8 @@ function openQ(id,who){const it=byId.get(id);if(!it)return;
   else $('#dExpl').hidden=true;
   $('#dlgQ').showModal();}
 $('#dClose').onclick=()=>$('#dlgQ').close();
-$('#iClose').onclick=()=>$('#dlgInk').close();
+$('#iClose').onclick=()=>{stopInkPreview();$('#dlgInk').close();};
+$('#dlgInk').addEventListener('close',()=>{if(!$('#dlgInk').open)stopInkPreview();});
 /* ======================================================================
    讲题模式：左边是题目 + 老师的板书（保存在老师自己的 ink 记录里，下次讲还在），
    右边是这道题全班每个人的手写答案（可置顶 / 拖动排序 / 拿到左边讲）。
@@ -2350,16 +2376,18 @@ async function openLecture(set,q){await gSave();await lSave();L.on=true;L.set=se
   try{const lw=localStorage.getItem('ial27w.lw');if(lw)$('#lecture').style.setProperty('--lw',lw);}catch(e){}
   G.mode='lecture';G.q=L.q;$('#lecture').classList.add('on');document.body.style.overflow='hidden';lPanels();
   if(!L.colsUser){const w=$('#lRight').getBoundingClientRect().width||600;L.cols=w>=980?3:w>=600?2:1;}await lLoad();}
-async function closeLecture(){L.gridEpoch++;L.gridPending=null;await lSave();LV.suspend();laserClear();lassoClear();L.on=false;G.mode='grade';$('#lecture').classList.remove('on');document.body.style.overflow='';if(tab==='lec')render();}
+async function closeLecture(){L.gridStop?.();L.gridStop=null;L.loadSeq=(L.loadSeq||0)+1;L.gridEpoch++;L.gridPending=null;await lSave();LV.suspend();laserClear();lassoClear();L.on=false;G.mode='grade';$('#lecture').classList.remove('on');document.body.style.overflow='';if(tab==='lec')render();}
 function lProg(){const box=$('#lProg');const i=L.list.indexOf(L.q);box.innerHTML=L.list.map((q,k)=>`<i class="${(L.ink[q]||[]).length?'s':''} ${k===i?'cur':''}" data-lq="${q}" title="#${pad(byId.get(q).n)}"></i>`).join('')+`<span>第 ${i+1} / ${L.list.length} 题</span>`;}
-async function lLoad(){const q=L.q,it=byId.get(q);if(!it)return;laserClear();lassoClear();G.q=q;try{localStorage.setItem('ial27w.llast.'+CUR,JSON.stringify({set:L.set,q}));}catch(e){}
+async function lLoad(){const q=L.q,it=byId.get(q);if(!it)return;const seq=L.loadSeq=(L.loadSeq||0)+1,epoch=L.gridEpoch,token=session.token;
+  L.gridStop?.();L.gridStop=null;$('#lBar').innerHTML='';$('#lGrid').innerHTML='<div class="lempty">正在读取本题原卷…</div>';$('#lRight').scrollTop=0;laserClear();lassoClear();G.q=q;try{localStorage.setItem('ial27w.llast.'+CUR,JSON.stringify({set:L.set,q}));}catch(e){}
   $('#lTitle').textContent=`讲题 · #${pad(it.n)} ${it.o} · 第${setOf(L.set)?.ch||it.ch}章${learningMarks(it)?` · ${learningMarks(it)} 分`:''}`;$('#lTools').innerHTML=gToolbar();
   const i0=L.list.indexOf(q);$('#lPrev').disabled=i0<=0;$('#lNext').disabled=i0>=L.list.length-1;lProg();
   // 切题立即移除旧画布，防止新题加载期间落笔写在上一题画布上。
   LV.suspend();$('#lInner').innerHTML='<div class="empty">加载题目…</div>';
   // 老师自己的板书
-  if(!L.ink[q]){try{const j=await rpc('get_ink',{p_token:session.token,p_qid:q});L.ink[q]=(j.ok&&j.strokes)||[];}catch(e){L.ink[q]=[];}}
-  if(L.q!==q||!L.on)return;
+  const valid=()=>L.q===q&&L.on&&L.loadSeq===seq&&L.gridEpoch===epoch&&session?.token===token;
+  if(!L.ink[q]){try{const j=await rpc('get_ink',{p_token:token,p_qid:q});if(!valid())return;L.ink[q]=(j.ok&&j.strokes)||[];}catch(e){if(!valid())return;L.ink[q]=[];}}
+  if(!valid())return;
   lBoard(true);lWho();
   if(L.right)await lLoadGrid(q);}
 /* 左边板书：题图条带；有切好的评分方案（it.ap）时每条下面接它那一问的评分方案（也能写，i = 300 + 条带号），否则整份放在最后 */
@@ -2424,13 +2452,16 @@ async function lLoadGrid(q,force=false){
     const error=rows.some(r=>r.loadError)?'部分批改暂未同步，已保留可读取的记录。':'';
     const changed=JSON.stringify(rows)!==JSON.stringify(L.all[q])||L.gridError[q]!==error;
     L.all[q]=rows;L.gridAt[q]=Date.now();L.gridError[q]=error;
-    if(changed){lPaintFeedback();if(L.baseU){const r=rows.find(r=>r.u===L.baseU);if(r){L.base=(r.strokes||[]).filter(s=>!s.f&&(L.showAnn||!s.a)).concat(r.g?.strokes||[]);gRedrawAll();}}}
+    if(changed){lPaintFeedback();lSyncBase(rows);}
   }catch(e){if(valid()){L.gridError[q]=e.message||'批改暂未同步';lPaintFeedback();}}
   finally{if(L.gridPending===request)L.gridPending=null;}
 }
 function lRefreshFeedback(force=false){if(!L.on||!L.right||!session||document.hidden||G.mode!=='lecture'||L.drag||G.cur||PEN.down||(!force&&Date.now()-(L.gridAt[L.q]||0)<30000))return;return lLoadGrid(L.q,force);}
 setInterval(()=>lRefreshFeedback(),15000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)lRefreshFeedback(true);});
+function lSyncBase(rows=L.all[L.q]||[]){if(!L.baseU)return;const row=rows.find(r=>r.u===L.baseU);
+  if(row)L.base=(row.strokes||[]).filter(s=>!s.f&&(L.showAnn||!s.a)).concat(row.g?.strokes||[]);
+  else{L.base=null;L.baseU=null;}lWho();gRedrawAll();}
 function lWho(){const w=$('#lWho');if(!L.baseU){w.hidden=true;return;}w.hidden=false;w.innerHTML=`正在看 <b>${esc(S[L.baseU]?S[L.baseU].n:L.baseU)}</b> 的答案（老师板书叠在上面）<button class="sm" id="lClearBase">只看题目</button>`;$('#lClearBase').onclick=()=>{L.base=null;L.baseU=null;lWho();gRedrawAll();};}
 // Read explicit recorded marks only; never infer a breakdown from a total.
 function lPartScores(comment){
@@ -2456,16 +2487,16 @@ function lStudents(){const q=L.q;const rows=L.all[q]||[];const A={},gr={};for(co
   const pos=u=>{const i=L.order.indexOf(u);return i<0?999:i;};
   us.sort((a,b)=>pos(a)-pos(b)||S[a].n.localeCompare(S[b].n,'zh'));
   return{us,A,gr};}
-function lGrid(){const {us,A,gr}=lStudents();const q=L.q,it=byId.get(q);
+function lGrid(){L.gridStop?.();L.gridStop=null;const {us,A,gr}=lStudents();const q=L.q,it=byId.get(q),epoch=L.gridEpoch;if(!it)return;
   $('#lBar').innerHTML=`<span>${us.length} 人</span><button data-lrefresh>刷新批改</button><button data-lf="all" aria-pressed="${L.filter==='all'}">全部</button><button data-lf="ink" aria-pressed="${L.filter==='ink'}">写了的</button><button data-lf="lost" aria-pressed="${L.filter==='lost'}">有失分</button><button data-lann="1" aria-pressed="${L.showAnn}" title="学生保存后写的订正 / 批注层">学生批注</button><span class="grow"></span><button data-lcols="1" aria-pressed="${L.cols===1}">1 列</button><button data-lcols="2" aria-pressed="${L.cols===2}">2 列</button><button data-lcols="3" aria-pressed="${L.cols===3}">3 列</button>`;
   $('#lRight').style.setProperty('--lcols',L.cols);
-  $('#lGrid').innerHTML=(L.gridError[q]?`<div class="lecture-sync-error" role="status">${esc(L.gridError[q])}<button data-lrefresh>重试</button></div>`:'')+(it.mc===1?lMcDist(q,it):lClassSummary())+(us.length?us.map(u=>{const st=(A[u]||[]).filter(s=>!s.f&&(L.showAnn||!s.a)),g=gr[u],pin=L.order.includes(u),row=(L.all[q]||[]).find(r=>r.u===u),pending=g&&g.sc==null&&/待补交|待核对/.test(g.comment||'');
-    return `<div class="lcard ${pin?'pin':''}" data-u="${u}"><div class="lh"><span class="drag" title="按住拖动排序">⠿</span><b>${esc(S[u].n)}</b>${g?`<span class="gtag" title="已批改：显示原答案 + 老师红笔">${g.sc!=null?`已批 ${g.sc}/${g.tt||'?'}`:pending?'待核对':'已批注'}</span>`:'<span class="gtag" style="background:#f3f4f6;color:#6b7280" title="显示学生原卷">'+(row?.loadError?'批改待同步':row?.submitted===false?'未提交 · 原卷':'未批 · 原卷')+'</span>'}<button data-lgrade="${u}" title="批改这一题">批</button><button data-lpin="${u}" aria-pressed="${pin}" title="置顶">${pin?'⭐':'☆'}</button><button data-lshow="${u}" title="放到左边，在上面讲">讲</button><button data-lbig="${u}" title="放大看">⤢</button></div>
+  $('#lGrid').innerHTML=(L.gridError[q]?`<div class="lecture-sync-error" role="status">${esc(L.gridError[q])}<button data-lrefresh>重试</button></div>`:'')+(it.mc===1?lMcDist(q,it):lClassSummary())+(us.length?us.map(u=>{const st=(A[u]||[]).filter(s=>!s.f&&(L.showAnn||!s.a)),g=gr[u],preview=st.concat(g?.strokes||[]),pin=L.order.includes(u),row=(L.all[q]||[]).find(r=>r.u===u),pending=g&&g.sc==null&&/待补交|待核对/.test(g.comment||'');
+    return `<div class="lcard ${pin?'pin':''}" data-u="${u}" data-q="${q}"><div class="lh"><span class="drag" title="按住拖动排序">⠿</span><b>${esc(S[u].n)}</b>${g?`<span class="gtag" title="已批改：显示原答案 + 老师红笔">${g.sc!=null?`已批 ${g.sc}/${g.tt||'?'}`:pending?'待核对':'已批注'}</span>`:'<span class="gtag" style="background:#f3f4f6;color:#6b7280" title="显示学生原卷">'+(row?.loadError?'批改待同步':row?.submitted===false?'未提交 · 原卷':'未批 · 原卷')+'</span>'}<button data-lgrade="${u}" title="批改这一题">批</button><button data-lpin="${u}" aria-pressed="${pin}" title="置顶">${pin?'⭐':'☆'}</button><button data-lshow="${u}" title="放到左边，在上面讲">讲</button><button data-lbig="${u}" title="放大看">⤢</button></div>
       ${lScoreStrip(g?.comment)}${row?.loadError?'<div class="lecture-sync-error">批改暂未同步</div>':''}
-      <div class="lb">${st.length?it.i.map((src,i)=>`<div class="ls" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-i="${i}"></canvas></div>`).join(''):'<div class="lempty">没有手写内容</div>'}</div></div>`;}).join(''):(it.mc===1?'<div class="lempty">还没有人在这题上写批注</div>':'<div class="lempty">这道题还没有人提交手写答案</div>'));
-  const paint=card=>{const u=card.dataset.u;const st=(A[u]||[]).filter(s=>!s.f&&(L.showAnn||!s.a)),tg=(gr[u]&&gr[u].strokes)||[];card.querySelectorAll('.ls').forEach(ls=>{const img=ls.querySelector('img'),cv=ls.querySelector('canvas');const r=img.getBoundingClientRect();if(!r.width)return;const dpr=devicePixelRatio||1;cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);c.lineCap='round';c.lineJoin='round';const i=+ls.dataset.i;for(const s of st)if(s.i===i)drawStroke(c,s,r.width);for(const s of tg)if(s.i===i)drawStroke(c,s,r.width);});};
-  $('#lGrid').querySelectorAll('.lcard').forEach(card=>{card.querySelectorAll('img').forEach(im=>{if(im.complete&&im.naturalWidth)paint(card);else im.onload=()=>paint(card);});});
-  setTimeout(()=>$('#lGrid').querySelectorAll('.lcard').forEach(paint),400);}
+      <div class="lb">${preview.length?it.i.map((src,i)=>`<div class="ls" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-i="${i}"></canvas></div>`+(preview.some(s=>s.i===100+i)?`<div class="preview-note-title">学生笔记区</div><div class="ls" data-i="${100+i}"><div class="preview-note" style="padding-bottom:${(previewNoteRatio(preview,i)*100).toFixed(1)}%"></div><canvas data-i="${100+i}"></canvas></div>`:'')).join(''):'<div class="lempty">没有手写内容</div>'}</div></div>`;}).join(''):(it.mc===1?'<div class="lempty">还没有人在这题上写批注</div>':'<div class="lempty">这道题还没有人提交手写答案</div>'));
+  const snapshots=new Map(us.map(u=>[u,(A[u]||[]).filter(s=>!s.f&&(L.showAnn||!s.a)).concat(gr[u]?.strokes||[])]));
+  L.gridStop=watchInkPreview($('#lGrid'),cv=>snapshots.get(cv.closest('.lcard').dataset.u)||[],()=>L.on&&L.right&&L.q===q&&L.gridEpoch===epoch);}
+
 function lMark(){L.dirty=true;$('#lStatus').textContent='板书保存中…';clearTimeout(L.saveT);L.saveT=setTimeout(lSave,1200);lProg();}
 async function lSave(){clearTimeout(L.saveT);if(!L.dirty)return;const q=L.q;L.dirty=false;try{const j=await rpc('save_ink',{p_token:session.token,p_qid:q,p_strokes:L.ink[q]||[]});if(!j.ok)throw new Error(j.error);if(L.q===q)$('#lStatus').textContent='板书已保存';}catch(e){L.dirty=true;$('#lStatus').textContent='⚠ 板书没存上：'+errMsg(e);}}
 async function lGo(k){const i=L.list.indexOf(L.q)+k;if(i<0||i>=L.list.length)return;await lSave();L.q=L.list[i];L.base=null;L.baseU=null;lLoad();}
@@ -2475,8 +2506,8 @@ $('#lStuBtn').onclick=()=>{L.right=!L.right;try{localStorage.setItem('ial27w.lri
   requestAnimationFrame(()=>{LV.onResize();if(L.right){lLoadGrid(L.q);}});};
 $('#lProg').addEventListener('click',async e=>{const i=e.target.closest('[data-lq]');if(!i||i.dataset.lq===L.q)return;await lSave();L.q=i.dataset.lq;L.base=null;L.baseU=null;lLoad();});
 $('#lTools').addEventListener('click',gToolClick);
-$('#lRight').addEventListener('click',e=>{if(e.target.closest('[data-lrefresh]')){lLoadGrid(L.q,true);return;}const f=e.target.closest('[data-lf]');if(f){L.filter=f.dataset.lf;lGrid();return;}
-  const an=e.target.closest('[data-lann]');if(an){L.showAnn=!L.showAnn;lGrid();return;}
+$('#lRight').addEventListener('click',e=>{const card=e.target.closest('.lcard');if(card&&card.dataset.q!==L.q)return;if(e.target.closest('[data-lrefresh]')){lLoadGrid(L.q,true);return;}const f=e.target.closest('[data-lf]');if(f){L.filter=f.dataset.lf;lGrid();return;}
+  const an=e.target.closest('[data-lann]');if(an){L.showAnn=!L.showAnn;lGrid();lSyncBase();return;}
   const c=e.target.closest('[data-lcols]');if(c){L.cols=+c.dataset.lcols;L.colsUser=true;lGrid();return;}
   const pin=e.target.closest('[data-lpin]');if(pin){const u=pin.dataset.lpin;const i=L.order.indexOf(u);if(i>=0)L.order.splice(i,1);else L.order.unshift(u);localStorage.setItem(lOrderKey(),JSON.stringify(L.order));lGrid();return;}
   const sh=e.target.closest('[data-lshow]');if(sh){const u=sh.dataset.lshow;const row=(L.all[L.q]||[]).find(r=>r.u===u);L.base=(row?row.strokes:[]).filter(s=>!s.f&&(L.showAnn||!s.a)).concat((row&&row.g&&row.g.strokes)||[]);L.baseU=u;lWho();gRedrawAll();LV.resetView();return;}
@@ -2692,7 +2723,7 @@ async function gLoad(){const q=G.q,u=G.u,k=gk(u,q),it=byId.get(q);if(!it)return;
   const strokes=G.ink[k];const selfA=gAtt(u,q);const self=selfA&&selfA.s&&/^\d+\/\d+$/.test(selfA.a||'')?selfA.a:null;
   const gr=G.grade[k]||(G.grade[k]={score:null,total:learningMarks(it)||(self?+self.split('/')[1]:null),comment:'',strokes:[],_new:true,_revision:G.revisions?.[k]});
   if(gr.total==null)gr.total=learningMarks(it)||(self?+self.split('/')[1]:null);
-  const nbR=k=>{let m=0;for(const s of strokes)if(s.i===100+k)for(let j=1;j<s.p.length;j+=2)m=Math.max(m,s.p[j]);return Math.max(0.18,m+0.06);};
+  const nbR=k=>previewNoteRatio(strokes,k);
   const submitted=!!(selfA&&selfA.s);
   $('#gInner').innerHTML=`${submitted?`<div class="sub" style="margin-bottom:6px">学生保存于 ${selfA&&selfA.t?ago(selfA.t*1000):'—'}；保存后原答案已锁定，之后写的算批注层</div>`:'<div class="sub" style="margin-bottom:6px;color:var(--amber)">⚠ 这题学生还没点「保存」，看到的是草稿（学生可能还在写）</div>'}${strokes.filter(s=>!s.a&&!s.f).length?'':'<div class="sub" style="margin-bottom:6px">这题学生没有手写内容</div>'}`+
     it.i.map((src,i)=>`<div class="gstrip" data-i="${i}"><img src="${IMG(src)}" alt=""${inkPadCss(it,i)}><canvas data-i="${i}"></canvas></div>`+(strokes.some(s=>s.i===100+i)?`<div class="gstrip nb" data-i="${100+i}"><div class="nbg" style="padding-bottom:${(nbR(i)*100).toFixed(1)}%"></div><canvas data-i="${100+i}"></canvas><span class="nbl">📝 学生笔记区</span></div>`:'')).join('')+
@@ -2725,7 +2756,7 @@ const gTarget=()=>{if(G.mode==='lecture')return L.ink[G.q]=L.ink[G.q]||[];const 
 const gChanged=()=>G.mode==='lecture'?lMark():gMark();
 function gRedraw(cv){if(!cv.width||!cv.height)return;const i=+cv.dataset.i,q=G.q;const c=gCtx(cv);const Wd=(cv.getBoundingClientRect().width||1)/gZoom(cv);c.clearRect(0,0,cv.width,cv.height);
   const base=G.mode==='lecture'?(L.base||[]):(G.ink[gk(G.u,q)]||[]);
-  for(const s of base){if(s.i!==i)continue;if((s.a||s.f)&&!G.showAnn)continue;drawStroke(c,s,Wd);}
+  for(const s of base){if(s.i!==i)continue;if(G.mode!=='lecture'&&(s.a||s.f)&&!G.showAnn)continue;drawStroke(c,s,Wd);}
   const own=G.mode==='lecture'?(L.ink[q]||[]):((G.grade[gk(G.u,q)]||{}).strokes||[]);for(const s of own)if(s.i===i)drawStroke(c,s,Wd);}
 const gRedrawAll=()=>document.querySelectorAll((G.mode==='lecture'?'#lInner':'#gInner')+' canvas:not(.inkwet)').forEach(gRedraw);
 const gNormR=(e,r)=>[(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.width];

@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-title" content="ESIC刷物理">
 <meta name="theme-color" content="#A51C30">
 <script>window.PLAN_SYNC={"url": "https://pijljjeypqnbypjzfewn.supabase.co", "key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBpamxqamV5cHFuYnlwanpmZXduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTA2NzcsImV4cCI6MjEwNDAyNjY3N30.aEeOZHWf3sad4Xa_juNjHGQ4LeXX55aCUMql7ENvYk8", "table": "progress"};</script>
-<script src="config.js?v=20261117140009"></script>
+<script src="config.js?v=20261117143124"></script>
 <style>
 :root{--crimson:#A51C30;--crimson-d:#6F1220;--crimson-l:#C8455A;--bg:#f7f5f5;--card:#fff;
   --ink:#1e232a;--muted:#6e7681;--line:#e6e2e2;--hi:#fdf3f4;--green:#1E7A34;--green-l:#e6f4ea;
@@ -1140,6 +1140,10 @@ body:has(.writer.on,.grader.on,.lecture.on) {overscroll-behavior:none}
 .lecture-class-summary>span{white-space:nowrap}
 .lgrid{align-items:start;grid-template-columns:repeat(var(--lcols,2),minmax(0,1fr))}
 .lgrid .lcard .lh{flex-wrap:wrap;padding:6px}.lgrid .lcard .lh b{flex:1 1 55px}
+
+/* Read-only original-paper previews use the same width-normalized geometry. */
+.preview-note-title{font-size:11px;line-height:1.5;padding:3px 4px;color:var(--muted)}
+.preview-note{width:100%;background:#fffdf5;background-image:repeating-linear-gradient(transparent 0 27px,#e6dfc6 27px 28px)}
 </style>
 </head>
 <body class="student-app">
@@ -1506,7 +1510,7 @@ function partAnswerHtml(it,i){
   addEventListener('resize',schedule);schedule();
 })();
 
-const BUILD='20261117140009';
+const BUILD='20261117143124';
 const SY=window.PLAN_SYNC||{};
 const MOCK=new URLSearchParams(location.search).get('mock');
 const $=s=>document.querySelector(s);
